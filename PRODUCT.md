@@ -57,6 +57,11 @@ reading experience and the canonical reference for the world.
 - Reading the comic: pages, chapters, archive navigation.
 - A wiki covering the comic's world.
 - Hub role for material related to the series.
+- **Page format is 1080 × 1620, a 2:3 portrait**, consistent across all ten
+  supplied drafts. Phone-native by construction. 1080px is also the resolution
+  ceiling on current material.
+- **Lettering is drawn into the artwork**, not a text layer. Dialogue and SFX are
+  hand-lettered and cross panel borders.
 
 **Explicitly undecided — do not invent these:**
 - Publication cadence, and current page or chapter counts.
@@ -67,6 +72,12 @@ reading experience and the canonical reference for the world.
 - Any shop, merch, print, or monetization surface.
 - Content management approach (static files vs. CMS) and hosting/deployment.
 - Whether accessible transcripts or alt text accompany comic pages — see below.
+- **Content rating and whether the site carries a content note.** Profanity
+  appears in the page drafts, so the script is not all-ages by default. The
+  primary visitor arrives cold from social with no context, which makes this a
+  real product decision rather than a formality.
+- **Reading order.** The supplied drafts have timestamp filenames, no page
+  numbers, and no chapter grouping. Sequence is currently unknown.
 
 ## Brand Commitments
 
@@ -122,5 +133,9 @@ testimonials, press mentions, or artwork presented as the real comic.
 No product-specific standard has been established yet. One question is material
 and left open deliberately: a comic is image-carried narrative, so whether pages
 ship with transcripts or descriptive alt text determines whether the story is
-reachable by screen-reader and low-vision readers at all. Recorded as an open
-product decision rather than an assumed requirement.
+reachable by screen-reader and low-vision readers at all.
+
+The drafts sharpen this. Lettering is **drawn into the artwork**, so dialogue is
+not extractable — there is no path to selectable text, screen-reader access,
+search, or translation without the creator writing transcripts separately. That
+is a cost worth naming before it is assumed away, not an assumed requirement.

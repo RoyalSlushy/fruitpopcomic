@@ -119,7 +119,80 @@ range across characters, not a palette for one surface.
 
 ---
 
-## 3. The moodboard conflict — resolved by the logo
+## 3. The page drafts
+
+Ten files in [`references/pages/`](references/pages/).
+
+**These are drafts, not finished pages.** All ten are single-hue roughs — verified
+programmatically, none has more than one dominant ink hue. There is no final
+linework, no colour, no typeset lettering. Their value is **structural**: they
+establish how a page is built. They do **not** establish how a finished page
+looks — the character art in §2 is the authority on rendering.
+
+### Page format — the most useful fact here
+
+**All ten are exactly 1080 × 1620. A clean 2:3 portrait, with zero variation.**
+
+That is the page proportion the reader must be built around, and it is
+phone-native by construction: 1080px is a standard phone width, and 2:3 portrait
+fills a phone screen almost exactly. For a product whose primary visitor arrives
+cold on mobile, the pages and the audience already agree.
+
+Constraint: 1080px is also the **ceiling**. A reader must not upscale past it, and
+finished pages should be exported larger if desktop display at any real size
+matters.
+
+### Panel grammar
+
+Three distinct page architectures appear across the drafts:
+
+- **Tiered with sub-splits** — e.g. two panels across, one full-width band, two
+  across. The conventional comic page.
+- **Full-width horizontal strips**, four stacked. Reads as a scroll, and is the
+  most phone-friendly of the three.
+- **Full-bleed splash** with no borders at all, for action beats.
+
+Panel borders are **hand-drawn and brushy**, never ruled. Gutters vary in width
+and are not mechanically consistent. A reader that frames these pages in crisp
+geometric containers will fight them.
+
+### Balloons and lettering
+
+- **Spiky burst-edged balloons** recur throughout — jagged, many-pointed. This is
+  the most distinctive lettering signature in the drafts.
+- **Cloud-edged balloons** mark dream or interior sequences.
+- **SFX are hand-lettered and integrated into the art**, not overlaid type —
+  `RIING!`, `RING!`, `POP!`. They cross panel borders freely.
+
+The implication for the site: lettering is **part of the artwork**, not a text
+layer. There is no path to selectable text, translation, or reflowed dialogue
+without the creator re-lettering. That constrains accessibility — see the open
+question in `PRODUCT.md`.
+
+### Ink colour drifts, then settles
+
+Chronologically: magenta (June 22) → sanguine (June 24) → **blue from June 26
+onward**, seven consecutive drafts. The creator appears to have settled on blue
+pencil for roughs. Not a brand fact, but useful for telling draft stages apart.
+
+### Story facts these confirm
+
+Real, from the drafts themselves — not inferred:
+
+- A character is named **Ronnie**, addressed in dialogue.
+- **Profanity appears in dialogue.** One balloon reads *"RONNIE! TURN THAT
+  F—KIN' THING OFF BOY!!"* with the word partly scribbled over. Whether that
+  censoring is in-story styling or draft shorthand is unclear, but the register
+  is established: this is not an all-ages script by default.
+- The **pointed-ear character** from `characters/penup_20250527_143006-1-1.jpg`
+  appears in the page drafts, confirming the character art and the pages are the
+  same project.
+- Recurring scene material: an alarm clock, a bedroom, phones, a large
+  armoured/visored figure.
+
+---
+
+## 4. The moodboard conflict — resolved by the logo
 
 Earlier this file recorded an open fork: the pinned moodboard wanted dark
 saturated grounds, the character art wanted pale ones, and it was unclear which
@@ -159,10 +232,12 @@ different saturations; the logo's gold `#FCB040` (H36) and the art's gold family
 
 ---
 
-## 4. Still missing
+## 5. Still missing
 
-- **Vector / transparent / larger logo files.** See the constraint above.
-- **Finished comic pages.** Nothing on hand shows panel layout, gutters, lettering,
-  or page proportion — all of which the reading surface depends on. This is now the
-  only major blocker.
-- **Character names**, and any wiki content.
+- **Vector / transparent / larger logo files.** See §1.
+- **Finished pages.** The drafts settle format and architecture, but no page shows
+  final linework, colour, or lettering. A single finished page would fix the
+  rendering question the drafts cannot answer.
+- **Reading order.** Ten drafts with timestamp filenames and no page numbers. Which
+  page follows which, and which chapter they belong to, is unknown.
+- **Character names beyond Ronnie**, and any wiki content.
