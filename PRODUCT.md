@@ -73,6 +73,11 @@ reading experience and the canonical reference for the world.
 - The name **Fruit Pop Comic** is settled.
 - A logo/wordmark exists and is binding. It is to be used as-is, not redesigned or
   reinterpreted. The asset is not yet in the repository.
+- A **pinned aesthetic direction** exists: bold, vivid, stylish, y2k, established
+  from a creator-supplied reference board of game UI and planner-collage sources.
+  Recorded in [`docs/aesthetic-references.md`](docs/aesthetic-references.md). This
+  is a binding brief, not a suggestion. Palette, typefaces, and components remain
+  undecided — the pin fixes the world, not its specific values.
 
 ## Evidence on Hand
 
