@@ -72,7 +72,11 @@ reading experience and the canonical reference for the world.
 
 - The name **Fruit Pop Comic** is settled.
 - A logo/wordmark exists and is binding. It is to be used as-is, not redesigned or
-  reinterpreted. The asset is not yet in the repository.
+  reinterpreted. Both a full lockup and an **FP** monogram are in
+  `docs/references/logo/`, currently raster-only at 600×600 on an opaque ground;
+  vector and transparent versions are still wanted. The mark establishes the
+  brand palette and, with it, a **dark navy ground** (`#0C1326`) — see
+  [`docs/art-analysis.md`](docs/art-analysis.md).
 - A **pinned aesthetic direction** exists: bold, vivid, stylish, y2k, established
   from a creator-supplied reference board of game UI and planner-collage sources.
   Recorded in [`docs/aesthetic-references.md`](docs/aesthetic-references.md). This
