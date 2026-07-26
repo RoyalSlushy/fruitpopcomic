@@ -87,9 +87,12 @@ Real material the creator confirmed exists:
 - **Character designs, illustrations, and other art** beyond the finished pages.
 - **A name and a logo/wordmark.**
 
-**None of it is in the repository yet.** As of this record the repo contains only
-`README.md` and the installed Impeccable skill. Any work done before those assets
-land must treat placeholders as visibly provisional.
+**Partially in the repository.** Five character-art files are in
+`docs/references/characters/`, read in
+[`docs/art-analysis.md`](docs/art-analysis.md). The **logo/wordmark** and
+**finished comic pages** are still missing — nothing on hand yet shows panel
+layout, gutters, lettering, or page proportion, which the reading surface depends
+on. Work done before those land must treat placeholders as visibly provisional.
 
 Future work must not fabricate: page or chapter counts, character names, story
 events, lore, release dates, reader or follower numbers, review quotes,

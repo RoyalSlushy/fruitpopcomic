@@ -10,8 +10,10 @@ site — it is source material for design decisions.
 | `moodboard-01.jpg` | The seven-panel aesthetic board (game UI + planner collage) read in [`../aesthetic-references.md`](../aesthetic-references.md) | ✅ added |
 | `logo/` | The Fruit Pop Comic wordmark/logo. Binding — used as-is, not redesigned. Vector (SVG/AI) preferred over raster | **missing** |
 | `pages/` | Finished, publish-ready comic pages | **missing** |
-| `characters/` | Character designs, turnarounds, reference sheets | **missing** |
+| `characters/` | Character designs, turnarounds, reference sheets | ✅ 5 files |
 | `art/` | Covers, illustrations, sample panels, anything else | **missing** |
+
+Read of what is here: [`../art-analysis.md`](../art-analysis.md).
 
 ## Why these matter
 
