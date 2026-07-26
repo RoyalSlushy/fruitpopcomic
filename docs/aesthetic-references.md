@@ -9,8 +9,9 @@ checkout.
 
 ## Source board
 
-One reference board supplied by the creator, seven panels. The image file itself
-is not yet in the repo — see [`references/`](references/) for where it goes.
+[`references/moodboard-01.jpg`](references/moodboard-01.jpg) — a saved Pinterest
+board, seven distinct references across eight screens (the right-hand column is
+two screens of one game).
 
 | # | Reference | What it contributes |
 |---|---|---|
@@ -26,8 +27,23 @@ is not yet in the repo — see [`references/`](references/) for where it goes.
 
 The seven look scattered by subject but converge hard on form:
 
-- **Blue is the home ground.** Four of seven sit on saturated blue or navy; yellow
-  is the counterweight. This is not a neutral-plus-accent world.
+- **Blue is the home ground, and more so than a first glance suggests.** Five of
+  seven sit on blue, and it is two specific blues working together: a bright,
+  slightly violet **cobalt/royal** for fields and panels, and a **deep navy** for
+  grounds. Yellow and red are the counterweights — red almost always as the
+  action colour (the circular controls, the `GO!`), yellow as the highlight and
+  selected state. The two outliers prove the rule rather than breaking it: the
+  Monkey Ball panel is the yellow inverse, and the Cartoon Network panel is a
+  monochrome Game Boy green quotation. This is not a neutral-plus-accent world.
+- **Texture under the chrome.** None of these sit on flat colour. There is
+  halftone and burst behind the Monkey Ball tiles, a checkerboard in Arknights,
+  graffiti scrawl as ground in both Arknights and the navy HUD, bokeh behind
+  Kirby, and paper layering in the planner. The field is always doing something.
+- **Window chrome as ornament.** Title bars, and `▫ ▪ ✕` boxes recur — literal in
+  the Cartoon Network desktop, vestigial in the HUD panels' bracketed corners.
+- **Nothing is square to the grid.** The Kirby lozenges tilt, the Arknights tags
+  and scrawl sit off-axis, the planner's photocards and ribbon rotate. Tilt is
+  the board's default, not an accent.
 - **Chunky, tactile, outlined.** Thick borders, hard offset shadows, beveled and
   inflated buttons, pills and lozenges. Everything looks pressable and physical.
 - **The tile is the layout atom.** Modular cards and grids carry structure, not
@@ -86,7 +102,8 @@ full-bleed character art without covering the face. That is the move.
 
 ## Status
 
-- Reference board: **pinned, binding**.
+- Reference board: **pinned, binding.** Source image in the repo.
 - Palette, typefaces, and components: **not yet decided.** They get chosen during
   the visual-world step and recorded in `DESIGN.md` at finish.
-- Source image file: **not yet in the repo.**
+- Logo, comic pages, and character art: **still missing.** The palette should be
+  derived from the real artwork rather than from this board alone.
