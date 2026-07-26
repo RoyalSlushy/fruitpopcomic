@@ -1,0 +1,256 @@
+<!doctype html>
+<!--
+  DIRECTION CONTRACT — Fruit Pop Comic / home
+  THESIS: A webcomic hub built as a handheld console home menu. Refuses the
+  category default: centred logo over a START READING button with the page on a
+  neutral field.
+  OWN-WORLD: Navy starfield ground #0C1326. Channel tiles colour-blocked in the
+  logo's own magenta/cyan/gold/peach, each cut out with a white keyline over a
+  deep-magenta inline — the wordmark's exact treatment. Bungee for HUD labels,
+  Barlow for instrumentation. Chrome is loud; artwork is never touched by it.
+  STORY: A cold visitor sees a real page alive inside the READ channel,
+  understands this is a comic in seconds, and opens it in one tap.
+  FIRST VIEWPORT: Info bar with wordmark and counts drawn from the files. Below, a
+  channel grid — READ double-height with page one inside it under a Drafts badge,
+  then CAST, WIKI, ART, ABOUT. Primary action is the READ channel itself. No
+  recency is claimed anywhere: cadence was never supplied.
+  FORM: System Dashboard. Candidate 4 of 7 on the screen-native list, after two
+  re-rolls and a "go screen-native" steer. Seed key e61a73a4, degraded roll (no
+  challengers available).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fruit Pop Comic</title>
+<meta name="description" content="Fruit Pop Comic — read the comic, meet the cast, and dig into the world.">
+<meta name="theme-color" content="#0C1326">
+<link rel="icon" href="assets/logo/monogram.png">
+<link rel="preload" href="assets/fonts/bungee-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<canvas id="starfield" aria-hidden="true"></canvas>
+<div class="nebula" aria-hidden="true"></div>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ═══ SYSTEM BAR ═══ -->
+<header class="sysbar">
+  <a class="sysbar__home" href="#/" aria-label="Fruit Pop Comic — home">
+    <img src="assets/logo/wordmark.png" alt="Fruit Pop Comic" width="498" height="245">
+  </a>
+  <dl class="readout" aria-label="Status">
+    <div><dt>Pages</dt><dd id="ro-pages">—</dd></div>
+    <div><dt>Cast</dt><dd id="ro-cast">—</dd></div>
+    <div><dt>Status</dt><dd class="readout__flag">Draft</dd></div>
+  </dl>
+</header>
+
+<main id="main">
+
+  <!-- ═══ HOME: CHANNEL GRID ═══ -->
+  <section class="view view--home" data-view="home">
+    <h1 class="sr-only">Fruit Pop Comic</h1>
+
+    <div class="grid">
+
+      <a class="ch ch--read" href="#/read" data-ch="read" style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
+        <span class="ch__badge">Drafts</span>
+        <span class="ch__screen">
+          <img id="ch-read-img" alt="" width="1080" height="1620" loading="eager" decoding="async">
+          <span class="ch__scan" aria-hidden="true"></span>
+        </span>
+        <span class="ch__plate">
+          <span class="ch__name">Read</span>
+          <span class="ch__sub">Start from page one</span>
+        </span>
+      </a>
+
+      <a class="ch ch--cast" href="#/cast" data-ch="cast" style="--ch:var(--cyan);--ch-dp:var(--cyan-dp);--ch-ink:var(--navy)">
+        <span class="ch__screen ch__screen--cast">
+          <img id="ch-cast-img" alt="" width="900" height="1350" loading="lazy" decoding="async">
+        </span>
+        <span class="ch__plate">
+          <span class="ch__name">Cast</span>
+          <span class="ch__sub">Who's who</span>
+        </span>
+      </a>
+
+      <a class="ch ch--wiki" href="#/wiki" data-ch="wiki" style="--ch:var(--gold);--ch-dp:var(--gold-dp);--ch-ink:var(--navy)">
+        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
+            <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
+          </svg>
+        </span>
+        <span class="ch__plate">
+          <span class="ch__name">Wiki</span>
+          <span class="ch__sub">The world</span>
+        </span>
+      </a>
+
+      <a class="ch ch--art" href="#/art" data-ch="art" style="--ch:var(--peach);--ch-dp:var(--peach-dp);--ch-ink:var(--navy)">
+        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 6l6.6 13.4L53.5 21l-10.7 10.5 2.5 14.8L32 39.3 18.7 46.3l2.5-14.8L10.5 21l14.9-1.6z"/>
+          </svg>
+        </span>
+        <span class="ch__plate">
+          <span class="ch__name">Art</span>
+          <span class="ch__sub">Extras</span>
+        </span>
+      </a>
+
+      <a class="ch ch--about" href="#/about" data-ch="about" style="--ch:var(--indigo);--ch-dp:var(--indigo-dp);--ch-ink:#fff">
+        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="32" cy="32" r="24"/><path d="M32 28v16"/><path d="M32 20h.03"/>
+          </svg>
+        </span>
+        <span class="ch__plate">
+          <span class="ch__name">About</span>
+          <span class="ch__sub">The project</span>
+        </span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ═══ READER ═══ -->
+  <section class="view view--panel" data-view="read" hidden>
+    <div class="panel" style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
+      <div class="panel__bar">
+        <a class="btn btn--back" href="#/">Menu</a>
+        <p class="panel__title">Read</p>
+        <p class="panel__count"><span id="pg-now">1</span><span class="sep">/</span><span id="pg-all">10</span></p>
+      </div>
+
+      <p class="notice" role="note">
+        <strong>These are rough drafts.</strong> Working pencils, not finished pages —
+        no final linework, colour or lettering. Order is provisional.
+      </p>
+
+      <div class="reader">
+        <button class="nav nav--prev" id="prev" aria-label="Previous page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <figure class="page">
+          <img id="pg-img" alt="" width="1080" height="1620" decoding="async">
+          <figcaption class="page__tag">Draft</figcaption>
+        </figure>
+        <button class="nav nav--next" id="next" aria-label="Next page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <nav class="filmstrip" id="filmstrip" aria-label="All pages"></nav>
+    </div>
+  </section>
+
+  <!-- ═══ CAST ═══ -->
+  <section class="view view--panel" data-view="cast" hidden>
+    <div class="panel" style="--ch:var(--cyan);--ch-dp:var(--cyan-dp);--ch-ink:var(--navy)">
+      <div class="panel__bar">
+        <a class="btn btn--back" href="#/">Menu</a>
+        <p class="panel__title">Cast</p>
+        <p class="panel__count"><span id="cast-all">5</span></p>
+      </div>
+      <p class="notice" role="note">
+        <strong>Names not recorded yet.</strong> Only one is known from the drafts —
+        Ronnie. The rest are described, not named, until the creator says otherwise.
+      </p>
+      <div class="cast" id="cast"></div>
+    </div>
+  </section>
+
+  <!-- ═══ WIKI (EMPTY) ═══ -->
+  <section class="view view--panel" data-view="wiki" hidden>
+    <div class="panel" style="--ch:var(--gold);--ch-dp:var(--gold-dp);--ch-ink:var(--navy)">
+      <div class="panel__bar">
+        <a class="btn btn--back" href="#/">Menu</a>
+        <p class="panel__title">Wiki</p>
+      </div>
+      <div class="empty">
+        <div class="empty__mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
+            <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
+          </svg>
+        </div>
+        <h2>Nothing written yet</h2>
+        <p>
+          The wiki is real and it is empty. Characters, places, and lore go here once
+          the creator writes them — an empty shelf is honest, an invented one isn't.
+        </p>
+        <a class="btn btn--solid" href="#/cast">See the cast instead</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ART ═══ -->
+  <section class="view view--panel" data-view="art" hidden>
+    <div class="panel" style="--ch:var(--peach);--ch-dp:var(--peach-dp);--ch-ink:var(--navy)">
+      <div class="panel__bar">
+        <a class="btn btn--back" href="#/">Menu</a>
+        <p class="panel__title">Art</p>
+      </div>
+      <div class="cast cast--art" id="art"></div>
+    </div>
+  </section>
+
+  <!-- ═══ ABOUT ═══ -->
+  <section class="view view--panel" data-view="about" hidden>
+    <div class="panel" style="--ch:var(--indigo);--ch-dp:var(--indigo-dp);--ch-ink:#fff">
+      <div class="panel__bar">
+        <a class="btn btn--back" href="#/">Menu</a>
+        <p class="panel__title">About</p>
+      </div>
+      <div class="prose">
+        <h2>Fruit Pop Comic</h2>
+        <p>
+          A webcomic, and the hub for everything around it — the pages themselves, the
+          cast, and the world they live in, all in one place instead of scattered across
+          platforms.
+        </p>
+        <h3>What's real here, and what isn't</h3>
+        <p>
+          Everything on this site is the creator's own work. The logo and the character
+          art are finished. <strong>The comic pages are rough drafts</strong> — working
+          pencils in a single colour, shown to establish page format and panel grammar,
+          not final art. The wiki is genuinely empty.
+        </p>
+        <p>
+          Nothing has been invented to fill space: no page counts, no release dates, no
+          reader numbers, no character names beyond the one the drafts actually give.
+        </p>
+        <h3>Reading it</h3>
+        <p>
+          Pages are 1080&nbsp;&times;&nbsp;1620 — a 2:3 portrait that fills a phone
+          screen almost exactly. Use the arrows, the filmstrip, or the
+          <kbd>&larr;</kbd> and <kbd>&rarr;</kbd> keys.
+        </p>
+        <h3>A note on access</h3>
+        <p>
+          Dialogue is hand-lettered into the artwork, so it can't be selected, searched,
+          translated, or read by a screen reader. Transcripts would fix that and would
+          have to be written by hand. It's an open decision, flagged rather than
+          quietly skipped.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Art and characters &copy; the creator of Fruit Pop Comic.</p>
+  <p class="foot__build">Draft build &middot; pages are working roughs</p>
+</footer>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
