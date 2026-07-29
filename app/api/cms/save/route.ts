@@ -83,11 +83,18 @@ export async function POST(req: Request) {
        policy, so an anon or publishable key pasted into the service-role slot
        lands here rather than being rejected as malformed. */
     console.error('[cms] save failed', e);
-    const rejected = e instanceof SupabaseWriteError && (e.status === 401 || e.status === 403);
+    const status = e instanceof SupabaseWriteError ? e.status : 0;
+    /* 404 means the request arrived somewhere real and that somewhere has no
+       site_content table — which is what a SUPABASE_URL aimed at the wrong
+       project looks like, and is otherwise indistinguishable from a refusal. */
+    const hint =
+      status === 401 || status === 403
+        ? 'the database rejected the service key. Check SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or publishable key cannot write.'
+        : status === 404
+          ? 'no site_content table exists at SUPABASE_URL. Check it points at the right Supabase project.'
+          : null;
     return NextResponse.json({
-      error: rejected
-        ? 'Save failed: the database rejected the service key. Check SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or publishable key cannot write.'
-        : 'Save failed',
+      error: hint ? `Save failed: ${hint}` : 'Save failed',
     }, { status: 500 });
   }
 
