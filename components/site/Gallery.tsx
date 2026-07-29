@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { EditableText } from '../cms/EditableText.tsx';
 import { EditableImage } from '../cms/EditableImage.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
+import { Speak } from './Speak.tsx';
+import { passage } from '../../lib/speech.ts';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import type { Sheet } from '../../content/sheets.ts';
 
@@ -33,6 +35,13 @@ export function Gallery({
   const items = all.filter((s) => s.kind === kind);
   const count = items.reduce((a, s) => a + (s.figures || 0), 0);
 
+  /* The sheets are drawings; the descriptions under them are the only part
+     that can be spoken. Numbering them keeps the list followable by ear. */
+  const spoken = passage(
+    notice,
+    ...items.map((s, n) => passage(`Sheet ${n + 1}`, s.name, s.description)),
+  );
+
   return (
     <section className="view view--panel">
       <div
@@ -42,6 +51,7 @@ export function Gallery({
         <div className="panel__bar">
           <Link className="btn btn--back" href="/">Menu</Link>
           <h1 className="panel__title">{title}</h1>
+          <Speak text={spoken} />
           {kind === 'cast' && <p className="panel__count"><span>{count}</span></p>}
         </div>
 

@@ -672,6 +672,18 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .btn--solid{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 .ch:hover .btn--solid{transform:translateY(-2px)}
 
+/* read-aloud button. A <button>, so it needs the family and the pointer that
+   the <a> rules above get for free. */
+.speak{
+  flex:0 0 auto;
+  font-family:inherit;cursor:pointer;
+}
+.speak svg{width:.95rem;height:.95rem;flex:0 0 auto}
+.speak:hover{transform:translateY(-2px)}
+.speak:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+/* speaking reads as the live state: gold plate, same as any active control */
+.speak.is-speaking{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+
 .notice{
   margin:0;padding:.8rem 1rem;
   background:rgba(252,176,64,.13);

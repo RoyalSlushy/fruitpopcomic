@@ -66,8 +66,9 @@ lib/
   cms-schema.ts       templates for new list items, labels for hover chips
   cms-context.tsx     drafts, baseline, dirty set
   supabase.ts         server-only REST; holds the service-role key
+  speech.ts           read-aloud text prep: chunking, HTML → spoken text
 components/
-  site/               the site itself
+  site/               the site itself; Speak.tsx is the read-aloud button
   cms/                editable primitives; every *Impl is lazy-loaded
 public/               images
 docs/cms.md           how the CMS works and how to edit
@@ -81,6 +82,31 @@ Save writes only the sections you actually changed.
 
 Full detail — including how the merge behaves when you change content in code
 after editing it in the CMS — is in [`docs/cms.md`](docs/cms.md).
+
+## Reading it aloud
+
+Every panel with prose carries a **Listen** button: About, a wiki entry, Cast
+and Art. The Reader's is labelled **Describe**, because a comic page has no text
+to read — it speaks the page's alt text instead.
+
+It uses the browser's own speech synthesiser (the Web Speech API), so there is
+no key, no server hop and no per-character bill, and the voice is the one the
+visitor already chose in their OS. Browsers without it get no button rather than
+a dead one. Text is spoken in sentence-sized chunks because Chrome silently cuts
+off a single utterance after about fifteen seconds.
+
+Two things follow from this that are worth knowing:
+
+- **Filling in a page's Alt text in the CMS improves what Describe says.** Until
+  then it falls back to "Page *n* of *m* — rough draft. Dialogue is lettered into
+  the artwork and cannot be read as text," which is honest but tells you nothing
+  about the page.
+- It does **not** make the lettering readable. The dialogue is still drawn into
+  the artwork and still un-transcribed — see the note on access on the About page.
+  This reads the site's own prose, not the comic.
+
+`lib/speech.ts` holds the text preparation (chunking, HTML stripping) and is
+covered by `lib/speech.test.ts`; `components/site/Speak.tsx` is the button.
 
 ## Adding pages
 

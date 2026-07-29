@@ -30,6 +30,14 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   star: <path d="M32 7l6.6 13.4L53.5 22l-10.7 10.5 2.5 14.8L32 40.3 18.7 47.3l2.5-14.8L10.5 22l14.9-1.6z" />,
+  speak: (
+    <>
+      <path d="M30 12 17 24H8v16h9l13 12z" />
+      <path d="M40 24a11 11 0 0 1 0 16" />
+      <path d="M48 16a22 22 0 0 1 0 32" />
+    </>
+  ),
+  stop: <rect x="16" y="16" width="32" height="32" rx="4" />,
   info: (
     <>
       <circle cx="32" cy="32" r="24" />
