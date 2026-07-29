@@ -1,147 +1,143 @@
 # The CMS
 
-Content lives in Supabase. The site reads it over the REST API with plain
-`fetch` — no SDK, no build step, no `node_modules`. Editing happens at
-[`/admin/`](../admin/), which is part of this repository and deploys with it.
+Sign in, click a headline, type, save. No separate admin panel — the site itself
+is the editor.
 
-**Two things must be done by hand before any of it works.** They are steps 1 and 2
-below, and both take under a minute. Everything else is already built and seeded.
+## The idea
 
----
+**Content lives in code. The database only stores what you changed.**
 
-## Where things are
+`content/*.ts` holds every section as a typed const. The site renders completely
+from those alone, with an empty database — that is verified by
+`scripts/assert-visitor-bundle.mjs` running against a build, and by the site
+rendering fine right now with zero rows in `site_content`.
+
+When you edit something, the change is stored as a sparse override in one JSONB
+row per section. `getSection()` deep-merges that row over the code default.
+
+The pay-off is what happens when both change. Add a field in `content/pages.ts`
+and it appears on pages you already edited. Fix a typo in code and it shows up
+unless you had edited that exact string. Neither side clobbers the other.
+
+## Editing
+
+Go to **`/#cms`** and sign in. After that a marker cookie keeps the editor loading
+until you press **Done**.
 
 | | |
 |---|---|
-| Project | **SetApartCare** — `rdmxtosklpvwtggakbja`, region `us-west-1` |
-| Dashboard | <https://supabase.com/dashboard/project/rdmxtosklpvwtggakbja> |
-| API URL | `https://rdmxtosklpvwtggakbja.supabase.co` |
-| Schema | `fruitpop` — its own schema, isolated from that project's `public` |
-| Storage | public bucket `fruitpop`, folders `pages/ thumbs/ sheets/ wiki/` |
-| Site config | [`assets/js/config.js`](../assets/js/config.js) |
+| Click any text | edit it in place |
+| **F2** | edit the focused field (the hero headline is inside a link, where Enter would navigate) |
+| **Enter** | commit |
+| **Escape** | cancel |
+| Click away | commit |
+| Hover | a chip names the field |
+| `↑ ↓ ×` | reorder or delete a list item |
+| **+ Add** | append one, built from the schema template |
+| **Save** | writes only the sections that actually differ |
 
-This project is shared with an unrelated site. Nothing here touches its `public`
-schema, its tables, or its data.
+Deleting a list item is permanent in the sense that matters: the stored array's
+length wins, so the code default will **not** bring it back. Reverting
+`content/*.ts` won't restore it either — the only way back is deleting the
+`site_content` row for that section.
 
----
+## The rules the merge follows
 
-## Step 1 — expose the schema
+Worth knowing, because they explain every surprise:
 
-PostgREST only serves schemas it has been told about, and `fruitpop` is not one of
-the defaults. Until this is done **every request returns `PGRST106`** and the site
-quietly falls back to its bundled copy of the drafts.
+1. **Code owns shape; the database owns values and array length.** `getSection()`
+   always returns something shaped exactly like the code default. A stale row can
+   never crash a component that has moved on.
+2. **Arrays of objects merge item-wise**, matched by `id` first and index only as
+   a fallback — so reordering a list does not smear field values between items.
+3. **Items you added** merge over the schema template for that path, not over
+   item 0, so a new blank item never inherits the first one's real content.
+4. **A stored key the code no longer has is dropped**, and the next save cleans it
+   out of the row.
+5. **Type mismatches keep the code value** and warn. If code says object and the
+   database says string, the code wins — losing one field's edit beats a page that
+   cannot render.
+6. **`null` is a real stored value** meaning "empty". Absence means "not
+   overridden". `setByPath` refuses `undefined` outright, because `JSON.stringify`
+   drops it and it would silently read back as "not overridden" — a revert with no
+   error anywhere.
 
-> Dashboard → **Settings → API** → **Exposed schemas** → add `fruitpop` → Save.
+All of it is covered by `npm test` (26 cases in `lib/cms.test.ts`), including the
+ones that are easy to get wrong: an emptied list stays empty, a deleted item stays
+deleted, a reorder doesn't smear.
 
-The site and the admin both detect this specific failure and say so in plain words
-rather than looking broken.
+## Adding a new editable field
 
-## Step 2 — make yourself an editor
+1. Add it to the type and const in `content/<section>.ts`.
+2. Render it with `<EditableText path="section.path.to.field" value={…} />`.
+3. If it's a list item field, add a label in `lib/cms-schema.ts` and make sure the
+   list has a `TEMPLATES` entry.
 
-Supabase Auth is shared across the whole project, so being able to log in is *not*
-enough to edit the comic. Write access is gated on membership of
-`fruitpop.editors`, checked by the database on every statement.
+The path's first segment is the section, which is also the row it saves into.
 
-1. Dashboard → **Authentication → Users → Add user**. Use **Create new user** with
-   an email and password, and tick *Auto Confirm User*.
-2. Dashboard → **SQL Editor**, and run:
+## Images
 
-   ```sql
-   insert into fruitpop.editors (user_id, email)
-   select id, email from auth.users where email = 'you@example.com'
-   on conflict (user_id) do nothing;
-   ```
-
-3. Go to `/admin/` and sign in.
-
-To revoke someone, delete their row from `fruitpop.editors`. Their login keeps
-working for the rest of the project; their ability to change the comic stops
-immediately.
-
----
-
-## Using it
-
-`/admin/` has five tabs.
-
-| Tab | Writes to | Notes |
-|---|---|---|
-| **Pages** | `fruitpop.pages` | The comic. `↑ ↓` set reading order; upload writes to `pages/`. |
-| **Cast & Art** | `fruitpop.sheets` | `kind` decides whether a sheet lands in Cast or Art. |
-| **Wiki** | `fruitpop.wiki_entries` | Unpublished entries are invisible to the public — enforced by RLS, not just the UI. |
-| **Status** | `fruitpop.build_status` | The dashboard's Build status panel. |
-| **Copy** | `fruitpop.site_text` | Headline, notices, footer, the whole About page. |
-
-### Adding a page
-
-Upload the image, set the reading order, pick the pencil stage, save. A thumbnail
-is optional — the full image is used if you leave it blank, which costs bandwidth
-on the dashboard but works.
-
-### The wiki
-
-Entries have a slug (the URL, `#/wiki/your-slug`), a category, a one-line summary
-for the index card, and a body. The body accepts plain text — blank lines become
-paragraphs — or HTML if you'd rather write it yourself.
-
-New entries are **unpublished by default**. The site's empty state appears only
-while there are genuinely no published entries.
-
-### Copy
-
-`site_text` rows are keyed strings. `read.notice`, `cast.notice` and `about.body`
-accept HTML; the rest are plain text. Keys cannot be added from the admin because
-the markup has to have somewhere to put them — add new ones with SQL and a
-matching `id` in `index.html`.
-
----
-
-## Image paths
-
-One convention, shared by every table:
+One convention everywhere:
 
 | Value | Meaning |
 |---|---|
-| `https://…` | An absolute URL, used as-is |
-| `assets/…` | A file committed to this repository |
-| anything else | An object key in the public `fruitpop` bucket |
+| `https://…` | absolute, used as-is |
+| `/…` | a file committed to `public/` |
+| anything else | an object key in the public `fruitpop` storage bucket |
 
-The ten original drafts and five sheets use `assets/…` because those files are
-already in the repo. Anything uploaded through the admin gets a storage key.
-Both work side by side; there is no migration to do.
+Uploading through the CMS produces the third kind. The client's filename is
+**discarded entirely** — the extension comes from sniffing the file's magic bytes,
+so path traversal, double extensions and unicode tricks are impossible rather than
+filtered. SVG is not accepted: it is script-bearing XML served from the site's own
+origin, which would be stored XSS against the admin session.
 
----
+## Security
 
-## What happens when Supabase is down
+- **Writes are impossible without the server.** `site_content` has RLS on with
+  exactly one policy — public `SELECT`. There is no insert, update or delete
+  policy at all, so the anon key cannot write by construction. Verified by trying
+  it as the `anon` role and watching Postgres refuse.
+- **The service-role key never reaches the browser.** `lib/supabase.ts` starts with
+  `import 'server-only'`, which makes a client import a build error rather than a
+  runtime surprise. `scripts/assert-visitor-bundle.mjs` also greps every client
+  chunk for `service_role` on each build.
+- **The editor is not in the visitor's bundle.** Each primitive is a thin shell
+  that lazy-loads its implementation, so `dynamic({ssr:false})` never fires for
+  someone who isn't editing. The build asserts it: 18 prerendered pages reference
+  13 scripts, none of which contain the editor.
+- **Fails closed.** Missing `CMS_ADMIN_PASSWORD`, missing `CMS_SESSION_SECRET`, or
+  a session secret under 32 characters → 503 on every CMS endpoint. There is no
+  fallback credential in the source, deliberately.
+- The session cookie is `httpOnly`, `SameSite=Strict`, signed with HMAC-SHA256,
+  and expires after 12 hours. The password is compared with a timing-safe equal
+  over fixed-length digests.
+- The save endpoint re-runs the merge server-side against the code defaults and
+  stores the **output**, so a crafted payload cannot introduce a key, change a
+  container into a scalar, or plant `__proto__`.
 
-The site keeps working. [`assets/js/data.js`](../assets/js/data.js) carries a
-bundled copy of the ten drafts, five sheets and the status rows, and falls back to
-it on any failure — unreachable host, unexposed schema, empty tables. A comic
-should not go blank because a database is having a bad day.
+### Known weaknesses
 
-You can force that path by setting `USE_REMOTE = false` in
-[`config.js`](../assets/js/config.js).
+Named rather than glossed over:
 
----
+- **The password is shared.** `ladystar` is eight lowercase letters. There is no
+  per-user identity, no audit trail, and no revocation short of rotating the
+  secret. Replace it with a long passphrase before this matters, and move to real
+  accounts when you want more than one editor — that touches only
+  `app/api/cms/login/route.ts`.
+- **No rate limiting.** An in-memory counter is meaningless on serverless
+  (per-instance, resets on cold start), so none was added rather than pretending.
+  The real options are a Vercel Firewall rule on `/api/cms/*` or a Postgres
+  counter.
+- **Saves are whole-section, last-write-wins.** Two tabs editing the same section
+  will silently clobber each other. An `updated_at` precondition would fix it.
+- Forging the `fp_cms_ui` marker cookie loads the editor UI and gets a 401 on every
+  write. It grants nothing; the real gate is the signed cookie and the database.
 
-## Security notes
+## Where it lives
 
-- The key in `config.js` is the **publishable** (anon) key. It is meant to be
-  public and grants exactly what RLS allows: reading published rows. Never put a
-  service-role key in this repository.
-- Public read policies filter on `published`, so drafts and unpublished wiki
-  entries are not merely hidden — they are never sent.
-- Every write policy calls `fruitpop.is_editor()`. Storage writes are scoped to
-  `bucket_id = 'fruitpop'` and the same check, so an editor here cannot touch the
-  other site's objects.
-- Admin tokens live in `sessionStorage`, so closing the tab signs you out.
-- `/admin/` is `noindex`, but it is still a public URL — the protection is the
-  database policy, not the obscurity of the path.
+Supabase project **SetApartCare** (`rdmxtosklpvwtggakbja`), table
+`public.site_content`, storage bucket `fruitpop`. That project is shared with an
+unrelated site; nothing here touches its tables.
 
----
-
-## Changing project
-
-Edit [`assets/js/config.js`](../assets/js/config.js). To rebuild the schema
-elsewhere, the three migrations are in the project's migration history:
-`fruitpop_cms_schema`, `fruitpop_storage_bucket`, `fruitpop_seed_existing_content`.
+The older `fruitpop.*` schema from the previous table-based CMS is still there,
+unused. Nothing was dropped, so the previous approach remains recoverable.

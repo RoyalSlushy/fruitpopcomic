@@ -54,12 +54,12 @@
    display value, and display would win. Settle it once, up front. */
 [hidden]{display:none!important}
 
-html[data-section="home"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
-html[data-section="read"] {--ch:var(--magenta);--ch-dp:var(--magenta-dp)}
-html[data-section="cast"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
-html[data-section="wiki"] {--ch:var(--gold);   --ch-dp:var(--gold-dp)}
-html[data-section="art"]  {--ch:var(--peach);  --ch-dp:var(--peach-dp)}
-html[data-section="about"]{--ch:var(--indigo); --ch-dp:var(--indigo-dp)}
+[data-section="home"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
+[data-section="read"] {--ch:var(--magenta);--ch-dp:var(--magenta-dp)}
+[data-section="cast"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
+[data-section="wiki"] {--ch:var(--gold);   --ch-dp:var(--gold-dp)}
+[data-section="art"]  {--ch:var(--peach);  --ch-dp:var(--peach-dp)}
+[data-section="about"]{--ch:var(--indigo); --ch-dp:var(--indigo-dp)}
 
 *,*::before,*::after{box-sizing:border-box}
 
@@ -67,14 +67,19 @@ html{ -webkit-text-size-adjust:100% }
 
 body{
   margin:0;
-  min-height:100dvh;
-  padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
   background:var(--navy);
   color:var(--ink);
   font-family:var(--face);
   font-size:clamp(1rem,.96rem + .2vw,1.0625rem);
   line-height:1.6;
   overflow-x:hidden;
+}
+
+/* Layout lives on the shell rather than <body> so the active section — and
+   with it --ch / --ch-dp — can be set by a component that knows the route. */
+.shell{
+  min-height:100dvh;
+  padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
 }
 
 img{max-width:100%;height:auto;display:block}
@@ -876,7 +881,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 @media (min-width:1024px){
   :root{--rail:238px;--tabh:0px}
 
-  body{
+  .shell{
     padding-left:var(--rail);
     padding-bottom:0;
     --shell:min(1180px, 100% - 3rem);

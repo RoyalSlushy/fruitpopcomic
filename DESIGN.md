@@ -129,19 +129,18 @@ Display maxes at `clamp(1.5rem, 3.1vw, 2.15rem)`. Prose is capped at 68ch.
 
 ## Motion
 
-**Three modes, one authored moment.** Opening a channel from the dashboard morphs
-the tile into the panel it becomes, via the View Transitions API with a matched
-`view-transition-name`. Returning to the dashboard reverses the same morph.
-Panel-to-panel from the rail gets a short lateral swap instead, because nothing
-zoomed — claiming a zoom there would be a lie about what happened.
+**The tile→panel morph did not survive the port, and is currently absent.** In the
+static build, opening a channel morphed the tile into the panel it became via the
+View Transitions API. Under App Router that needs either Next's
+`experimental.viewTransition` — a flag made inert during Next 16 — or React's
+still-`unstable_` `ViewTransition`. Neither is worth depending on for something
+purely cosmetic, so the routes navigate plainly for now. The CSS that drove it is
+still in `globals.css` (`view-transition-name` on `.rail`/`.tabbar`, the
+`::view-transition-*` rules), so restoring it is a small change once a stable API
+lands.
 
-The rail and the tab bar hold still through all of it: both carry a
-`view-transition-name` with `animation:none`, so the persistent chrome never
-cross-fades under the content.
-
-Everything else is restrained: a single diagonal light sweep across the hero on
-hover, and the tile press. `prefers-reduced-motion` disables the sweep and skips
-every transition. The first paint on a cold load never animates.
+What remains: a single diagonal light sweep across the hero on hover, and the tile
+press. `prefers-reduced-motion` disables the sweep.
 
 ## Layout
 
@@ -211,17 +210,18 @@ These are design decisions, not copy suggestions.
 
 ## Content
 
-Content lives in Supabase and is fetched over PostgREST with plain `fetch` — no
-SDK, so the no-build-step property survives. Pages, cast and art sheets, wiki
-entries, the build-status rows and most of the site's copy are all editable at
-`/admin/`. See [`docs/cms.md`](docs/cms.md).
+Content lives in **code** — `content/*.ts`, typed consts — and the database holds
+only a sparse override per section. The site renders completely from code with an
+empty database. Editing happens **in place**: sign in at `/#cms` and the page
+itself becomes the editor. See [`docs/cms.md`](docs/cms.md).
 
 Two design consequences worth recording:
 
-- **The fallback is content, not a placeholder.** `data.js` carries the ten drafts
-  and five sheets, and renders them if Supabase is unreachable, unexposed, or
-  empty. A comic that goes blank when a database is down has failed at the one
-  thing it exists to do.
+- **The fallback is content, not a placeholder.** `content/*.ts` is the real
+  material, not a stub, and it renders if the database is unreachable or empty. A
+  comic that goes blank when a database is down has failed at the one thing it
+  exists to do. This is now verified on every build: the production build runs with
+  the database unreachable and still prerenders all 18 pages.
 - **The honesty rules are now enforced by shape, not by discipline.** There is no
   field anywhere in the CMS for a release date, a view count, or a follower
   number, because there is no column for one. The cast counter sums figures that
@@ -230,8 +230,31 @@ Two design consequences worth recording:
   The Build status panel is the one place the creator states what isn't finished,
   and it is the first tab that opens with a standing note saying so.
 
-The wiki is wired up and starts empty. Its empty state now appears only when there
-are genuinely no published entries, rather than being hardcoded.
+The wiki is wired up and starts empty. Its empty state appears only when there are
+genuinely no published entries, rather than being hardcoded.
+
+**One consequence of editing in place worth recording as a design rule:** a list
+whose length can change must be read through `useCmsValue`, not rendered from the
+server array. Leaf values alone are not enough — adding an item changes the array's
+length, and a server-rendered list cannot grow a node in response to a draft.
+Reordering would appear to work while adding silently did nothing. `Gallery` is a
+client component for exactly this reason.
+
+## Delivery
+
+Next.js App Router on Vercel. The site was a hand-written zero-dependency static
+build on GitHub Pages until the in-page CMS required a server function to hold a
+service-role key; that is the trade, and the "no build step, no dependencies"
+property recorded in earlier revisions of this file is no longer true.
+
+Every content route is still statically prerendered (`○`/`●`) — only `/api/cms/*`
+is dynamic. That is load-bearing: one `cookies()` call reaching the root layout
+would make every route dynamic and take the whole site off the CDN, which is why
+edit mode is detected from a marker cookie read on the client rather than from a
+request header.
+
+The editor is never in a visitor's bundle. Each editable primitive is a thin shell
+that lazy-loads its implementation, and the build fails if that stops being true.
 
 ## Known gaps
 

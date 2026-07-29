@@ -2,86 +2,97 @@
 
 The site for the Fruit Pop webcomic — the pages, the cast, and the hub around it.
 
+A Next.js App Router app with an **in-page CMS**: sign in, click a headline, type,
+save. Content lives in code and the database only stores what you changed.
+
 ## Run it
 
-No build step, no dependencies. Serve the folder — `index.html` opened directly
-will not work, because the page is an ES module:
-
 ```bash
-python3 -m http.server 8000
+npm install
+cp .env.example .env.local     # then fill it in — see below
+npm run dev
 ```
 
-Then visit <http://localhost:8000>.
+Then visit <http://localhost:3000>.
+
+`npm run build` also runs `scripts/assert-visitor-bundle.mjs`, which fails the
+build if the editor ever leaks into a chunk visitors download, or if a
+service-role string reaches the client.
 
 ## Deploy it
 
-**Settings → Pages → Source: Deploy from a branch → `main` / root.** That's the
-whole deployment. Everything is static.
+**Vercel.** Import the repo; the framework is detected. It cannot be GitHub Pages
+any more — the CMS writes through a server function.
+
+Set these in the Vercel project (and in `.env.local` locally):
+
+| Variable | |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | public; used to build storage URLs in the browser |
+| `SUPABASE_URL` | server reads/writes. Set it explicitly — the public one is inlined at build time |
+| `SUPABASE_ANON_KEY` | public-read key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **the only thing that can write.** Server-side only, never `NEXT_PUBLIC_` |
+| `CMS_ADMIN_PASSWORD` | the editor password |
+| `CMS_SESSION_SECRET` | 32+ bytes, signs the session cookie |
+
+`CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET` have **no defaults and no
+fallback**. If either is missing — or the secret is under 32 characters — every
+CMS endpoint returns 503 and signing in is impossible. That is deliberate.
+
+Type is **Shuttleblock**, from an Adobe Fonts kit that is **domain-locked**: every
+domain serving the site has to be registered in the web project or the stylesheet
+403s and the page falls back to system sans. Preview URLs can't be wildcarded, so
+pin one stable alias and register that.
 
 ## Layout
 
 ```
-index.html            the whole site — hash routing, one page
-admin/                the CMS: index.html + admin.js + admin.css
-assets/
-  css/                main.css — the whole system
-  js/  app.js         behaviour
-       data.js        content: fetches Supabase, falls back to a bundled copy
-       config.js      Supabase URL, key and schema — the only file to edit
-  pages/              the original drafts + thumb/
-  characters/         character art
-  logo/               wordmark and monogram, background removed
-docs/
-  cms.md              Supabase setup and how to edit
-  references/         source material as supplied — originals, do not ship
-  art-analysis.md     what the artwork and logo actually establish
-  aesthetic-references.md   the pinned moodboard, read
-PRODUCT.md            product truth
-DESIGN.md             the design system, recorded from the built site
+app/                  routes; layout.tsx holds the shell
+  api/cms/            login · logout · content · save · upload
+content/              THE CONTENT, as typed consts — the site renders from these alone
+lib/
+  cms.ts              the merge: code owns shape, the database owns values
+  cms-server.ts       getSection() — falls back to code defaults on any failure
+  path.ts             dot-path get/set + list ops, all immutable
+  cms-schema.ts       templates for new list items, labels for hover chips
+  cms-context.tsx     drafts, baseline, dirty set
+  supabase.ts         server-only REST; holds the service-role key
+components/
+  site/               the site itself
+  cms/                editable primitives; every *Impl is lazy-loaded
+public/               images
+docs/cms.md           how the CMS works and how to edit
 ```
 
-`docs/references/` is the archive of what was uploaded. `assets/` is what ships —
-the pages there are re-encoded for web (11.8 MB → 3.3 MB).
+## Editing
 
-Type is **Shuttleblock**, served from an Adobe Fonts kit. That kit is
-**domain-locked**: every domain that serves the site, `localhost` included, has to
-be listed in the Adobe Fonts web project or the stylesheet 403s and the page falls
-back to system sans. Nothing else breaks.
+Go to `/#cms`, sign in, and the page becomes editable in place. Click any text to
+edit it; Enter commits, Escape cancels. Lists get add / move / delete controls.
+Save writes only the sections you actually changed.
 
-## Editing it
-
-Content lives in Supabase; the editor is at `/admin/`. Two one-time setup steps
-are needed before it works — see [`docs/cms.md`](docs/cms.md).
-
-## Getting around
-
-A channel rail down the left on desktop; below 1024px it becomes a drawer behind
-the hamburger, with a bottom tab bar for the five main destinations. Home is a
-dashboard rather than a menu — the hero, the drafts in order, the draft card rail,
-the build status and quick access all on one screen.
-
-Routes are hashes: `#/`, `#/read`, `#/read/4` (a specific page), `#/cast`,
-`#/wiki`, `#/art`, `#/about`. Anything unrecognised falls back to home.
+Full detail — including how the merge behaves when you change content in code
+after editing it in the CMS — is in [`docs/cms.md`](docs/cms.md).
 
 ## Adding pages
 
-Go to `/admin/` → **Pages** → **+ New**. Upload the image, set the reading order,
-pick the pencil stage, save. Nothing needs a commit or a deploy.
+Either edit `content/pages.ts` and deploy, or add one through the CMS. Both work;
+the merge reconciles them.
 
-The order **is** the reading order, and it is provisional — the drafts have
+The order **is** the reading order, and it is provisional — the drafts carry
 timestamp filenames and no page numbers.
 
 ## Keeping the site honest
 
-The dashboard's **Build status** panel is editable under `/admin/` → **Status**.
-Every row there must be checkable against reality — it is where a manga portal
-would put a daily-mission list, and it is the surface that keeps the site from
-claiming things it can't back up. If one of those lines stops being true, change
-it.
+The dashboard's **Build status** panel says what is and isn't finished. Every row
+must be checkable against reality — it is where a manga portal would put a
+daily-mission list, and it is what stops the site claiming things it can't back
+up.
 
-The same rule governs everything else the CMS can reach: page counts come from
-counting pages, the cast counter sums the figures actually drawn, and no field
-anywhere asks for a release date, a view count, or a name that isn't known.
+The same rule is built into the shape of the content: there is no field anywhere
+for a release date, a view count or a follower number, because there is no column
+for one. The page count counts pages; the cast counter sums the figures actually
+drawn. `name` on a character sheet is optional and ships blank, because only one
+name is known from the drafts.
 
 ## What's real, and what's pending
 
@@ -92,6 +103,7 @@ fill space — no dates, no counts, no names beyond the one the drafts supply.
 
 - The comic pages are **rough drafts**, not finished art.
 - The **wiki is empty** and says so.
-- The logo is raster only; an SVG should replace `assets/logo/*.png`.
+- The logo is raster only; an SVG should replace `public/logo/*.png`.
 - Reading order, character names, and content rating are undecided — see
   `PRODUCT.md`.
+- The CMS password is shared, not per-user. See the security note in `docs/cms.md`.
