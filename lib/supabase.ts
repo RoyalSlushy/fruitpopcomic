@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { writeProblemsIn } from './cms-config.ts';
+
 /* Supabase over plain REST. No SDK — PostgREST is a handful of headers, and
  * skipping the client keeps the dependency surface at React and Next.
  *
@@ -53,6 +55,30 @@ export async function readStoredSections(): Promise<StoredSections> {
 
 /* ── writes: service role, never reachable from the browser ── */
 
+/**
+ * Which write variables are unset, by name. See writeProblemsIn in
+ * lib/cms-config.ts. An empty array means a save has somewhere to go.
+ */
+export function serviceProblems(): string[] {
+  return writeProblemsIn(process.env);
+}
+
+/**
+ * A write that reached Supabase and came back refused.
+ *
+ * Carries the status so a route can separate "the key was rejected" (401/403 —
+ * wrong key pasted, or an anon/publishable key where the service_role key
+ * belongs, which RLS refuses since `site_content` has no write policy) from
+ * every other upstream failure. The message stays server-side; only the status
+ * is ever consulted for what to tell the client.
+ */
+export class SupabaseWriteError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+    this.name = 'SupabaseWriteError';
+  }
+}
+
 function requireServiceKey(): { url: string; key: string } {
   const u = url();
   const k = serviceKey();
@@ -77,7 +103,10 @@ export async function upsertSection(key: string, value: unknown): Promise<void> 
   });
 
   if (!res.ok) {
-    throw new Error(`${res.status} writing ${key}: ${(await res.text()).slice(0, 200)}`);
+    throw new SupabaseWriteError(
+      res.status,
+      `${res.status} writing ${key}: ${(await res.text()).slice(0, 200)}`,
+    );
   }
 }
 
@@ -103,7 +132,10 @@ export async function uploadObject(
   );
 
   if (!res.ok) {
-    throw new Error(`${res.status} uploading: ${(await res.text()).slice(0, 200)}`);
+    throw new SupabaseWriteError(
+      res.status,
+      `${res.status} uploading: ${(await res.text()).slice(0, 200)}`,
+    );
   }
   return objectKey;
 }

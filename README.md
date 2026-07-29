@@ -81,6 +81,22 @@ These variables gate the *editor*. The `SUPABASE_*` ones gate where edits are
 *stored*: without them the site still renders from `content/*.ts`, and a save
 fails at write time rather than at sign-in.
 
+### "Saving is not configured on this deployment"
+
+The write-side counterpart of the 503 above, and the reason a save can fail on a
+deployment you just signed into perfectly well. It names the variable:
+
+| | |
+|---|---|
+| `SUPABASE_SERVICE_ROLE_KEY is not set` | add it — it is the only credential that can write |
+| `SUPABASE_URL is not set` | add it, or `NEXT_PUBLIC_SUPABASE_URL` as the fallback |
+
+If instead the save reports **`the database rejected the service key`**, the
+variable is set but holds the wrong key. `site_content` has no write policy, so
+an `anon` or `sb_publishable_…` key gets refused by RLS — it must be the
+`service_role` key, and it must never carry a `NEXT_PUBLIC_` prefix. Redeploy
+after changing it. Full detail in [`docs/cms.md`](docs/cms.md#when-save-fails).
+
 Type is **Shuttleblock**, from an Adobe Fonts kit that is **domain-locked**: every
 domain serving the site has to be registered in the web project or the stylesheet
 403s and the page falls back to system sans. Preview URLs can't be wildcarded, so

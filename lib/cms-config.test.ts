@@ -2,7 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { problemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
+import { problemsIn, writeProblemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
 
 const PASSWORD = 'p'.repeat(MIN_PASSWORD);
 const SECRET = 'a'.repeat(MIN_SECRET);
@@ -66,6 +66,65 @@ describe('problemsIn', () => {
     }).join(' ');
     assert.ok(!joined.includes('sup3rsecret'));
     assert.ok(!joined.includes('zzz'));
+  });
+});
+
+describe('writeProblemsIn', () => {
+  const KEY = 'service-role-key';
+
+  test('a good configuration reports nothing', () => {
+    assert.deepEqual(
+      writeProblemsIn({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: KEY }),
+      [],
+    );
+  });
+
+  test('nothing set names both variables', () => {
+    const p = writeProblemsIn({});
+    assert.equal(p.length, 2);
+    assert.ok(p.some((s) => s.startsWith('SUPABASE_URL')));
+    assert.ok(p.some((s) => s.startsWith('SUPABASE_SERVICE_ROLE_KEY')));
+  });
+
+  /* The state that produced a bare "Save failed": the site reads and renders
+     perfectly off the public variables, and only the write credential is
+     missing. Nothing goes wrong until someone presses Save. */
+  test('read variables alone still cannot write', () => {
+    assert.deepEqual(
+      writeProblemsIn({
+        SUPABASE_URL: 'https://x.supabase.co',
+        NEXT_PUBLIC_SUPABASE_URL: 'https://x.supabase.co',
+        SUPABASE_ANON_KEY: 'anon',
+      }),
+      ['SUPABASE_SERVICE_ROLE_KEY is not set'],
+    );
+  });
+
+  /* Mirrors lib/supabase.ts, where the public URL is the documented fallback —
+     if this drifted, a working deployment would be reported as broken. */
+  test('the public URL satisfies the URL requirement', () => {
+    assert.deepEqual(
+      writeProblemsIn({
+        NEXT_PUBLIC_SUPABASE_URL: 'https://x.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: KEY,
+      }),
+      [],
+    );
+  });
+
+  test('an empty string reads as unset', () => {
+    const p = writeProblemsIn({ SUPABASE_URL: '', SUPABASE_SERVICE_ROLE_KEY: '' });
+    assert.equal(p.length, 2);
+    assert.ok(p.every((s) => s.endsWith('not set')));
+  });
+
+  /* The service-role key bypasses RLS entirely, so this matters more here than
+     it does for the password. */
+  test('it never repeats the values it is complaining about', () => {
+    const joined = writeProblemsIn({ SUPABASE_SERVICE_ROLE_KEY: '' , SUPABASE_URL: '' }).join(' ');
+    assert.ok(!joined.includes('supabase.co'));
+    const withKey = writeProblemsIn({ SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_abc123' }).join(' ');
+    assert.ok(!withKey.includes('sb_secret_abc123'));
   });
 });
 

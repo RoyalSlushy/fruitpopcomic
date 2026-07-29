@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'node:crypto';
 import { requireAdmin, badOrigin } from '../../../../lib/cms-auth.ts';
-import { uploadObject } from '../../../../lib/supabase.ts';
+import { uploadObject, serviceProblems, SupabaseWriteError } from '../../../../lib/supabase.ts';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +31,17 @@ export async function POST(req: Request) {
       { status: auth.status });
   }
   if (badOrigin(req)) return NextResponse.json({ error: 'Bad origin' }, { status: 403 });
+
+  /* Same pair of variables the save path needs — checked before reading an 8 MB
+     body that has nowhere to go. See app/api/cms/save/route.ts. */
+  const unconfigured = serviceProblems();
+  if (unconfigured.length) {
+    console.error(`[cms] upload refused — ${unconfigured.join('; ')}`);
+    return NextResponse.json({
+      error: `Uploading is not configured on this deployment: ${unconfigured.join('; ')}.`,
+      problems: unconfigured,
+    }, { status: 503 });
+  }
 
   const declared = Number(req.headers.get('content-length') ?? NaN);
   if (Number.isFinite(declared) && declared > MAX_UPLOAD + 8192) {
@@ -67,8 +78,14 @@ export async function POST(req: Request) {
   try {
     await uploadObject(key, buf.buffer as ArrayBuffer, mime);
   } catch (e) {
+    /* See the save route: a refused key is the one failure worth naming. */
     console.error('[cms] upload failed', e);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    const rejected = e instanceof SupabaseWriteError && (e.status === 401 || e.status === 403);
+    return NextResponse.json({
+      error: rejected
+        ? 'Upload failed: the storage API rejected the service key. Check SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or publishable key cannot write.'
+        : 'Upload failed',
+    }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, path: key });

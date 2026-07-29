@@ -128,11 +128,16 @@ origin, which would be stored XSS against the admin session.
 
 Named rather than glossed over:
 
-- **The password is shared.** `ladystar` is eight lowercase letters. There is no
-  per-user identity, no audit trail, and no revocation short of rotating the
-  secret. Replace it with a long passphrase before this matters, and move to real
-  accounts when you want more than one editor — that touches only
-  `app/api/cms/login/route.ts`.
+- **The password is shared**, and short ones are accepted — the only rule is six
+  characters, with no complexity check. There is no per-user identity, no audit
+  trail, and no revocation short of rotating it. Replace it with a long
+  passphrase before this matters, and move to real accounts when you want more
+  than one editor — that touches only `app/api/cms/login/route.ts`.
+
+  The value itself lives only in `CMS_ADMIN_PASSWORD`, and this file used to
+  print it. It no longer does: documentation is the one place a rotated password
+  goes stale without anything failing, so the live value stayed readable in the
+  repo long after it should have. Read it from the environment, not from here.
 - **No rate limiting.** An in-memory counter is meaningless on serverless
   (per-instance, resets on cold start), so none was added rather than pretending.
   The real options are a Vercel Firewall rule on `/api/cms/*` or a Postgres
@@ -141,6 +146,34 @@ Named rather than glossed over:
   will silently clobber each other. An `updated_at` precondition would fix it.
 - Forging the `fp_cms_ui` marker cookie loads the editor UI and gets a 401 on every
   write. It grants nothing; the real gate is the signed cookie and the database.
+
+## When Save fails
+
+Signing in and saving are configured **separately**. Signing in needs
+`CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET`; saving needs `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY`. A deployment with only the first pair renders,
+signs in, and lets you edit — then fails at the moment you press Save, because
+the service-role key is the only credential that can write.
+
+The editor shows the server's own words:
+
+| | |
+|---|---|
+| `Saving is not configured on this deployment: SUPABASE_SERVICE_ROLE_KEY is not set` | add it in Vercel, then **redeploy** |
+| `…: SUPABASE_URL is not set` | add it (or `NEXT_PUBLIC_SUPABASE_URL`, which is the fallback) |
+| `Save failed: the database rejected the service key` | the variable is set but holds the wrong key — see below |
+| `Save failed` | anything else; the real error is in the function log as `[cms] save failed` |
+
+That third one is the easy mistake. Supabase offers several keys and only the
+**`service_role`** one can write here: `site_content` has RLS on with a single
+public `SELECT` policy and no write policy at all, so an `anon` key or an
+`sb_publishable_…` key pasted into that slot reaches the database and is refused
+by RLS. The service-role key is the one marked secret in the dashboard, and it
+must never be given a `NEXT_PUBLIC_` name.
+
+**Setting a variable is not enough — redeploy.** Server env is read at runtime by
+the deployment that was built, so an existing deployment keeps the values it was
+built with.
 
 ## Where it lives
 

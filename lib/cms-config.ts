@@ -30,3 +30,33 @@ export function problemsIn(env: Env): string[] {
 
   return out;
 }
+
+/**
+ * Why a SAVE will fail, in words.
+ *
+ * Reading and writing are configured separately, and only the write side needs
+ * the service-role key. A deployment with just the read variables renders
+ * perfectly, signs in perfectly, and then fails the moment someone presses
+ * Save — the worst possible place to discover it, and the one the flat "Save
+ * failed" string could never explain.
+ *
+ * Names and nothing else. The service-role key bypasses RLS, so no part of it —
+ * length included — may travel back to a client.
+ */
+export function writeProblemsIn(env: Env): string[] {
+  const out: string[] = [];
+
+  /* Mirrors lib/supabase.ts: SUPABASE_URL wins, the public one is the fallback,
+     so only having neither is a problem. */
+  const url = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  if (typeof url !== 'string' || url.length === 0) {
+    out.push('SUPABASE_URL is not set');
+  }
+
+  const key = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (typeof key !== 'string' || key.length === 0) {
+    out.push('SUPABASE_SERVICE_ROLE_KEY is not set');
+  }
+
+  return out;
+}
