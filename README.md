@@ -4,7 +4,8 @@ The site for the Fruit Pop webcomic — the pages, the cast, and the hub around 
 
 ## Run it
 
-No build step, no dependencies. Open `index.html`, or serve the folder:
+No build step, no dependencies. Serve the folder — `index.html` opened directly
+will not work, because the page is an ES module:
 
 ```bash
 python3 -m http.server 8000
@@ -21,14 +22,17 @@ whole deployment. Everything is static.
 
 ```
 index.html            the whole site — hash routing, one page
+admin/                the CMS: index.html + admin.js + admin.css
 assets/
-  css/                main.css (system) + fonts.css (self-hosted faces)
-  fonts/              Bungee + Barlow, latin subset, ~101KB
-  js/  app.js         behaviour;  data.js  the whole data layer
-  pages/              web-optimised comic pages + thumb/
+  css/                main.css — the whole system
+  js/  app.js         behaviour
+       data.js        content: fetches Supabase, falls back to a bundled copy
+       config.js      Supabase URL, key and schema — the only file to edit
+  pages/              the original drafts + thumb/
   characters/         character art
   logo/               wordmark and monogram, background removed
 docs/
+  cms.md              Supabase setup and how to edit
   references/         source material as supplied — originals, do not ship
   art-analysis.md     what the artwork and logo actually establish
   aesthetic-references.md   the pinned moodboard, read
@@ -38,6 +42,16 @@ DESIGN.md             the design system, recorded from the built site
 
 `docs/references/` is the archive of what was uploaded. `assets/` is what ships —
 the pages there are re-encoded for web (11.8 MB → 3.3 MB).
+
+Type is **Shuttleblock**, served from an Adobe Fonts kit. That kit is
+**domain-locked**: every domain that serves the site, `localhost` included, has to
+be listed in the Adobe Fonts web project or the stylesheet 403s and the page falls
+back to system sans. Nothing else breaks.
+
+## Editing it
+
+Content lives in Supabase; the editor is at `/admin/`. Two one-time setup steps
+are needed before it works — see [`docs/cms.md`](docs/cms.md).
 
 ## Getting around
 
@@ -51,23 +65,23 @@ Routes are hashes: `#/`, `#/read`, `#/read/4` (a specific page), `#/cast`,
 
 ## Adding pages
 
-1. Drop the image in `assets/pages/`, and a 300px-wide copy in
-   `assets/pages/thumb/` with the same filename.
-2. Add the filename to `PAGES` in `assets/js/data.js`, in reading order.
+Go to `/admin/` → **Pages** → **+ New**. Upload the image, set the reading order,
+pick the pencil stage, save. Nothing needs a commit or a deploy.
 
-The array **is** the reading order. The current order is provisional — the drafts
-have timestamp filenames and no page numbers. Nothing else needs editing: the
-readout counts, the `START HERE` list, the draft cards and the reader all come off
-that one array. New files default to the `blue` pencil stage unless you add them to
-`STAGES` in the same file.
+The order **is** the reading order, and it is provisional — the drafts have
+timestamp filenames and no page numbers.
 
 ## Keeping the site honest
 
-`assets/js/data.js` also holds `STATUS`, which draws the dashboard's **Build
-status** panel. Every row there must be checkable against this repository — it is
-where a manga portal would put a daily-mission list, and it is the surface that
-keeps the site from claiming things it can't back up. If one of those lines stops
-being true, fix it there.
+The dashboard's **Build status** panel is editable under `/admin/` → **Status**.
+Every row there must be checkable against reality — it is where a manga portal
+would put a daily-mission list, and it is the surface that keeps the site from
+claiming things it can't back up. If one of those lines stops being true, change
+it.
+
+The same rule governs everything else the CMS can reach: page counts come from
+counting pages, the cast counter sums the figures actually drawn, and no field
+anywhere asks for a release date, a view count, or a name that isn't known.
 
 ## What's real, and what's pending
 

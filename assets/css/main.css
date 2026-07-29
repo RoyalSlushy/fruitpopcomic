@@ -36,6 +36,12 @@
   --tabh:        62px;      /* bottom bar height on phones */
   --gap:         clamp(.8rem,1.5vw,1.15rem);
 
+  /* Shuttleblock, from the Adobe Fonts kit. All four widths are named so the
+     stack still resolves if the kit carries only some of them. */
+  --face:        shuttleblock, shuttleblock-wide, shuttleblock-narrow,
+                 shuttleblock-condensed, "Shuttleblock",
+                 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+
   --shell:       min(1240px, 100% - 2.5rem);
   --ease:        cubic-bezier(.16,.84,.32,1);
 
@@ -65,7 +71,7 @@ body{
   padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
   background:var(--navy);
   color:var(--ink);
-  font-family:Barlow,"Helvetica Neue",Arial,sans-serif;
+  font-family:var(--face);
   font-size:clamp(1rem,.96rem + .2vw,1.0625rem);
   line-height:1.6;
   overflow-x:hidden;
@@ -73,6 +79,32 @@ body{
 
 img{max-width:100%;height:auto;display:block}
 button{font:inherit;color:inherit}
+
+/* ── type ───────────────────────────────────────────────────
+   One family now: Shuttleblock, from the Adobe Fonts kit in
+   index.html. All four widths are listed so the stack still
+   resolves if the kit only carries some of them.
+
+   The kit is DOMAIN-LOCKED — Adobe serves it only to domains
+   registered in the web project. Add the production domain and
+   localhost there, or every request 403s and the site falls back
+   to the system sans below.
+
+   Shuttleblock ships three weights. Requests for 600 and 800
+   resolve to the nearest real face rather than synthesising, so
+   the scale below is left as authored.
+   ─────────────────────────────────────────────────────────── */
+
+/* Bungee was caps-only and carried its weight in the drawing.
+   Shuttleblock has to be told both. */
+.rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
+.ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
+.rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
+.btn,.page__tag,.empty h2,.prose h2,.prose h3{
+  font-family:var(--face);
+  font-weight:700;
+  text-transform:uppercase;
+}
 
 .sr-only{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
@@ -175,7 +207,6 @@ html[data-drawer="open"] .scrim{
   background:var(--f);
   color:var(--ink-soft);
   text-decoration:none;
-  font-family:Bungee,Barlow,sans-serif;
   font-size:.875rem;letter-spacing:.02em;line-height:1;
   transition:transform .16s var(--ease), color .16s, border-color .16s, background-color .16s;
 }
@@ -204,7 +235,7 @@ html[data-drawer="open"] .scrim{
 }
 .rail__promo h2{
   margin:0 0 .35rem;
-  font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-weight:700;
   font-size:.8125rem;letter-spacing:.04em;color:var(--gold);
 }
 .rail__promo p{margin:0 0 .75rem;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
@@ -225,7 +256,6 @@ html[data-drawer="open"] .scrim{
   gap:.22rem;
   height:var(--tabh);
   color:var(--ink-soft);text-decoration:none;
-  font-family:Bungee,Barlow,sans-serif;
   font-size:.5625rem;letter-spacing:.06em;line-height:1;
   border-top:3px solid transparent;
   transition:color .16s, border-color .16s;
@@ -264,14 +294,13 @@ html[data-drawer="open"] .scrim{
   margin-inline-end:auto;
 }
 .crumb__step{
-  font-family:Bungee,Barlow,sans-serif;font-size:.9375rem;line-height:1;
+  font-size:.9375rem;line-height:1;
   padding:.42rem .6rem;border-radius:10px;
   background:var(--ch-dp);color:#fff;
   border:3px solid #fff;
   font-variant-numeric:tabular-nums;
 }
 .crumb__title{
-  font-family:Bungee,Barlow,sans-serif;
   font-size:clamp(.9375rem,1.7vw,1.25rem);line-height:1;
   letter-spacing:.02em;
 }
@@ -288,7 +317,6 @@ html[data-drawer="open"] .scrim{
   min-width:74px;
 }
 .readout dt{
-  font-family:Bungee,Barlow,sans-serif;
   font-size:.5625rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-soft);line-height:1;
 }
@@ -316,7 +344,6 @@ html[data-drawer="open"] .scrim{
   border:3px solid #fff;
   border-radius:10px 10px 4px 4px;
   background:var(--ch-dp);color:#fff;
-  font-family:Bungee,Barlow,sans-serif;
   font-size:.75rem;letter-spacing:.07em;line-height:1;
   text-transform:uppercase;
   box-shadow:0 4px 0 rgba(0,0,0,.45);
@@ -393,7 +420,6 @@ html[data-drawer="open"] .scrim{
   border-top:3px solid #fff;
 }
 .ch__name{
-  font-family:Bungee,Barlow,sans-serif;
   font-size:clamp(1rem,1.6vw,1.375rem);
   line-height:1;letter-spacing:.01em;
 }
@@ -426,7 +452,7 @@ html[data-drawer="open"] .scrim{
   border-left:var(--keyline) solid #fff;
 }
 .hero__kicker{
-  font-family:Bungee,Barlow,sans-serif;font-size:.625rem;letter-spacing:.12em;
+  font-size:.625rem;letter-spacing:.12em;
   text-transform:uppercase;line-height:1;
   align-self:flex-start;
   padding:.35rem .6rem;border-radius:999px;
@@ -436,7 +462,7 @@ html[data-drawer="open"] .scrim{
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
    at 24px for a 400-weight face. The floor of this clamp is exactly that. */
 .hero__title{
-  margin:0;font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  margin:0;font-weight:700;
   font-size:clamp(1.5rem,3.1vw,2.15rem);line-height:1.06;
   color:#fff;
 }
@@ -468,7 +494,7 @@ html[data-drawer="open"] .scrim{
 .rank__row:hover{background:rgba(28,66,108,.5);border-color:var(--navy-line);transform:translateX(3px)}
 .rank__n{
   flex:0 0 auto;width:26px;
-  font-family:Bungee,Barlow,sans-serif;font-size:1.0625rem;line-height:1;
+  font-size:1.0625rem;line-height:1;
   color:var(--gold);text-align:center;
   font-variant-numeric:tabular-nums;
 }
@@ -478,7 +504,7 @@ html[data-drawer="open"] .scrim{
 }
 .rank__label{
   flex:1;min-width:0;
-  font-family:Bungee,Barlow,sans-serif;font-size:.75rem;letter-spacing:.03em;
+  font-size:.75rem;letter-spacing:.03em;
   line-height:1.2;
 }
 .rank__chip{
@@ -495,7 +521,7 @@ html[data-drawer="open"] .scrim{
 }
 .rank__all{
   display:inline-flex;align-items:center;gap:.35rem;
-  font-family:Bungee,Barlow,sans-serif;font-size:.6875rem;letter-spacing:.06em;
+  font-size:.6875rem;letter-spacing:.06em;
   color:var(--gold);text-decoration:none;
 }
 .rank__all:hover{color:#fff}
@@ -525,7 +551,7 @@ html[data-drawer="open"] .scrim{
   border-top:2px solid #fff;
 }
 .card__n{
-  font-family:Bungee,Barlow,sans-serif;font-size:.75rem;line-height:1;
+  font-size:.75rem;line-height:1;
   font-variant-numeric:tabular-nums;
 }
 .card__stage{font-size:.625rem;font-weight:700;color:rgba(255,255,255,.78);text-transform:capitalize}
@@ -533,7 +559,7 @@ html[data-drawer="open"] .scrim{
 /* the "NEW" corner flag, rewritten as what is actually true */
 .badge,.ch__badge{
   position:absolute;top:.5rem;left:.5rem;z-index:3;
-  font-family:Bungee,Barlow,sans-serif;font-size:.5625rem;letter-spacing:.08em;
+  font-size:.5625rem;letter-spacing:.08em;
   text-transform:uppercase;
   padding:.28rem .5rem;border-radius:999px;
   background:var(--gold);color:var(--navy);
@@ -564,7 +590,7 @@ html[data-drawer="open"] .scrim{
 .status__mark--none{color:var(--ink-soft)}
 .status__label{
   flex:1;min-width:0;
-  font-family:Bungee,Barlow,sans-serif;font-size:.6875rem;letter-spacing:.03em;
+  font-size:.6875rem;letter-spacing:.03em;
 }
 .status__note{font-size:.75rem;font-weight:600;color:var(--ink-soft)}
 .status__chip{
@@ -612,7 +638,7 @@ html[data-drawer="open"] .scrim{
   color:var(--ch-ink);
 }
 .panel__title{
-  margin:0;font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  margin:0;font-weight:700;
   font-size:clamp(1rem,2vw,1.375rem);line-height:1;
   margin-inline-end:auto;
 }
@@ -629,7 +655,7 @@ html[data-drawer="open"] .scrim{
 
 .btn{
   display:inline-flex;align-items:center;gap:.4rem;
-  font-family:Bungee,Barlow,sans-serif;font-size:.75rem;letter-spacing:.04em;
+  font-size:.75rem;letter-spacing:.04em;
   padding:.5rem .85rem;border-radius:999px;
   background:var(--navy);color:#fff;text-decoration:none;
   border:3px solid #fff;
@@ -664,7 +690,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .page__tag{
   position:absolute;top:.6rem;left:.6rem;
-  font-family:Bungee,Barlow,sans-serif;font-size:.625rem;letter-spacing:.1em;
+  font-size:.625rem;letter-spacing:.1em;
   text-transform:uppercase;
   padding:.3rem .55rem;border-radius:999px;
   background:var(--navy);color:var(--gold);
@@ -734,21 +760,78 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .empty__mark{color:var(--gold);opacity:.55;margin-bottom:1.25rem}
 .empty__mark svg{width:66px;height:66px;margin-inline:auto}
 .empty h2{
-  font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-weight:700;
   font-size:clamp(1.25rem,3vw,1.75rem);margin:0 0 .75rem;line-height:1.15;
 }
 .empty p{color:var(--ink-soft);margin:0 0 1.75rem}
+
+/* ── wiki ───────────────────────────────────────────────── */
+
+.wiki{padding:clamp(1rem,3vw,1.75rem)}
+
+.wiki__group + .wiki__group{margin-top:1.75rem}
+.wiki__cat{
+  margin:0 0 .7rem;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.75rem;letter-spacing:.1em;color:var(--gold);
+}
+.wiki__list{
+  list-style:none;margin:0;padding:0;
+  display:grid;gap:.7rem;
+  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
+}
+.wiki__card{
+  display:flex;align-items:center;gap:.8rem;
+  padding:.6rem;height:100%;
+  border:3px solid var(--navy-line);border-radius:var(--r-sm);
+  background:var(--navy);color:inherit;text-decoration:none;
+  transition:transform .16s var(--ease), border-color .16s;
+}
+.wiki__card:hover{transform:translateY(-4px);border-color:#fff}
+.wiki__card img,.wiki__card-mark{
+  flex:0 0 auto;width:56px;height:56px;border-radius:8px;
+  object-fit:cover;background:var(--navy-lift);
+  border:2px solid var(--navy-line);
+}
+.wiki__card-body{display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.wiki__card-title{
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.8125rem;letter-spacing:.02em;line-height:1.2;
+}
+.wiki__card-sum{font-size:.8125rem;line-height:1.35;color:var(--ink-soft)}
+
+.wiki__back{margin:0 0 1.1rem}
+.wiki__article{max-width:68ch}
+.wiki__hero{
+  width:100%;max-height:340px;object-fit:cover;
+  border:3px solid #fff;border-radius:var(--r-sm);
+  margin-bottom:1.1rem;background:var(--navy);
+}
+.wiki__tag{
+  margin:0 0 .5rem;display:inline-block;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.625rem;letter-spacing:.1em;
+  padding:.3rem .6rem;border-radius:999px;
+  background:var(--gold-dp);color:#fff;border:2px solid rgba(255,255,255,.5);
+}
+.wiki__article h2{
+  margin:0 0 .6rem;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1.375rem,3.4vw,2rem);line-height:1.1;
+}
+.wiki__sum{margin:0 0 1.2rem;color:var(--ink-soft);font-size:1.0625rem}
+.wiki__article .prose{padding:0;max-width:none}
 
 /* ── prose ──────────────────────────────────────────────── */
 
 .prose{padding:clamp(1.25rem,4vw,2.25rem);max-width:68ch}
 .prose h2{
-  font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-weight:700;
   font-size:clamp(1.375rem,3.4vw,2rem);line-height:1.1;
   margin:0 0 1rem;
 }
 .prose h3{
-  font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-weight:700;
   font-size:clamp(.9375rem,1.8vw,1.125rem);line-height:1.2;
   color:var(--gold);
   margin:2.25rem 0 .6rem;

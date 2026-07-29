@@ -86,13 +86,25 @@ Measured on the components this build added:
 
 ## Typography
 
-| Role | Face | Why |
-|---|---|---|
-| HUD labels, ribbons, channel names, buttons | **Bungee** 400 | Signage face with a real point of view. Its all-caps chunk matches the wordmark's weight, and its lineage is vertical sign painting — a system label, not a heading |
-| Body, instrumentation, captions | **Barlow** 400/600/700/800 | Grotesque with slight rounding. Reads as machine instrumentation next to Bungee without going cold |
+**Shuttleblock**, and nothing else. Four widths and three weights from one Fort
+Foundry family, which is enough to carry both jobs the site used to split between
+two faces. Replaced the Bungee/Barlow pairing at the creator's direction; the
+~101 KB of self-hosted woff2 went with it.
 
-Self-hosted, latin subset only, 5 files / ~101 KB total. No external font request —
-the site has zero third-party network dependencies, verified per route.
+| Role | Treatment |
+|---|---|
+| HUD labels, ribbons, channel names, headings, buttons | `700`, uppercase, tracked. Bungee was caps-only and carried its weight in the drawing, so both have to be stated explicitly now — one grouped rule near the top of `main.css` does it for all 22 selectors |
+| Body, instrumentation, captions | `400`–`600`, sentence case |
+
+Shuttleblock ships three weights, so requests for 600 and 800 resolve to the
+nearest real face rather than synthesising. The scale is left as authored.
+
+Served from an Adobe Fonts kit, which changes two things that were previously
+true. The site no longer has zero third-party network dependencies — it makes
+requests to `use.typekit.net` and `p.typekit.net`. And the kit is **domain-locked**:
+Adobe serves it only to domains registered in the web project, so an unregistered
+host gets a 403 and falls through to `ui-sans-serif, system-ui`. The fallback was
+checked; caps, weight and layout all survive it, but it is not the design.
 
 Display maxes at `clamp(1.5rem, 3.1vw, 2.15rem)`. Prose is capped at 68ch.
 
@@ -197,6 +209,30 @@ These are design decisions, not copy suggestions.
 - Comic-page alt text names the lettering limitation rather than pretending
   otherwise.
 
+## Content
+
+Content lives in Supabase and is fetched over PostgREST with plain `fetch` — no
+SDK, so the no-build-step property survives. Pages, cast and art sheets, wiki
+entries, the build-status rows and most of the site's copy are all editable at
+`/admin/`. See [`docs/cms.md`](docs/cms.md).
+
+Two design consequences worth recording:
+
+- **The fallback is content, not a placeholder.** `data.js` carries the ten drafts
+  and five sheets, and renders them if Supabase is unreachable, unexposed, or
+  empty. A comic that goes blank when a database is down has failed at the one
+  thing it exists to do.
+- **The honesty rules are now enforced by shape, not by discipline.** There is no
+  field anywhere in the CMS for a release date, a view count, or a follower
+  number, because there is no column for one. The cast counter sums figures that
+  were actually drawn; the page count counts pages. `display_name` on a sheet is
+  nullable and its hint says to leave it blank unless the name is genuinely known.
+  The Build status panel is the one place the creator states what isn't finished,
+  and it is the first tab that opens with a standing note saying so.
+
+The wiki is wired up and starts empty. Its empty state now appears only when there
+are genuinely no published entries, rather than being hardcoded.
+
 ## Known gaps
 
 - The logo is raster only. `assets/logo/wordmark.png` and `monogram.png` were cut
@@ -208,3 +244,10 @@ These are design decisions, not copy suggestions.
 - Dialogue is lettered into the artwork and cannot be read as text. Alt text
   describes each page's position and states the limitation rather than pretending
   otherwise.
+- The Adobe Fonts kit is a third-party dependency on a domain-locked resource, and
+  it is now the site's single largest availability risk: an unregistered domain
+  degrades every surface at once. Self-hosting is not permitted by the licence.
+- The Supabase project is shared with an unrelated site. The comic's tables live
+  in their own `fruitpop` schema and writes are gated on an explicit editor
+  allowlist rather than on `authenticated`, because auth is shared. A dedicated
+  project would be cleaner if the two ever need different retention or billing.

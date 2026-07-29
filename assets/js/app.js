@@ -1,4 +1,7 @@
-import { PAGES, CHARACTERS, SHEETS, SECTIONS, STATUS, stageOf } from './data.js';
+import {
+  load, CONTENT, SECTIONS, mediaURL, txt,
+  castSheets, artSheets, castCount,
+} from './data.js';
 
 /* ═══════════════════════════════════════════════════════════
    Every block below runs inside its own guard. A missing node
@@ -17,15 +20,17 @@ function boot(name, fn){
   try { fn(); } catch (e) { console.error(`[fp] ${name}:`, e); }
 }
 
-const esc = s => String(s).replace(/[&<>"]/g, c =>
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
   ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 
 const pad = i => String(i + 1).padStart(2, '0');
 
-/* ── derived counts ─────────────────────────────────────── */
+/* Content is fetched before anything renders. If Supabase is
+   unreachable this resolves to the bundled drafts instead — it
+   does not reject, so the site always has something to show. */
+await load();
 
-const castSheets = CHARACTERS.filter(f => SHEETS[f]?.cast);
-const castCount  = castSheets.reduce((a, f) => a + (SHEETS[f]?.n || 0), 0);
+const PAGES = CONTENT.pages;
 
 /* ── starfield ──────────────────────────────────────────── */
 
@@ -61,13 +66,34 @@ boot('starfield', () => {
   addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(stars, 220); });
 });
 
+/* ── editable copy ──────────────────────────────────────── */
+
+boot('copy', () => {
+  const set  = (id, key) => { const n = $(id); if (n) n.textContent = txt(key); };
+  const html = (id, key) => { const n = $(id); if (n) n.innerHTML   = txt(key); };
+
+  set('hero-kicker', 'hero.kicker');
+  set('hero-title',  'hero.title');
+  set('hero-sub',    'hero.sub');
+  set('hero-cta',    'hero.cta');
+  html('read-notice', 'read.notice');
+  html('cast-notice', 'cast.notice');
+  set('promo-title', 'promo.title');
+  set('promo-body',  'promo.body');
+  set('foot-copy',   'foot.copyright');
+  set('foot-build',  'foot.build');
+  const about = $('about-body');
+  if (about && txt('about.body')) about.innerHTML = txt('about.body');
+});
+
 /* ── readout ────────────────────────────────────────────── */
 
 boot('readout', () => {
+  const n = castCount();
   if ($('ro-pages'))  $('ro-pages').textContent  = PAGES.length;
-  if ($('ro-cast'))   $('ro-cast').textContent   = castCount;
+  if ($('ro-cast'))   $('ro-cast').textContent   = n;
   if ($('pg-all'))    $('pg-all').textContent    = PAGES.length;
-  if ($('cast-all'))  $('cast-all').textContent  = castCount;
+  if ($('cast-all'))  $('cast-all').textContent  = n;
 });
 
 /* ── hero ───────────────────────────────────────────────── */
@@ -75,44 +101,47 @@ boot('readout', () => {
 boot('hero', () => {
   const img = $('ch-read-img');
   if (!img || !PAGES.length) return;
-  img.src = 'assets/pages/' + PAGES[0];
+  img.src = mediaURL(PAGES[0].image_path);
   img.alt = '';
 });
 
 /* ── galleries ──────────────────────────────────────────── */
 
 boot('galleries', () => {
-  const fill = (node, files, base) => {
+  const fill = (node, rows) => {
     if (!node) return;
-    node.innerHTML = files.map(f => {
-      const d = esc(SHEETS[f]?.desc || '');
+    node.innerHTML = rows.map(s => {
+      const d = esc(s.description);
+      const name = s.display_name ? `<strong>${esc(s.display_name)}</strong> — ` : '';
       return `<figure>
-        <img src="${base}${f}" alt="${d}" loading="lazy" decoding="async" width="900" height="1350">
-        <figcaption>${d}</figcaption>
+        <img src="${esc(mediaURL(s.image_path))}" alt="${d}" loading="lazy" decoding="async" width="900" height="1350">
+        <figcaption>${name}${d}</figcaption>
       </figure>`;
     }).join('');
   };
-  fill($('cast'), castSheets, 'assets/characters/');
-  fill($('art'), CHARACTERS.filter(f => !SHEETS[f]?.cast), 'assets/characters/');
+  fill($('cast'), castSheets());
+  fill($('art'),  artSheets());
 });
 
 /* ═══ DASHBOARD ══════════════════════════════════════════
-   Nothing here is invented. The order is the file order, the
-   stage chip is the pencil colour recorded in art-analysis,
-   and the status rows are quoted from README.
+   Nothing here is invented. The order is the stored order, the
+   stage chip is the pencil colour recorded in art-analysis, and
+   the status rows are the build's real state.
    ═══════════════════════════════════════════════════════ */
+
+const thumbOf = p => mediaURL(p.thumb_path || p.image_path);
 
 boot('start-here', () => {
   const node = $('rank');
   if (!node) return;
-  node.innerHTML = PAGES.slice(0, 5).map((f, i) => `
+  node.innerHTML = PAGES.slice(0, 5).map((p, i) => `
     <li>
       <a class="rank__row" href="#/read/${i + 1}">
         <span class="rank__n">${pad(i)}</span>
-        <img class="rank__thumb" src="assets/pages/thumb/${f}" alt=""
+        <img class="rank__thumb" src="${esc(thumbOf(p))}" alt=""
              loading="lazy" decoding="async" width="38" height="57">
-        <span class="rank__label">Draft ${pad(i)}</span>
-        <span class="rank__chip">${esc(stageOf(f))}</span>
+        <span class="rank__label">${p.is_draft ? 'Draft' : 'Page'} ${pad(i)}</span>
+        <span class="rank__chip">${esc(p.stage)}</span>
       </a>
     </li>`).join('');
 });
@@ -120,13 +149,13 @@ boot('start-here', () => {
 boot('draft-cards', () => {
   const node = $('cardrow');
   if (!node) return;
-  node.innerHTML = PAGES.map((f, i) => `
-    <a class="card" href="#/read/${i + 1}" aria-label="Draft ${pad(i)} of ${PAGES.length}">
+  node.innerHTML = PAGES.map((p, i) => `
+    <a class="card" href="#/read/${i + 1}" aria-label="${p.is_draft ? 'Draft' : 'Page'} ${pad(i)} of ${PAGES.length}">
       ${i === 0 ? '<span class="badge">Start</span>' : ''}
-      <img src="assets/pages/thumb/${f}" alt="" loading="lazy" decoding="async" width="144" height="216">
+      <img src="${esc(thumbOf(p))}" alt="" loading="lazy" decoding="async" width="144" height="216">
       <span class="card__foot">
         <span class="card__n">${pad(i)}</span>
-        <span class="card__stage">${esc(stageOf(f))}</span>
+        <span class="card__stage">${esc(p.stage)}</span>
       </span>
     </a>`).join('');
 });
@@ -140,16 +169,16 @@ boot('build-status', () => {
     none: '<circle cx="6" cy="6" r="3.6"/>',
   };
   const WORD = { done:'Done', wip:'In progress', none:'Not started' };
-  node.innerHTML = STATUS.map(s => `
+  node.innerHTML = CONTENT.status.map(s => `
     <li>
-      <span class="status__mark status__mark--${s.state}" aria-hidden="true">
+      <span class="status__mark status__mark--${esc(s.state)}" aria-hidden="true">
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${MARK[s.state]}</svg>
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${MARK[s.state] || MARK.none}</svg>
       </span>
       <span class="status__label">${esc(s.label)}</span>
-      <span class="sr-only">${WORD[s.state]}.</span>
+      <span class="sr-only">${WORD[s.state] || ''}.</span>
       <span class="status__note">${esc(s.note)}</span>
-      <span class="status__chip${s.state === 'done' ? ' status__chip--done' : ''}">${esc(s.chip)}</span>
+      ${s.chip ? `<span class="status__chip${s.state === 'done' ? ' status__chip--done' : ''}">${esc(s.chip)}</span>` : ''}
     </li>`).join('');
 });
 
@@ -162,13 +191,95 @@ boot('quick-rail', () => {
   const sync  = () => { btn.disabled = rail.scrollWidth <= rail.clientWidth + 4; };
 
   btn.addEventListener('click', () => {
-    const by = rail.clientWidth * .8;
-    rail.scrollBy({ left: atEnd() ? -rail.scrollWidth : by,
+    rail.scrollBy({ left: atEnd() ? -rail.scrollWidth : rail.clientWidth * .8,
                     behavior: reduced() ? 'auto' : 'smooth' });
   });
   rail.addEventListener('scroll', sync, { passive:true });
   addEventListener('resize', sync);
   sync();
+});
+
+/* ═══ WIKI ═══════════════════════════════════════════════
+   Empty until the creator writes something. The empty state is
+   shown only when there are genuinely no published entries —
+   it reports the shelf, it does not stand in for one.
+   ═══════════════════════════════════════════════════════ */
+
+const CATEGORIES = [
+  ['character', 'Characters'],
+  ['place',     'Places'],
+  ['term',      'Terms'],
+  ['lore',      'Lore'],
+];
+
+/* Bodies are authored by an allowlisted editor, so HTML is allowed.
+   Plain text is auto-paragraphed for convenience. */
+function bodyHTML(body){
+  const s = String(body || '').trim();
+  if (!s) return '';
+  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  return s.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+let showWiki = () => {};
+
+boot('wiki', () => {
+  const index = $('wiki-index'), entry = $('wiki-entry'), empty = $('wiki-empty');
+  if (!index || !entry || !empty) return;
+
+  const entries = CONTENT.wiki;
+
+  index.innerHTML = CATEGORIES.map(([key, label]) => {
+    const rows = entries.filter(e => e.category === key);
+    if (!rows.length) return '';
+    return `
+      <section class="wiki__group">
+        <h3 class="wiki__cat">${esc(label)}</h3>
+        <ul class="wiki__list">
+          ${rows.map(e => `
+            <li>
+              <a class="wiki__card" href="#/wiki/${encodeURIComponent(e.slug)}">
+                ${e.image_path
+                  ? `<img src="${esc(mediaURL(e.image_path))}" alt="" loading="lazy" decoding="async" width="120" height="120">`
+                  : '<span class="wiki__card-mark" aria-hidden="true"></span>'}
+                <span class="wiki__card-body">
+                  <span class="wiki__card-title">${esc(e.title)}</span>
+                  ${e.summary ? `<span class="wiki__card-sum">${esc(e.summary)}</span>` : ''}
+                </span>
+              </a>
+            </li>`).join('')}
+        </ul>
+      </section>`;
+  }).join('');
+
+  showWiki = slug => {
+    const found = slug ? entries.find(e => e.slug === slug) : null;
+
+    empty.hidden = entries.length > 0;
+    index.hidden = !entries.length || !!found;
+    entry.hidden = !found;
+
+    if (!found) return;
+    entry.innerHTML = `
+      <p class="wiki__back"><a class="btn" href="#/wiki">← All entries</a></p>
+      <article class="wiki__article">
+        ${found.image_path
+          ? `<img class="wiki__hero" src="${esc(mediaURL(found.image_path))}" alt=""
+                  loading="lazy" decoding="async">`
+          : ''}
+        <p class="wiki__tag">${esc((CATEGORIES.find(c => c[0] === found.category) || [,'Lore'])[1])}</p>
+        <h2>${esc(found.title)}</h2>
+        ${found.summary ? `<p class="wiki__sum">${esc(found.summary)}</p>` : ''}
+        <div class="prose">${bodyHTML(found.body)}</div>
+      </article>`;
+  };
+
+  /* the empty state's own copy is editable too */
+  const t = $('wiki-empty-title'), b = $('wiki-empty-body');
+  if (t) t.textContent = txt('wiki.empty.title');
+  if (b) b.textContent = txt('wiki.empty.body');
+
+  showWiki(null);
 });
 
 /* ── reader ─────────────────────────────────────────────── */
@@ -178,19 +289,21 @@ let showPage = () => {};
 boot('reader', () => {
   const pgImg = $('pg-img'), pgNow = $('pg-now');
   const prev  = $('prev'),   next  = $('next'), strip = $('filmstrip');
-  if (!pgImg || !prev || !next || !strip) return;
+  if (!pgImg || !prev || !next || !strip || !PAGES.length) return;
 
-  strip.innerHTML = PAGES.map((f, i) => `
+  strip.innerHTML = PAGES.map((p, i) => `
     <button type="button" data-i="${i}" aria-label="Page ${i + 1}">
-      <img src="assets/pages/thumb/${f}" alt="" loading="lazy" decoding="async" width="52" height="78">
+      <img src="${esc(thumbOf(p))}" alt="" loading="lazy" decoding="async" width="52" height="78">
     </button>`).join('');
 
   let idx = 0;
 
   showPage = (i, scroll = true) => {
     idx = Math.max(0, Math.min(PAGES.length - 1, i));
-    pgImg.src = 'assets/pages/' + PAGES[idx];
-    pgImg.alt = `Page ${idx + 1} of ${PAGES.length} — rough draft. Dialogue is lettered into the artwork and cannot be read as text.`;
+    const p = PAGES[idx];
+    pgImg.src = mediaURL(p.image_path);
+    pgImg.alt = p.alt || `Page ${idx + 1} of ${PAGES.length}${p.is_draft ? ' — rough draft' : ''}. ` +
+                        `Dialogue is lettered into the artwork and cannot be read as text.`;
     if (pgNow) pgNow.textContent = idx + 1;
     prev.disabled = idx === 0;
     next.disabled = idx === PAGES.length - 1;
@@ -203,13 +316,13 @@ boot('reader', () => {
     });
   };
 
-  const step = d => { showPage(idx + d); syncHash(idx); };
+  const step = d => { showPage(idx + d); history.replaceState(null, '', `#/read/${idx + 1}`); };
 
   prev.addEventListener('click', () => step(-1));
   next.addEventListener('click', () => step(1));
   strip.addEventListener('click', e => {
     const b = e.target.closest('button[data-i]');
-    if (b){ showPage(+b.dataset.i); syncHash(+b.dataset.i); }
+    if (b){ showPage(+b.dataset.i); history.replaceState(null, '', `#/read/${+b.dataset.i + 1}`); }
   });
 
   addEventListener('keydown', e => {
@@ -221,14 +334,6 @@ boot('reader', () => {
 
   showPage(0, false);
 });
-
-/* keep the URL on the page being read, without re-running the router */
-let syncing = false;
-function syncHash(i){
-  syncing = true;
-  history.replaceState(null, '', `#/read/${i + 1}`);
-  syncing = false;
-}
 
 /* ── drawer (phones) ────────────────────────────────────── */
 
@@ -308,24 +413,24 @@ function paint(name){
 }
 
 function route(){
-  if (syncing) return;
-
   const parts  = location.hash.replace(/^#\/?/, '').split('/');
   const target = TITLES[parts[0]] ? parts[0] : 'home';
-  const arg    = parseInt(parts[1], 10);
+  const arg    = parts[1] ? decodeURIComponent(parts[1]) : null;
 
-  if (target === 'read' && Number.isFinite(arg)) showPage(arg - 1, false);
+  if (target === 'read' && arg && Number.isFinite(+arg)) showPage(+arg - 1, false);
+  if (target === 'wiki') showWiki(arg);
 
   if (target === current && !first) return;
 
-  const from = current;
+  const from  = current;
   const tile  = document.querySelector(`[data-ch="${target}"]`);
-  const panel = document.querySelector(`[data-view="${target}"] .panel`);
-  const back  = document.querySelector(`[data-view="${from}"] .panel`);
+  const panel = document.querySelector(`#main > [data-view="${target}"] .panel`);
+  const back  = document.querySelector(`#main > [data-view="${from}"] .panel`);
   const home  = document.querySelector(`[data-ch="${from}"]`);
 
-  const skip = first || !document.startViewTransition || reduced();
-  if (skip){ paint(target); first = false; return; }
+  if (first || !document.startViewTransition || reduced()){
+    paint(target); first = false; return;
+  }
 
   let named = [];
   if (from === 'home' && tile && panel){

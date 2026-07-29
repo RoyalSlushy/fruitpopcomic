@@ -6,8 +6,8 @@
   neutral field.
   OWN-WORLD: Navy starfield ground #0C1326. A persistent channel rail, panels
   labelled with overhanging ribbon tabs, everything cut out with a white keyline
-  over a deep-tone inline — the wordmark's exact treatment. Bungee for HUD
-  labels, Barlow for instrumentation. Chrome is loud; artwork is never touched.
+  over a deep-tone inline — the wordmark's exact treatment. Shuttleblock alone,
+  caps and weight carrying the HUD. Chrome is loud; artwork is never touched.
   STORY: A cold visitor sees a real page alive in the hero, understands this is a
   comic in seconds, and opens it in one tap — with the rest of the hub already
   visible around it rather than one menu away.
@@ -27,9 +27,12 @@
 <meta name="description" content="Fruit Pop Comic — read the comic, meet the cast, and dig into the world.">
 <meta name="theme-color" content="#0C1326">
 <link rel="icon" href="assets/logo/monogram.png">
-<link rel="preload" href="assets/fonts/bungee-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/css/fonts.css">
+<!-- Shuttleblock. The kit is domain-locked: every domain that serves this file
+     must be listed in the Adobe Fonts web project, localhost included, or the
+     request 403s and the site falls back to system sans. -->
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="preconnect" href="https://p.typekit.net" crossorigin>
+<link rel="stylesheet" href="https://use.typekit.net/bcx0xsy.css">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
@@ -91,8 +94,8 @@
   </div>
 
   <div class="rail__promo">
-    <h2>Draft build</h2>
-    <p>The pages here are working roughs — pencils, not finished art. The wiki is
+    <h2 id="promo-title">Draft build</h2>
+    <p id="promo-body">The pages here are working roughs — pencils, not finished art. The wiki is
        genuinely empty.</p>
     <a class="btn btn--solid" href="#/about">What's real</a>
   </div>
@@ -143,11 +146,11 @@
             <span class="ch__scan" aria-hidden="true"></span>
           </span>
           <span class="hero__body">
-            <span class="hero__kicker">Page one</span>
-            <span class="hero__title">Start at the<br>beginning</span>
-            <span class="hero__sub">Ten rough pages, in the order they were drawn.
+            <span class="hero__kicker" id="hero-kicker">Page one</span>
+            <span class="hero__title" id="hero-title">Start at the beginning</span>
+            <span class="hero__sub" id="hero-sub">Ten rough pages, in the order they were drawn.
               Arrows, filmstrip, or the keyboard.</span>
-            <span class="btn btn--solid">Read now →</span>
+            <span class="btn btn--solid" id="hero-cta">Read now →</span>
           </span>
         </a>
       </div>
@@ -263,7 +266,7 @@
         <p class="panel__count"><span id="pg-now">1</span><span class="sep">/</span><span id="pg-all">10</span></p>
       </div>
 
-      <p class="notice" role="note">
+      <p class="notice" id="read-notice" role="note">
         <strong>These are rough drafts.</strong> Working pencils, not finished pages —
         no final linework, colour or lettering. Order is provisional.
       </p>
@@ -293,7 +296,7 @@
         <h1 class="panel__title">Cast</h1>
         <p class="panel__count"><span id="cast-all">5</span></p>
       </div>
-      <p class="notice" role="note">
+      <p class="notice" id="cast-notice" role="note">
         <strong>Names not recorded yet.</strong> Only one is known from the drafts —
         Ronnie. The rest are described, not named, until the creator says otherwise.
       </p>
@@ -308,20 +311,23 @@
         <a class="btn btn--back" href="#/">Menu</a>
         <h1 class="panel__title">Wiki</h1>
       </div>
-      <div class="empty">
+      <div class="empty" id="wiki-empty">
         <div class="empty__mark" aria-hidden="true">
           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
             <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
           </svg>
         </div>
-        <h2>Nothing written yet</h2>
-        <p>
+        <h2 id="wiki-empty-title">Nothing written yet</h2>
+        <p id="wiki-empty-body">
           The wiki is real and it is empty. Characters, places, and lore go here once
           the creator writes them — an empty shelf is honest, an invented one isn't.
         </p>
         <a class="btn btn--solid" href="#/cast">See the cast instead</a>
       </div>
+
+      <div class="wiki" id="wiki-index" hidden></div>
+      <div class="wiki" id="wiki-entry" hidden></div>
     </div>
   </section>
 
@@ -343,7 +349,7 @@
         <a class="btn btn--back" href="#/">Menu</a>
         <h1 class="panel__title">About</h1>
       </div>
-      <div class="prose">
+      <div class="prose" id="about-body">
         <h2>Fruit Pop Comic</h2>
         <p>
           A webcomic, and the hub for everything around it — the pages themselves, the
@@ -383,9 +389,10 @@
 </main>
 
 <footer class="foot">
-  <p>Art and characters &copy; the creator of Fruit Pop Comic.</p>
-  <p class="foot__build">Draft build &middot; pages are working roughs &middot;
-    <a href="#/about">About</a></p>
+  <p id="foot-copy">Art and characters &copy; the creator of Fruit Pop Comic.</p>
+  <p class="foot__build"><span id="foot-build">Draft build &middot; pages are working
+    roughs</span> &middot; <a href="#/about">About</a> &middot;
+    <a href="admin/">Edit</a></p>
 </footer>
 
 <!-- ═══ BOTTOM TAB BAR ═══ -->

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-section="wiki">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edit — Fruit Pop Comic</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1326">
+<link rel="icon" href="../assets/logo/monogram.png">
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="stylesheet" href="https://use.typekit.net/bcx0xsy.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="adm">
+
+<div class="nebula" aria-hidden="true"></div>
+
+<!-- ═══ SIGN IN ═══ -->
+<section class="adm__gate" id="gate">
+  <form class="adm__login panel" id="login"
+        style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
+    <div class="panel__bar">
+      <h1 class="panel__title">Fruit Pop · Edit</h1>
+    </div>
+    <div class="adm__login-body">
+      <p class="adm__hint">Sign in with the Supabase account that was added as a
+        Fruit Pop editor.</p>
+
+      <label class="fld">
+        <span class="fld__label">Email</span>
+        <input class="fld__input" type="email" id="email" autocomplete="username" required>
+      </label>
+      <label class="fld">
+        <span class="fld__label">Password</span>
+        <input class="fld__input" type="password" id="password" autocomplete="current-password" required>
+      </label>
+
+      <p class="adm__err" id="login-err" role="alert" hidden></p>
+      <button class="btn btn--solid" type="submit" id="login-go">Sign in</button>
+      <p class="adm__hint"><a href="../">← Back to the site</a></p>
+    </div>
+  </form>
+</section>
+
+<!-- ═══ WORKBENCH ═══ -->
+<div class="adm__shell" id="shell" hidden>
+
+  <header class="adm__bar">
+    <a class="adm__home" href="../" aria-label="Fruit Pop Comic">
+      <img src="../assets/logo/monogram.png" alt="" width="600" height="600">
+    </a>
+    <nav class="adm__tabs" id="tabs" aria-label="Content types"></nav>
+    <p class="adm__who"><span id="who"></span>
+      <button class="btn" type="button" id="signout">Sign out</button></p>
+  </header>
+
+  <p class="adm__banner" id="banner" role="status" hidden></p>
+
+  <main class="adm__main">
+    <section class="adm__list-pane">
+      <div class="adm__pane-head">
+        <h2 id="list-title">Pages</h2>
+        <button class="btn btn--solid" type="button" id="new">+ New</button>
+      </div>
+      <div class="adm__list" id="list"></div>
+    </section>
+
+    <section class="adm__edit-pane" id="edit-pane" hidden>
+      <div class="adm__pane-head">
+        <h2 id="edit-title">Edit</h2>
+        <button class="btn" type="button" id="close-edit">Close</button>
+      </div>
+      <form class="adm__form" id="form"></form>
+      <div class="adm__actions">
+        <button class="btn btn--solid" type="button" id="save">Save</button>
+        <button class="btn adm__danger" type="button" id="del">Delete</button>
+        <span class="adm__saved" id="saved" hidden>Saved</span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
