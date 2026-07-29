@@ -72,10 +72,25 @@ by the deployment that was built, so a deployment that already exists keeps the
 values it was deployed with. Editing a variable in the dashboard changes nothing
 until a new deployment picks it up.
 
-Check the **build log** rather than waiting to be surprised at the sign-in box:
-`npm run build` ends with either `✓ CMS secrets present` or a warning naming
-what is missing. It only ever warns — the build has to succeed without secrets so
-that forks and preview deployments of docs-only changes still work.
+Check the **build log** rather than waiting to be surprised at the sign-in box.
+`npm run build` ends with two independent lines — one for signing in, one for
+saving:
+
+```
+✓ CMS secrets present — the editor will accept a sign-in
+✓ Supabase write credentials present — the editor will be able to save
+```
+
+Either can be a warning instead, naming what is missing. It only ever warns —
+the build has to succeed without secrets so that forks and preview deployments
+of docs-only changes still work.
+
+This is also the fastest way to answer **"I set the variable and it still
+doesn't work"**: the build log reflects what the deployment was actually built
+with. If you set `SUPABASE_SERVICE_ROLE_KEY` in Vercel and the build log still
+says it is not set, the value never reached that build — it is scoped to a
+different environment (Production and Preview are separate), or the deployment
+predates the change and needs a redeploy.
 
 These variables gate the *editor*. The `SUPABASE_*` ones gate where edits are
 *stored*: without them the site still renders from `content/*.ts`, and a save

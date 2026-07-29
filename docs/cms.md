@@ -175,6 +175,25 @@ must never be given a `NEXT_PUBLIC_` name.
 the deployment that was built, so an existing deployment keeps the values it was
 built with.
 
+### "I set the key and it still fails"
+
+Don't guess from the editor — read the **build log**. Every build ends with a
+line for saving, and it reports what that build actually received:
+
+```
+✓ Supabase write credentials present — the editor will be able to save
+⚠ SAVING NOT CONFIGURED — … · SUPABASE_SERVICE_ROLE_KEY is not set
+```
+
+If you set the variable and the build log still says it is not set, the value
+never reached that build. In practice that is one of two things: it is scoped to
+a different environment (**Production and Preview are separate lists** in Vercel,
+and a variable added to one is invisible to the other), or the deployment being
+served predates the change and no redeploy has happened since.
+
+If the build log shows the `✓` and saving *still* fails, the key is present but
+wrong, and the save will say so: `the database rejected the service key`.
+
 ## Where it lives
 
 Supabase project **SetApartCare** (`rdmxtosklpvwtggakbja`), table

@@ -144,6 +144,16 @@ describe('the build-time check agrees with the runtime rule', () => {
     assert.ok(script.includes('CMS_SESSION_SECRET'));
   });
 
+  /* The build log is the only place the write configuration can be checked
+     without a signed-in session, so it has to cover the same variables
+     writeProblemsIn() does — including the public URL fallback, or a working
+     deployment gets warned about. */
+  test('it checks the write variables too', () => {
+    assert.ok(script.includes('SUPABASE_SERVICE_ROLE_KEY'));
+    assert.ok(script.includes('SUPABASE_URL'));
+    assert.ok(script.includes('NEXT_PUBLIC_SUPABASE_URL'));
+  });
+
   test('it warns rather than failing the build', () => {
     assert.ok(!/process\.exit\(\s*[1-9]/.test(script), 'must not exit non-zero');
   });
