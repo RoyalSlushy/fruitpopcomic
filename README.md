@@ -48,6 +48,39 @@ Set these in the Vercel project (and in `.env.local` locally):
 fallback**. If either is missing — or the secret is under 32 characters — every
 CMS endpoint returns 503 and signing in is impossible. That is deliberate.
 
+### "The CMS is not configured on this deployment"
+
+That is the 503 above, and it means exactly one of four things. The sign-in box
+now names which, because a secret pasted at 24 characters looks perfectly set
+from a dashboard:
+
+| | |
+|---|---|
+| `CMS_ADMIN_PASSWORD is not set` | add it |
+| `CMS_ADMIN_PASSWORD is shorter than 6 characters` | lengthen it |
+| `CMS_SESSION_SECRET is not set` | add it |
+| `CMS_SESSION_SECRET is shorter than 32 characters` | regenerate it at 32+ |
+
+Generate a secret with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Setting the variable is not enough — redeploy.** Server env is read at runtime
+by the deployment that was built, so a deployment that already exists keeps the
+values it was deployed with. Editing a variable in the dashboard changes nothing
+until a new deployment picks it up.
+
+Check the **build log** rather than waiting to be surprised at the sign-in box:
+`npm run build` ends with either `✓ CMS secrets present` or a warning naming
+what is missing. It only ever warns — the build has to succeed without secrets so
+that forks and preview deployments of docs-only changes still work.
+
+These variables gate the *editor*. The `SUPABASE_*` ones gate where edits are
+*stored*: without them the site still renders from `content/*.ts`, and a save
+fails at write time rather than at sign-in.
+
 Type is **Shuttleblock**, from an Adobe Fonts kit that is **domain-locked**: every
 domain serving the site has to be registered in the web project or the stylesheet
 403s and the page falls back to system sans. Preview URLs can't be wildcarded, so

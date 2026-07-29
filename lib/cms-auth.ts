@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
+import { problemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
 
 /* Session auth for the editor.
  *
@@ -32,9 +33,14 @@ export type Secrets = { password: string; secret: string };
 export function secrets(): Secrets | null {
   const password = process.env.CMS_ADMIN_PASSWORD;
   const secret = process.env.CMS_SESSION_SECRET;
-  if (typeof password !== 'string' || password.length < 6) return null;
-  if (typeof secret !== 'string' || secret.length < 32) return null;
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD) return null;
+  if (typeof secret !== 'string' || secret.length < MIN_SECRET) return null;
   return { password, secret };
+}
+
+/** Why secrets() said no, in words. See lib/cms-config.ts. */
+export function configProblems(): string[] {
+  return problemsIn(process.env);
 }
 
 /**
