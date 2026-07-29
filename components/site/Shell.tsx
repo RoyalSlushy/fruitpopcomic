@@ -5,6 +5,7 @@ import { useSelectedLayoutSegment } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Glyph } from './Glyph.tsx';
 import { EditableText } from '../cms/EditableText.tsx';
+import { CmsHatch } from '../cms/CmsHatch.tsx';
 import type { SiteContent } from '../../content/site.ts';
 
 /* The persistent chrome: channel rail, top strip, bottom tab bar.
@@ -144,10 +145,14 @@ export function Shell({ site, counts, children }: {
 
       <footer className="foot">
         <EditableText as="p" path="site.footer.copyright" value={site.footer.copyright} />
+        {/* The gear rides inside this paragraph rather than as a third footer
+            child, so the bar stays a two-item space-between and the build note
+            does not slide to the middle. */}
         <p className="foot__build">
           <EditableText as="span" path="site.footer.build" value={site.footer.build} />
           {' · '}
           <Link href="/about">About</Link>
+          <CmsHatch />
         </p>
       </footer>
 

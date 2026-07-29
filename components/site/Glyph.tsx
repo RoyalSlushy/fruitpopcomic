@@ -67,6 +67,19 @@ export function Glyph({ name, width = 5 }: { name: string; width?: number }) {
   );
 }
 
+/* Eight teeth on a hub. Its own 24-grid rather than the 64 the rail glyphs
+   use, because it is only ever drawn at footer size. */
+export function Gear() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="6.8" />
+      <circle cx="12" cy="12" r="2.6" />
+      <path d="M18.8 12h2.5M16.81 7.19l1.77-1.77M12 5.2V2.7M7.19 7.19 5.42 5.42M5.2 12H2.7M7.19 16.81l-1.77 1.77M12 18.8v2.5M16.81 16.81l1.77 1.77" />
+    </svg>
+  );
+}
+
 export function Chevron({ dir = 'right' }: { dir?: 'left' | 'right' }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

@@ -873,6 +873,22 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .foot a{color:var(--gold)}
 .foot__build{color:var(--gold)!important}
 
+/* Editor hatch. Quiet by default — it is for one person and everyone else
+   should be able to look straight past it — but the box is a full tap target
+   even though the mark inside is small. The negative block margin keeps that
+   box from stretching the footer line. */
+.foot__cms{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:2.25rem;height:2.25rem;margin-block:-.5rem;margin-inline-start:.15rem;
+  vertical-align:middle;
+  padding:0;border:0;border-radius:999px;background:none;
+  color:var(--ink-soft);opacity:.35;
+  cursor:pointer;
+  transition:opacity .16s var(--ease),color .16s var(--ease);
+}
+.foot__cms svg{width:1rem;height:1rem}
+.foot__cms:hover,.foot__cms:focus-visible{opacity:1;color:var(--gold)}
+
 /* ═══ RESPONSIVE ═════════════════════════════════════════ */
 
 /* the dashboard's two-column top zone arrives before the rail does */

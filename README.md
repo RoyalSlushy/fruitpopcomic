@@ -76,9 +76,10 @@ docs/cms.md           how the CMS works and how to edit
 
 ## Editing
 
-Go to `/#cms`, sign in, and the page becomes editable in place. Click any text to
-edit it; Enter commits, Escape cancels. Lists get add / move / delete controls.
-Save writes only the sections you actually changed.
+Click the **gear in the footer** — or go to `/#cms`, which still works — sign in,
+and the page becomes editable in place. Click any text to edit it; Enter commits,
+Escape cancels. Lists get add / move / delete controls. Save writes only the
+sections you actually changed.
 
 Full detail — including how the merge behaves when you change content in code
 after editing it in the CMS — is in [`docs/cms.md`](docs/cms.md).

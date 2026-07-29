@@ -21,8 +21,13 @@ unless you had edited that exact string. Neither side clobbers the other.
 
 ## Editing
 
-Go to **`/#cms`** and sign in. After that a marker cookie keeps the editor loading
-until you press **Done**.
+Click the **gear in the footer** and sign in. **`/#cms`** still does the same
+thing and is the fallback if the footer is ever out of reach. After that a marker
+cookie keeps the editor loading until you press **Done**.
+
+The gear ships to every visitor, which is deliberate and costs nothing: opening
+the editor shell without the password gets you a sign-in box and a 401 on every
+write. Nothing guards the door except the password — see the security note below.
 
 | | |
 |---|---|
