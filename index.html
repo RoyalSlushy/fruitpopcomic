@@ -1,24 +1,25 @@
 <!doctype html>
 <!--
   DIRECTION CONTRACT — Fruit Pop Comic / home
-  THESIS: A webcomic hub built as a handheld console home menu. Refuses the
+  THESIS: A webcomic hub built as a handheld console dashboard. Refuses the
   category default: centred logo over a START READING button with the page on a
   neutral field.
-  OWN-WORLD: Navy starfield ground #0C1326. Channel tiles colour-blocked in the
-  logo's own magenta/cyan/gold/peach, each cut out with a white keyline over a
-  deep-magenta inline — the wordmark's exact treatment. Bungee for HUD labels,
-  Barlow for instrumentation. Chrome is loud; artwork is never touched by it.
-  STORY: A cold visitor sees a real page alive inside the READ channel,
-  understands this is a comic in seconds, and opens it in one tap.
-  FIRST VIEWPORT: Info bar with wordmark and counts drawn from the files. Below, a
-  channel grid — READ double-height with page one inside it under a Drafts badge,
-  then CAST, WIKI, ART, ABOUT. Primary action is the READ channel itself. No
-  recency is claimed anywhere: cadence was never supplied.
-  FORM: System Dashboard. Candidate 4 of 7 on the screen-native list, after two
-  re-rolls and a "go screen-native" steer. Seed key e61a73a4, degraded roll (no
-  challengers available).
+  OWN-WORLD: Navy starfield ground #0C1326. A persistent channel rail, panels
+  labelled with overhanging ribbon tabs, everything cut out with a white keyline
+  over a deep-tone inline — the wordmark's exact treatment. Bungee for HUD
+  labels, Barlow for instrumentation. Chrome is loud; artwork is never touched.
+  STORY: A cold visitor sees a real page alive in the hero, understands this is a
+  comic in seconds, and opens it in one tap — with the rest of the hub already
+  visible around it rather than one menu away.
+  FIRST VIEWPORT: Channel rail, numbered section strip and readout drawn from the
+  files. Then WHAT'S HOT over page one, START HERE listing the real drafts in
+  their provisional order, THE DRAFTS as a card rail, BUILD STATUS saying what is
+  and isn't finished, and QUICK ACCESS to the rest.
+  FORM: System Dashboard. No recency, ranking, cadence or reader count is claimed
+  anywhere — none was supplied. The panel that would carry a daily mission
+  carries the build's real state instead.
 -->
-<html lang="en">
+<html lang="en" data-section="home">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -38,11 +39,84 @@
 
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- ═══ SYSTEM BAR ═══ -->
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+
+<!-- ═══ CHANNEL RAIL ═══ -->
+<nav class="rail" id="rail" aria-label="Sections">
+
+  <a class="rail__logo" href="#/" aria-label="Fruit Pop Comic — home">
+    <img src="assets/logo/wordmark.png" alt="Fruit Pop Comic" width="498" height="245">
+    <img class="rail__mark" src="assets/logo/monogram.png" alt="" width="600" height="600">
+  </a>
+
+  <div class="rail__nav">
+    <a class="rail__item" data-nav="home" href="#/">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 29 32 10l23 19"/><path d="M16 27v27h32V27"/><path d="M26 54V39h12v15"/>
+      </svg>
+      <span>Home</span>
+    </a>
+    <a class="rail__item" data-nav="read" href="#/read">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="11" y="9" width="42" height="46" rx="5"/><path d="M22 22h20M22 32h20M22 42h12"/>
+      </svg>
+      <span>Read</span>
+    </a>
+    <a class="rail__item" data-nav="cast" href="#/cast">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="24" cy="23" r="9"/><path d="M9 53c0-9 6-14 15-14s15 5 15 14"/>
+        <circle cx="45" cy="25" r="7"/><path d="M43 39c7 0 12 5 12 13"/>
+      </svg>
+      <span>Cast</span>
+    </a>
+    <a class="rail__item" data-nav="wiki" href="#/wiki">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
+        <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
+      </svg>
+      <span>Wiki</span>
+    </a>
+    <a class="rail__item" data-nav="art" href="#/art">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M32 7l6.6 13.4L53.5 22l-10.7 10.5 2.5 14.8L32 40.3 18.7 47.3l2.5-14.8L10.5 22l14.9-1.6z"/>
+      </svg>
+      <span>Art</span>
+    </a>
+    <a class="rail__item" data-nav="about" href="#/about">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="32" cy="32" r="24"/><path d="M32 29v15"/><path d="M32 21h.03"/>
+      </svg>
+      <span>About</span>
+    </a>
+  </div>
+
+  <div class="rail__promo">
+    <h2>Draft build</h2>
+    <p>The pages here are working roughs — pencils, not finished art. The wiki is
+       genuinely empty.</p>
+    <a class="btn btn--solid" href="#/about">What's real</a>
+  </div>
+
+</nav>
+
+<!-- ═══ TOP STRIP ═══ -->
 <header class="sysbar">
+  <button class="burger" id="burger" type="button" aria-label="Open sections menu"
+          aria-expanded="false" aria-controls="rail">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16"/>
+    </svg>
+  </button>
+
   <a class="sysbar__home" href="#/" aria-label="Fruit Pop Comic — home">
     <img src="assets/logo/wordmark.png" alt="Fruit Pop Comic" width="498" height="245">
   </a>
+
+  <p class="crumb">
+    <span class="crumb__step" id="crumb-step">01</span>
+    <span class="crumb__title" id="crumb-title">Home</span>
+  </p>
+
   <dl class="readout" aria-label="Status">
     <div><dt>Pages</dt><dd id="ro-pages">—</dd></div>
     <div><dt>Cast</dt><dd id="ro-cast">—</dd></div>
@@ -50,82 +124,142 @@
   </dl>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
-  <!-- ═══ HOME: CHANNEL GRID ═══ -->
-  <section class="view view--home" data-view="home">
+  <!-- ═══ HOME: DASHBOARD ═══ -->
+  <section class="view view--home" data-view="home" tabindex="-1">
     <h1 class="sr-only">Fruit Pop Comic</h1>
 
-    <div class="grid">
+    <div class="dash">
 
-      <a class="ch ch--read" href="#/read" data-ch="read" style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
-        <span class="ch__badge">Drafts</span>
-        <span class="ch__screen">
-          <img id="ch-read-img" alt="" width="1080" height="1620" loading="eager" decoding="async">
-          <span class="ch__scan" aria-hidden="true"></span>
-        </span>
-        <span class="ch__plate">
-          <span class="ch__name">Read</span>
-          <span class="ch__sub">Start from page one</span>
-        </span>
-      </a>
+      <!-- WHAT'S HOT -->
+      <div class="slab dash__hot">
+        <span class="ribbon ribbon--wide">What's hot</span>
+        <a class="ch hero" href="#/read" data-ch="read"
+           style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
+          <span class="ch__badge">Drafts</span>
+          <span class="hero__screen">
+            <img id="ch-read-img" alt="" width="1080" height="1620" loading="eager" decoding="async">
+            <span class="ch__scan" aria-hidden="true"></span>
+          </span>
+          <span class="hero__body">
+            <span class="hero__kicker">Page one</span>
+            <span class="hero__title">Start at the<br>beginning</span>
+            <span class="hero__sub">Ten rough pages, in the order they were drawn.
+              Arrows, filmstrip, or the keyboard.</span>
+            <span class="btn btn--solid">Read now →</span>
+          </span>
+        </a>
+      </div>
 
-      <a class="ch ch--cast" href="#/cast" data-ch="cast" style="--ch:var(--cyan);--ch-dp:var(--cyan-dp);--ch-ink:var(--navy)">
-        <span class="ch__screen ch__screen--cast">
-          <img id="ch-cast-img" alt="" width="900" height="1350" loading="lazy" decoding="async">
-        </span>
-        <span class="ch__plate">
-          <span class="ch__name">Cast</span>
-          <span class="ch__sub">Who's who</span>
-        </span>
-      </a>
+      <!-- START HERE -->
+      <div class="slab dash__start">
+        <span class="ribbon" style="--ch-dp:var(--gold-dp)">Start here</span>
+        <div class="pane" style="--ch-dp:var(--gold-dp)">
+          <h2 class="sr-only">Start here — the first drafts in order</h2>
+          <ol class="rank" id="rank"></ol>
+          <p class="rank__foot">
+            <a class="rank__all" href="#/read">See all pages →</a>
+          </p>
+        </div>
+      </div>
 
-      <a class="ch ch--wiki" href="#/wiki" data-ch="wiki" style="--ch:var(--gold);--ch-dp:var(--gold-dp);--ch-ink:var(--navy)">
-        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
-            <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
-          </svg>
-        </span>
-        <span class="ch__plate">
-          <span class="ch__name">Wiki</span>
-          <span class="ch__sub">The world</span>
-        </span>
-      </a>
+      <!-- THE DRAFTS -->
+      <div class="slab dash__drafts">
+        <span class="ribbon" style="--ch-dp:var(--cyan-dp)">The drafts</span>
+        <div class="pane" style="--ch-dp:var(--cyan-dp)">
+          <h2 class="sr-only">Every page draft</h2>
+          <div class="cardrow" id="cardrow"></div>
+        </div>
+      </div>
 
-      <a class="ch ch--art" href="#/art" data-ch="art" style="--ch:var(--peach);--ch-dp:var(--peach-dp);--ch-ink:var(--navy)">
-        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M32 6l6.6 13.4L53.5 21l-10.7 10.5 2.5 14.8L32 39.3 18.7 46.3l2.5-14.8L10.5 21l14.9-1.6z"/>
-          </svg>
-        </span>
-        <span class="ch__plate">
-          <span class="ch__name">Art</span>
-          <span class="ch__sub">Extras</span>
-        </span>
-      </a>
+      <!-- BUILD STATUS -->
+      <div class="slab dash__status">
+        <span class="ribbon" style="--ch-dp:var(--peach-dp)">Build status</span>
+        <div class="pane" style="--ch-dp:var(--peach-dp)">
+          <h2 class="sr-only">What is finished and what is pending</h2>
+          <ul class="status" id="status"></ul>
+        </div>
+      </div>
 
-      <a class="ch ch--about" href="#/about" data-ch="about" style="--ch:var(--indigo);--ch-dp:var(--indigo-dp);--ch-ink:#fff">
-        <span class="ch__screen ch__screen--glyph" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="32" cy="32" r="24"/><path d="M32 28v16"/><path d="M32 20h.03"/>
-          </svg>
-        </span>
-        <span class="ch__plate">
-          <span class="ch__name">About</span>
-          <span class="ch__sub">The project</span>
-        </span>
-      </a>
+      <!-- QUICK ACCESS -->
+      <div class="slab dash__quick">
+        <span class="ribbon" style="--ch-dp:var(--indigo-dp)">Quick access</span>
+        <div class="pane quick" style="--ch-dp:var(--indigo-dp)">
+          <h2 class="sr-only">Jump to a section</h2>
+          <div class="quick__rail" id="quick-rail">
+
+            <a class="ch ch--mini" href="#/cast" data-ch="cast"
+               style="--ch:var(--cyan);--ch-dp:var(--cyan-dp);--ch-ink:var(--navy)">
+              <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="24" cy="23" r="9"/><path d="M9 53c0-9 6-14 15-14s15 5 15 14"/>
+                  <circle cx="45" cy="25" r="7"/><path d="M43 39c7 0 12 5 12 13"/>
+                </svg>
+              </span>
+              <span class="ch__plate">
+                <span class="ch__name">Cast</span>
+                <span class="ch__sub">Who's who</span>
+              </span>
+            </a>
+
+            <a class="ch ch--mini" href="#/wiki" data-ch="wiki"
+               style="--ch:var(--gold);--ch-dp:var(--gold-dp);--ch-ink:var(--navy)">
+              <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
+                  <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
+                </svg>
+              </span>
+              <span class="ch__plate">
+                <span class="ch__name">Wiki</span>
+                <span class="ch__sub">The world</span>
+              </span>
+            </a>
+
+            <a class="ch ch--mini" href="#/art" data-ch="art"
+               style="--ch:var(--peach);--ch-dp:var(--peach-dp);--ch-ink:var(--navy)">
+              <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M32 7l6.6 13.4L53.5 22l-10.7 10.5 2.5 14.8L32 40.3 18.7 47.3l2.5-14.8L10.5 22l14.9-1.6z"/>
+                </svg>
+              </span>
+              <span class="ch__plate">
+                <span class="ch__name">Art</span>
+                <span class="ch__sub">Extras</span>
+              </span>
+            </a>
+
+            <a class="ch ch--mini" href="#/about" data-ch="about"
+               style="--ch:var(--indigo);--ch-dp:var(--indigo-dp);--ch-ink:#fff">
+              <span class="ch__screen ch__screen--glyph" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="32" cy="32" r="24"/><path d="M32 29v15"/><path d="M32 21h.03"/>
+                </svg>
+              </span>
+              <span class="ch__plate">
+                <span class="ch__name">About</span>
+                <span class="ch__sub">The project</span>
+              </span>
+            </a>
+
+          </div>
+
+          <button class="nav nav--rail" id="quick-next" type="button" aria-label="Scroll quick access">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
 
     </div>
   </section>
 
   <!-- ═══ READER ═══ -->
-  <section class="view view--panel" data-view="read" hidden>
+  <section class="view view--panel" data-view="read" tabindex="-1" hidden>
     <div class="panel" style="--ch:var(--magenta);--ch-dp:var(--magenta-dp);--ch-ink:#fff">
       <div class="panel__bar">
         <a class="btn btn--back" href="#/">Menu</a>
-        <p class="panel__title">Read</p>
+        <h1 class="panel__title">Read</h1>
         <p class="panel__count"><span id="pg-now">1</span><span class="sep">/</span><span id="pg-all">10</span></p>
       </div>
 
@@ -135,14 +269,14 @@
       </p>
 
       <div class="reader">
-        <button class="nav nav--prev" id="prev" aria-label="Previous page">
+        <button class="nav nav--prev" id="prev" type="button" aria-label="Previous page">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <figure class="page">
           <img id="pg-img" alt="" width="1080" height="1620" decoding="async">
           <figcaption class="page__tag">Draft</figcaption>
         </figure>
-        <button class="nav nav--next" id="next" aria-label="Next page">
+        <button class="nav nav--next" id="next" type="button" aria-label="Next page">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
@@ -152,11 +286,11 @@
   </section>
 
   <!-- ═══ CAST ═══ -->
-  <section class="view view--panel" data-view="cast" hidden>
+  <section class="view view--panel" data-view="cast" tabindex="-1" hidden>
     <div class="panel" style="--ch:var(--cyan);--ch-dp:var(--cyan-dp);--ch-ink:var(--navy)">
       <div class="panel__bar">
         <a class="btn btn--back" href="#/">Menu</a>
-        <p class="panel__title">Cast</p>
+        <h1 class="panel__title">Cast</h1>
         <p class="panel__count"><span id="cast-all">5</span></p>
       </div>
       <p class="notice" role="note">
@@ -168,11 +302,11 @@
   </section>
 
   <!-- ═══ WIKI (EMPTY) ═══ -->
-  <section class="view view--panel" data-view="wiki" hidden>
+  <section class="view view--panel" data-view="wiki" tabindex="-1" hidden>
     <div class="panel" style="--ch:var(--gold);--ch-dp:var(--gold-dp);--ch-ink:var(--navy)">
       <div class="panel__bar">
         <a class="btn btn--back" href="#/">Menu</a>
-        <p class="panel__title">Wiki</p>
+        <h1 class="panel__title">Wiki</h1>
       </div>
       <div class="empty">
         <div class="empty__mark" aria-hidden="true">
@@ -192,22 +326,22 @@
   </section>
 
   <!-- ═══ ART ═══ -->
-  <section class="view view--panel" data-view="art" hidden>
+  <section class="view view--panel" data-view="art" tabindex="-1" hidden>
     <div class="panel" style="--ch:var(--peach);--ch-dp:var(--peach-dp);--ch-ink:var(--navy)">
       <div class="panel__bar">
         <a class="btn btn--back" href="#/">Menu</a>
-        <p class="panel__title">Art</p>
+        <h1 class="panel__title">Art</h1>
       </div>
       <div class="cast cast--art" id="art"></div>
     </div>
   </section>
 
   <!-- ═══ ABOUT ═══ -->
-  <section class="view view--panel" data-view="about" hidden>
+  <section class="view view--panel" data-view="about" tabindex="-1" hidden>
     <div class="panel" style="--ch:var(--indigo);--ch-dp:var(--indigo-dp);--ch-ink:#fff">
       <div class="panel__bar">
         <a class="btn btn--back" href="#/">Menu</a>
-        <p class="panel__title">About</p>
+        <h1 class="panel__title">About</h1>
       </div>
       <div class="prose">
         <h2>Fruit Pop Comic</h2>
@@ -226,6 +360,8 @@
         <p>
           Nothing has been invented to fill space: no page counts, no release dates, no
           reader numbers, no character names beyond the one the drafts actually give.
+          The dashboard's <strong>Build status</strong> panel is the whole of it — where
+          a portal would put a daily mission, this one puts what is and isn't finished.
         </p>
         <h3>Reading it</h3>
         <p>
@@ -248,8 +384,40 @@
 
 <footer class="foot">
   <p>Art and characters &copy; the creator of Fruit Pop Comic.</p>
-  <p class="foot__build">Draft build &middot; pages are working roughs</p>
+  <p class="foot__build">Draft build &middot; pages are working roughs &middot;
+    <a href="#/about">About</a></p>
 </footer>
+
+<!-- ═══ BOTTOM TAB BAR ═══ -->
+<nav class="tabbar" aria-label="Quick navigation">
+  <a class="tab" data-nav="home" href="#/">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 29 32 10l23 19"/><path d="M16 27v27h32V27"/><path d="M26 54V39h12v15"/>
+    </svg>Home
+  </a>
+  <a class="tab" data-nav="read" href="#/read">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="11" y="9" width="42" height="46" rx="5"/><path d="M22 22h20M22 32h20M22 42h12"/>
+    </svg>Read
+  </a>
+  <a class="tab" data-nav="cast" href="#/cast">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="24" cy="23" r="9"/><path d="M9 53c0-9 6-14 15-14s15 5 15 14"/>
+      <circle cx="45" cy="25" r="7"/><path d="M43 39c7 0 12 5 12 13"/>
+    </svg>Cast
+  </a>
+  <a class="tab" data-nav="wiki" href="#/wiki">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 14h18a6 6 0 0 1 6 6v30a6 6 0 0 0-6-6H8z"/>
+      <path d="M56 14H38a6 6 0 0 0-6 6v30a6 6 0 0 1 6-6h18z"/>
+    </svg>Wiki
+  </a>
+  <a class="tab" data-nav="art" href="#/art">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M32 7l6.6 13.4L53.5 22l-10.7 10.5 2.5 14.8L32 40.3 18.7 47.3l2.5-14.8L10.5 22l14.9-1.6z"/>
+    </svg>Art
+  </a>
+</nav>
 
 <script type="module" src="assets/js/app.js"></script>
 </body>

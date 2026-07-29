@@ -1,6 +1,10 @@
 /* ═══════════════════════════════════════════════════════════
    Fruit Pop Comic — System Dashboard
    Palette sampled from the wordmark's flat vector fills.
+
+   Shell: a persistent channel rail on desktop, a bottom tab bar
+   and a drawer on phones. The moodboard pinned both — reference 1
+   has a glyph-labelled bottom bar, reference 5 a five-slot one.
    ═══════════════════════════════════════════════════════════ */
 
 :root{
@@ -28,9 +32,28 @@
   --r:           22px;      /* toy-plastic radius, per the committed world */
   --r-sm:        12px;
 
+  --rail:        0px;       /* sidebar column; only real at ≥1024px */
+  --tabh:        62px;      /* bottom bar height on phones */
+  --gap:         clamp(.8rem,1.5vw,1.15rem);
+
   --shell:       min(1240px, 100% - 2.5rem);
   --ease:        cubic-bezier(.16,.84,.32,1);
+
+  /* the active section's hue, set on <html> by the router */
+  --ch:          var(--cyan);
+  --ch-dp:       var(--cyan-dp);
 }
+
+/* the router hides views with [hidden]; several of them want a
+   display value, and display would win. Settle it once, up front. */
+[hidden]{display:none!important}
+
+html[data-section="home"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
+html[data-section="read"] {--ch:var(--magenta);--ch-dp:var(--magenta-dp)}
+html[data-section="cast"] {--ch:var(--cyan);   --ch-dp:var(--cyan-dp)}
+html[data-section="wiki"] {--ch:var(--gold);   --ch-dp:var(--gold-dp)}
+html[data-section="art"]  {--ch:var(--peach);  --ch-dp:var(--peach-dp)}
+html[data-section="about"]{--ch:var(--indigo); --ch-dp:var(--indigo-dp)}
 
 *,*::before,*::after{box-sizing:border-box}
 
@@ -39,6 +62,7 @@ html{ -webkit-text-size-adjust:100% }
 body{
   margin:0;
   min-height:100dvh;
+  padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
   background:var(--navy);
   color:var(--ink);
   font-family:Barlow,"Helvetica Neue",Arial,sans-serif;
@@ -69,6 +93,7 @@ button{font:inherit;color:inherit}
   outline-offset:3px;
   border-radius:6px;
 }
+main:focus,section:focus{outline:none}
 
 /* ── ground ─────────────────────────────────────────────── */
 
@@ -83,22 +108,176 @@ button{font:inherit;color:inherit}
     radial-gradient(46% 34% at 78% 12%, rgba(237,35,144,.13), transparent 72%);
 }
 
-/* ── system bar ─────────────────────────────────────────── */
+/* ── shared horizontal rails ────────────────────────────── */
+
+.filmstrip,.cardrow,.quick__rail{
+  display:flex;overflow-x:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--navy-line) transparent;
+}
+
+/* ═══ CHANNEL RAIL ═══════════════════════════════════════
+   A drawer on phones, a persistent sidebar from 1024px.
+   Sticky rather than fixed at desktop so <body> stays the
+   scroll container — stars() measures body.scrollHeight.
+   ═══════════════════════════════════════════════════════ */
+
+.rail{
+  position:fixed;z-index:70;
+  inset:0 auto 0 0;
+  width:min(310px,84vw);
+  display:flex;flex-direction:column;gap:1rem;
+  padding:1.1rem .9rem calc(1.1rem + env(safe-area-inset-bottom));
+  background:var(--navy-lift);
+  border-right:var(--keyline) solid #fff;
+  box-shadow:14px 0 40px rgba(0,0,0,.55);
+  overflow-y:auto;overscroll-behavior:contain;
+  transform:translateX(-102%);
+  /* visibility drops the closed drawer out of the a11y tree and off the tab
+     order. Stepped, not eased: it must flip on at 0s so focus can land, and
+     off only after the slide-out has finished. */
+  visibility:hidden;
+  transition:transform .28s var(--ease), visibility 0s linear .28s;
+}
+html[data-drawer="open"] .rail{
+  transform:none;visibility:visible;
+  transition:transform .28s var(--ease), visibility 0s;
+}
+
+.scrim{
+  position:fixed;inset:0;z-index:65;
+  background:rgba(6,10,22,.66);
+  opacity:0;visibility:hidden;
+  transition:opacity .24s var(--ease), visibility 0s linear .24s;
+  border:0;padding:0;cursor:pointer;
+}
+html[data-drawer="open"] .scrim{
+  opacity:1;visibility:visible;
+  transition:opacity .24s var(--ease), visibility 0s;
+}
+
+.rail__logo{display:block;line-height:0;border-radius:var(--r-sm);padding:.2rem}
+.rail__logo img{
+  width:100%;max-width:196px;height:auto;
+  filter:drop-shadow(0 5px 12px rgba(0,0,0,.55));
+}
+.rail__logo .rail__mark{display:none}   /* the square mark, for the icon rail */
+
+.rail__nav{display:flex;flex-direction:column;gap:.4rem}
+
+.rail__item{
+  --f:transparent;
+  display:flex;align-items:center;gap:.7rem;
+  position:relative;
+  padding:.6rem .8rem;
+  border:3px solid var(--navy-line);
+  border-radius:14px;
+  background:var(--f);
+  color:var(--ink-soft);
+  text-decoration:none;
+  font-family:Bungee,Barlow,sans-serif;
+  font-size:.875rem;letter-spacing:.02em;line-height:1;
+  transition:transform .16s var(--ease), color .16s, border-color .16s, background-color .16s;
+}
+.rail__item svg{width:22px;height:22px;flex:0 0 22px}
+.rail__item:hover{color:#fff;border-color:#fff;transform:translateX(3px)}
+
+.rail__item[aria-current="page"]{
+  --f:var(--gold);
+  color:var(--navy);
+  border-color:#fff;
+  box-shadow:0 4px 0 var(--gold-dp);
+}
+/* the pointer notch on the selected channel, straight off the reference */
+.rail__item[aria-current="page"]::after{
+  content:"";position:absolute;right:-14px;top:50%;
+  width:0;height:0;translate:0 -50%;
+  border:9px solid transparent;border-left-color:#fff;
+}
+
+.rail__promo{
+  margin-top:auto;
+  padding:.9rem;
+  border:3px solid #fff;border-radius:var(--r-sm);
+  background:var(--navy);
+  box-shadow:0 5px 0 var(--magenta-dp);
+}
+.rail__promo h2{
+  margin:0 0 .35rem;
+  font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-size:.8125rem;letter-spacing:.04em;color:var(--gold);
+}
+.rail__promo p{margin:0 0 .75rem;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
+
+/* ═══ BOTTOM TAB BAR ═════════════════════════════════════ */
+
+.tabbar{
+  position:fixed;z-index:60;left:0;right:0;bottom:0;
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--navy-lift);
+  border-top:3px solid #fff;
+  box-shadow:0 -10px 26px rgba(0,0,0,.5);
+}
+.tab{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.22rem;
+  height:var(--tabh);
+  color:var(--ink-soft);text-decoration:none;
+  font-family:Bungee,Barlow,sans-serif;
+  font-size:.5625rem;letter-spacing:.06em;line-height:1;
+  border-top:3px solid transparent;
+  transition:color .16s, border-color .16s;
+}
+.tab svg{width:21px;height:21px}
+.tab[aria-current="page"]{color:var(--gold);border-top-color:var(--gold)}
+
+/* ═══ TOP STRIP ══════════════════════════════════════════ */
 
 .sysbar{
   width:var(--shell);margin-inline:auto;
-  padding:clamp(1rem,3vw,1.75rem) 0 clamp(.75rem,2vw,1.25rem);
+  padding:clamp(.85rem,2.4vw,1.4rem) 0 clamp(.7rem,1.6vw,1rem);
   display:flex;align-items:center;justify-content:space-between;
-  gap:1.5rem;flex-wrap:wrap;
+  gap:.85rem;flex-wrap:wrap;
 }
 .sysbar__home{display:block;line-height:0;border-radius:var(--r-sm)}
 .sysbar__home img{
-  width:clamp(168px,18vw,236px);height:auto;
+  width:clamp(132px,26vw,190px);height:auto;
   filter:drop-shadow(0 5px 12px rgba(0,0,0,.55));
 }
 
+.burger{
+  flex:0 0 auto;
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  border:3px solid #fff;border-radius:12px;
+  background:var(--navy-lift);cursor:pointer;
+  box-shadow:0 4px 0 var(--navy-line);
+}
+.burger svg{width:20px;height:20px}
+.burger:active{transform:translateY(2px);box-shadow:0 2px 0 var(--navy-line)}
+
+/* the reference's numbered section strip */
+.crumb{
+  display:none;margin:0;align-items:center;gap:.6rem;
+  margin-inline-end:auto;
+}
+.crumb__step{
+  font-family:Bungee,Barlow,sans-serif;font-size:.9375rem;line-height:1;
+  padding:.42rem .6rem;border-radius:10px;
+  background:var(--ch-dp);color:#fff;
+  border:3px solid #fff;
+  font-variant-numeric:tabular-nums;
+}
+.crumb__title{
+  font-family:Bungee,Barlow,sans-serif;
+  font-size:clamp(.9375rem,1.7vw,1.25rem);line-height:1;
+  letter-spacing:.02em;
+}
+
 .readout{
-  display:flex;gap:clamp(.5rem,2vw,1rem);margin:0;
+  display:flex;gap:clamp(.4rem,1.4vw,.85rem);margin:0;
   align-items:stretch;
 }
 .readout>div{
@@ -119,15 +298,53 @@ button{font:inherit;color:inherit}
 }
 .readout__flag{color:var(--gold)!important;font-size:.9375rem!important}
 
-/* ── channel grid ───────────────────────────────────────── */
+/* ═══ SLAB + RIBBON ══════════════════════════════════════
+   The panel keeps overflow:hidden, so the overhanging tab
+   label lives on a wrapper instead of inside it.
+   Ribbon face is the DEEP tone: white on a bright channel
+   measures 4.00 and would fail at label size.
+   ═══════════════════════════════════════════════════════ */
 
-.view--home{width:var(--shell);margin-inline:auto;padding-bottom:3rem}
+.slab{position:relative;padding-top:1.15rem;display:flex;flex-direction:column}
+/* the panel fills its grid row, so neighbouring slabs line up bottom-to-bottom */
+.slab>.pane,.slab>.ch{flex:1}
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:clamp(.75rem,1.6vw,1.15rem);
+.ribbon{
+  position:absolute;top:0;left:1.35rem;z-index:3;
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.42rem .95rem .48rem;
+  border:3px solid #fff;
+  border-radius:10px 10px 4px 4px;
+  background:var(--ch-dp);color:#fff;
+  font-family:Bungee,Barlow,sans-serif;
+  font-size:.75rem;letter-spacing:.07em;line-height:1;
+  text-transform:uppercase;
+  box-shadow:0 4px 0 rgba(0,0,0,.45);
+  rotate:-1.4deg;
 }
+.ribbon--wide{font-size:.8125rem}
+
+/* ═══ DASHBOARD ══════════════════════════════════════════ */
+
+.view--home{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
+
+.dash{
+  display:grid;gap:var(--gap);
+  grid-template-columns:minmax(0,1fr);
+}
+
+.pane{
+  position:relative;
+  display:flex;flex-direction:column;
+  border:var(--keyline) solid #fff;
+  border-radius:var(--r);
+  background:var(--navy-lift);
+  box-shadow:0 7px 0 var(--ch-dp), 0 18px 34px rgba(0,0,0,.5);
+  padding:1.55rem .95rem 1rem;
+  min-height:0;
+}
+
+/* ── channel tile: the atom the hero and quick tiles ride on ─ */
 
 .ch{
   --plate:var(--ch-dp);
@@ -156,14 +373,8 @@ button{font:inherit;color:inherit}
   background:var(--ch);
   overflow:hidden;
 }
-.ch__screen img{
-  width:100%;height:100%;object-fit:cover;object-position:50% 12%;
-}
-.ch__screen--cast img{object-position:50% 8%}
-
-.ch__screen--glyph{
-  color:var(--ch-ink);opacity:.9;padding:1.4rem;
-}
+.ch__screen img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
+.ch__screen--glyph{color:var(--ch-ink);opacity:.9;padding:1.4rem}
 .ch__screen--glyph svg{width:clamp(46px,6vw,68px);height:auto}
 
 /* the sweep across a lit screen */
@@ -186,30 +397,205 @@ button{font:inherit;color:inherit}
   font-size:clamp(1rem,1.6vw,1.375rem);
   line-height:1;letter-spacing:.01em;
 }
-.ch__sub{
-  font-size:.8125rem;font-weight:600;color:rgba(255,255,255,.82);
-  line-height:1.2;
+.ch__sub{font-size:.8125rem;font-weight:600;color:rgba(255,255,255,.82);line-height:1.2}
+
+/* ── hero: the WHAT'S HOT slot ──────────────────────────── */
+
+.hero{
+  --plate:var(--magenta-dp);
+  flex-direction:row;
+  min-height:clamp(268px,38vw,392px);
+}
+.hero__screen{
+  position:relative;flex:1 1 52%;min-width:0;
+  background:#fff;overflow:hidden;
+}
+/* out of flow: the page is 2:3, and left in flow its own ratio would
+   set the hero's height instead of the other way round */
+.hero__screen img{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;object-position:50% 10%;
 }
 
-.ch__badge{
-  position:absolute;top:.7rem;right:.7rem;z-index:3;
-  font-family:Bungee,Barlow,sans-serif;font-size:.625rem;letter-spacing:.08em;
-  text-transform:uppercase;
+.hero__body{
+  flex:1 1 48%;min-width:0;
+  display:flex;flex-direction:column;justify-content:center;
+  gap:.7rem;
+  padding:clamp(1rem,2.4vw,1.7rem);
+  background:var(--magenta);
+  border-left:var(--keyline) solid #fff;
+}
+.hero__kicker{
+  font-family:Bungee,Barlow,sans-serif;font-size:.625rem;letter-spacing:.12em;
+  text-transform:uppercase;line-height:1;
+  align-self:flex-start;
   padding:.35rem .6rem;border-radius:999px;
+  background:var(--magenta-dp);color:#fff;
+  border:2px solid rgba(255,255,255,.55);
+}
+/* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
+   at 24px for a 400-weight face. The floor of this clamp is exactly that. */
+.hero__title{
+  margin:0;font-family:Bungee,Barlow,sans-serif;font-weight:400;
+  font-size:clamp(1.5rem,3.1vw,2.15rem);line-height:1.06;
+  color:#fff;
+}
+/* the subtitle is small, so it moves off the bright face onto a deep-tone
+   readout — the same rule the page counter follows. 4.00 → 7.37. */
+.hero__sub{
+  margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
+  color:#fff;
+  padding:.5rem .75rem;border-radius:10px;
+  background:var(--magenta-dp);
+  border:2px solid rgba(255,255,255,.4);
+}
+.hero .btn{align-self:flex-start;margin-top:.25rem}
+
+/* ── START HERE: the ranking slot, without the metrics ──── */
+
+.rank{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:.4rem;
+}
+.rank__row{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.35rem .45rem;
+  border-radius:10px;
+  text-decoration:none;color:inherit;
+  border:2px solid transparent;
+  transition:background-color .16s, border-color .16s, transform .16s var(--ease);
+}
+.rank__row:hover{background:rgba(28,66,108,.5);border-color:var(--navy-line);transform:translateX(3px)}
+.rank__n{
+  flex:0 0 auto;width:26px;
+  font-family:Bungee,Barlow,sans-serif;font-size:1.0625rem;line-height:1;
+  color:var(--gold);text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.rank__thumb{
+  flex:0 0 auto;width:38px;height:57px;object-fit:cover;
+  border:2px solid #fff;border-radius:6px;background:#fff;
+}
+.rank__label{
+  flex:1;min-width:0;
+  font-family:Bungee,Barlow,sans-serif;font-size:.75rem;letter-spacing:.03em;
+  line-height:1.2;
+}
+.rank__chip{
+  flex:0 0 auto;
+  font-size:.625rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:.24rem .5rem;border-radius:999px;
+  background:var(--navy);color:var(--ink-soft);
+  border:2px solid var(--navy-line);
+}
+.rank__foot{
+  margin-top:.7rem;padding-top:.7rem;
+  border-top:2px solid var(--navy-line);
+  display:flex;justify-content:flex-end;
+}
+.rank__all{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-family:Bungee,Barlow,sans-serif;font-size:.6875rem;letter-spacing:.06em;
+  color:var(--gold);text-decoration:none;
+}
+.rank__all:hover{color:#fff}
+
+/* ── THE DRAFTS: the chapter-card row ───────────────────── */
+
+.cardrow{
+  gap:.6rem;padding:.15rem .15rem .5rem;
+  scroll-snap-type:x mandatory;
+}
+.card{
+  position:relative;flex:0 0 auto;
+  width:clamp(112px,15vw,144px);
+  scroll-snap-align:start;
+  text-decoration:none;color:inherit;
+  border:3px solid #fff;border-radius:var(--r-sm);
+  overflow:hidden;background:var(--navy);
+  box-shadow:0 5px 0 var(--cyan-dp), 0 12px 22px rgba(0,0,0,.45);
+  transition:transform .18s var(--ease);
+}
+.card:hover,.card:focus-visible{transform:translateY(-5px)}
+.card img{width:100%;aspect-ratio:2/3;object-fit:cover;background:#fff}
+.card__foot{
+  display:flex;align-items:baseline;gap:.35rem;
+  padding:.4rem .55rem .45rem;
+  background:var(--cyan-dp);
+  border-top:2px solid #fff;
+}
+.card__n{
+  font-family:Bungee,Barlow,sans-serif;font-size:.75rem;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.card__stage{font-size:.625rem;font-weight:700;color:rgba(255,255,255,.78);text-transform:capitalize}
+
+/* the "NEW" corner flag, rewritten as what is actually true */
+.badge,.ch__badge{
+  position:absolute;top:.5rem;left:.5rem;z-index:3;
+  font-family:Bungee,Barlow,sans-serif;font-size:.5625rem;letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:.28rem .5rem;border-radius:999px;
   background:var(--gold);color:var(--navy);
   border:3px solid #fff;
   box-shadow:0 3px 0 var(--gold-dp);
   rotate:-7deg;
 }
+.ch__badge{top:.7rem;right:.7rem;left:auto;font-size:.625rem;padding:.35rem .6rem}
 
-/* spans */
-.ch--read {grid-column:span 3;grid-row:span 2;min-height:clamp(340px,42vw,520px)}
-.ch--cast {grid-column:span 3;grid-row:span 2;min-height:clamp(340px,42vw,520px)}
-.ch--wiki,.ch--art,.ch--about{grid-column:span 2;min-height:132px}
+/* ── BUILD STATUS: the mission slot, told straight ──────── */
+
+.status{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.35rem}
+.status li{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.42rem .5rem;
+  border-radius:10px;
+  border:2px solid transparent;
+}
+.status li:hover{background:rgba(28,66,108,.42)}
+.status__mark{
+  flex:0 0 auto;width:22px;height:22px;
+  display:grid;place-items:center;border-radius:6px;
+  border:2px solid currentColor;
+}
+.status__mark svg{width:12px;height:12px}
+.status__mark--done{color:#7BE3A6}
+.status__mark--wip {color:var(--gold)}
+.status__mark--none{color:var(--ink-soft)}
+.status__label{
+  flex:1;min-width:0;
+  font-family:Bungee,Barlow,sans-serif;font-size:.6875rem;letter-spacing:.03em;
+}
+.status__note{font-size:.75rem;font-weight:600;color:var(--ink-soft)}
+.status__chip{
+  flex:0 0 auto;
+  font-size:.625rem;font-weight:800;
+  padding:.24rem .5rem;border-radius:999px;
+  background:rgba(252,176,64,.13);color:#FFE2B4;
+  border:2px solid rgba(252,176,64,.32);
+}
+.status__chip--done{background:rgba(123,227,166,.13);color:#C7F4DA;border-color:rgba(123,227,166,.3)}
+
+/* ── QUICK ACCESS ───────────────────────────────────────── */
+
+.quick{flex-direction:row;align-items:stretch;gap:.7rem;padding-block:1.55rem 1rem}
+.quick__rail{flex:1;min-width:0;gap:.6rem;padding:.15rem .15rem .45rem;scroll-snap-type:x mandatory}
+.quick .nav{align-self:center}
+
+.ch--mini{
+  flex:0 0 auto;width:clamp(104px,13vw,132px);
+  scroll-snap-align:start;
+  box-shadow:0 5px 0 var(--ch-dp), 0 12px 22px rgba(0,0,0,.45);
+}
+.ch--mini .ch__screen{min-height:64px;padding:.7rem}
+.ch--mini .ch__screen--glyph svg{width:34px}
+.ch--mini .ch__plate{padding:.42rem .6rem .48rem;flex-direction:column;gap:.1rem;align-items:flex-start}
+.ch--mini .ch__name{font-size:.75rem}
+.ch--mini .ch__sub{font-size:.625rem}
 
 /* ── panels ─────────────────────────────────────────────── */
 
-.view--panel{width:var(--shell);margin-inline:auto;padding-bottom:3rem}
+.view--panel{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
 
 .panel{
   border:var(--keyline) solid #fff;
@@ -226,7 +612,7 @@ button{font:inherit;color:inherit}
   color:var(--ch-ink);
 }
 .panel__title{
-  margin:0;font-family:Bungee,Barlow,sans-serif;
+  margin:0;font-family:Bungee,Barlow,sans-serif;font-weight:400;
   font-size:clamp(1rem,2vw,1.375rem);line-height:1;
   margin-inline-end:auto;
 }
@@ -250,9 +636,10 @@ button{font:inherit;color:inherit}
   box-shadow:0 3px 0 rgba(0,0,0,.45);
   transition:transform .16s var(--ease);
 }
-.btn:hover{transform:translateY(-2px)}
-.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+a.btn:hover{transform:translateY(-2px)}
+a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .btn--solid{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+.ch:hover .btn--solid{transform:translateY(-2px)}
 
 .notice{
   margin:0;padding:.8rem 1rem;
@@ -270,7 +657,7 @@ button{font:inherit;color:inherit}
 }
 .page{margin:0;position:relative;flex:0 1 auto}
 .page img{
-  max-height:clamp(300px,calc(100dvh - 330px),820px);width:auto;
+  max-height:clamp(300px,calc(100dvh - 360px),820px);width:auto;
   border:3px solid #fff;border-radius:var(--r-sm);
   background:#fff;
   box-shadow:0 14px 34px rgba(0,0,0,.55);
@@ -290,21 +677,20 @@ button{font:inherit;color:inherit}
   width:clamp(44px,5vw,58px);aspect-ratio:1;
   display:grid;place-items:center;
   border-radius:50%;cursor:pointer;
-  background:var(--magenta);color:#fff;
+  background:var(--ch,var(--magenta));color:#fff;
   border:3px solid #fff;
-  box-shadow:0 5px 0 var(--magenta-dp);
+  box-shadow:0 5px 0 var(--ch-dp,var(--magenta-dp));
   transition:transform .16s var(--ease);
 }
 .nav svg{width:52%;height:52%}
 .nav:hover:not(:disabled){transform:translateY(-3px)}
-.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--magenta-dp)}
+.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--ch-dp,var(--magenta-dp))}
 .nav:disabled{opacity:.32;cursor:not-allowed;box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.nav--rail{width:42px}
 
 .filmstrip{
-  display:flex;gap:.5rem;overflow-x:auto;
+  gap:.5rem;
   padding:0 clamp(1rem,3vw,1.75rem) clamp(1rem,3vw,1.75rem);
-  scrollbar-width:thin;
-  scrollbar-color:var(--navy-line) transparent;
 }
 .filmstrip button{
   flex:0 0 auto;padding:0;cursor:pointer;background:none;
@@ -355,10 +741,7 @@ button{font:inherit;color:inherit}
 
 /* ── prose ──────────────────────────────────────────────── */
 
-.prose{
-  padding:clamp(1.25rem,4vw,2.25rem);
-  max-width:68ch;
-}
+.prose{padding:clamp(1.25rem,4vw,2.25rem);max-width:68ch}
 .prose h2{
   font-family:Bungee,Barlow,sans-serif;font-weight:400;
   font-size:clamp(1.375rem,3.4vw,2rem);line-height:1.1;
@@ -382,60 +765,118 @@ button{font:inherit;color:inherit}
 
 .foot{
   width:var(--shell);margin-inline:auto;
-  padding:2.25rem 0 3rem;
+  padding:2rem 0 2.5rem;
   border-top:2px solid var(--navy-line);
   display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
 }
 .foot p{margin:0;font-size:.8125rem;color:var(--ink-soft)}
+.foot a{color:var(--gold)}
 .foot__build{color:var(--gold)!important}
 
-/* ── responsive ─────────────────────────────────────────── */
+/* ═══ RESPONSIVE ═════════════════════════════════════════ */
 
-@media (max-width:900px){
-  .ch--read{grid-column:span 6;grid-row:span 2}
-  .ch--cast{grid-column:span 3;grid-row:span 1;min-height:210px}
-  .ch--wiki{grid-column:span 3;min-height:210px}
-  .ch--art,.ch--about{grid-column:span 3;min-height:132px}
+/* the dashboard's two-column top zone arrives before the rail does */
+@media (min-width:860px){
+  .dash{grid-template-columns:minmax(0,1fr) minmax(268px,324px)}
+  .dash__hot   {grid-column:1;grid-row:1}
+  .dash__start {grid-column:2;grid-row:1}
+  .dash__drafts{grid-column:1;grid-row:2}
+  .dash__status{grid-column:2;grid-row:2}
+  .dash__quick {grid-column:1/-1;grid-row:3}
+  .crumb{display:flex}
+}
+
+/* ≥1024: the rail becomes furniture, the tab bar and drawer retire.
+   The rail stays out of flow and <body> keeps the scroll — stars()
+   measures body.scrollHeight, so a second scroll container would
+   silently shrink the starfield. */
+@media (min-width:1024px){
+  :root{--rail:238px;--tabh:0px}
+
+  body{
+    padding-left:var(--rail);
+    padding-bottom:0;
+    --shell:min(1180px, 100% - 3rem);
+  }
+  .rail{
+    width:var(--rail);
+    z-index:50;
+    transform:none;visibility:visible;
+    box-shadow:none;
+    padding-bottom:1.1rem;
+    transition:none;
+  }
+  .tabbar,.scrim,.burger,.sysbar__home{display:none}
+}
+
+/* 1024–1219: the rail narrows to glyphs and the monogram so the
+   dashboard keeps both columns */
+@media (min-width:1024px) and (max-width:1219px){
+  :root{--rail:78px}
+  .rail{align-items:center;padding-inline:.55rem}
+  .rail__logo img{display:none}
+  .rail__logo .rail__mark{display:block;width:46px}
+  .rail__item{justify-content:center;padding-inline:.5rem}
+  .rail__item span{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .rail__item[aria-current="page"]::after{display:none}
+  .rail__promo{display:none}
+  .dash{grid-template-columns:minmax(0,1fr) minmax(240px,290px)}
+}
+
+@media (max-width:859px){
+  .hero{flex-direction:column;min-height:0}
+  .hero__screen{flex:0 0 clamp(180px,44vw,280px);width:100%}
+  .hero__body{border-left:0;border-top:var(--keyline) solid #fff}
 }
 
 @media (max-width:620px){
   :root{--r:18px;--keyline:3px}
-  .sysbar{padding-top:1rem;gap:.85rem}
+
+  .sysbar{padding-top:.85rem;gap:.6rem}
   .readout{width:100%}
   .readout>div{flex:1;min-width:0}
 
-  .grid{grid-template-columns:1fr}
-  .ch--read{grid-column:span 1;min-height:clamp(300px,72vw,420px)}
-  .ch--cast,.ch--wiki,.ch--art,.ch--about{
-    grid-column:span 1;grid-row:span 1;min-height:0;
-    flex-direction:row;align-items:stretch;
-  }
-  .ch--cast .ch__screen,.ch--wiki .ch__screen,
-  .ch--art .ch__screen,.ch--about .ch__screen{
-    flex:0 0 88px;min-height:88px;
-  }
-  .ch--cast .ch__screen--glyph svg,.ch--wiki .ch__screen--glyph svg,
-  .ch--art .ch__screen--glyph svg,.ch--about .ch__screen--glyph svg{width:32px}
-  .ch--cast .ch__plate,.ch--wiki .ch__plate,
-  .ch--art .ch__plate,.ch--about .ch__plate{
-    flex:1;border-top:0;border-left:3px solid #fff;
-    flex-direction:column;gap:.15rem;
-    justify-content:center;align-items:flex-start;
-    padding-inline:1.1rem;
-  }
+  .pane{padding:1.4rem .75rem .85rem}
+  .ribbon{left:1rem;font-size:.6875rem;padding:.36rem .8rem .42rem}
+
+  .hero__body{padding:1rem}
+  .quick{flex-direction:column}
+  .quick .nav{display:none}
+  .quick__rail{gap:.5rem}
 
   .reader{padding:.9rem;gap:.4rem}
-  .page img{max-height:clamp(260px,calc(100dvh - 290px),640px)}
+  .page img{max-height:clamp(240px,calc(100dvh - 330px),640px)}
   .nav{width:40px}
-  .foot{padding-bottom:2rem}
+  .foot{padding-bottom:1.5rem}
 }
 
-/* ── motion ─────────────────────────────────────────────── */
+/* ═══ MOTION ═════════════════════════════════════════════
+   Three modes. Opening a channel from the dashboard zooms the
+   tile into the panel; returning reverses it; moving panel to
+   panel from the rail is a short lateral swap, because nothing
+   zoomed.
+   ═══════════════════════════════════════════════════════ */
+
+.rail{view-transition-name:rail}
+.tabbar{view-transition-name:tabbar}
+::view-transition-old(rail),::view-transition-new(rail),
+::view-transition-old(tabbar),::view-transition-new(tabbar){
+  animation:none;mix-blend-mode:normal;
+}
 
 ::view-transition-old(panel),::view-transition-new(panel){
   animation-duration:.36s;
   animation-timing-function:cubic-bezier(.16,.84,.32,1);
 }
+
+@keyframes fp-out{to{opacity:0;transform:translateY(-8px)}}
+@keyframes fp-in{from{opacity:0;transform:translateY(10px)}}
+
+html[data-vt="lateral"]::view-transition-old(root){animation:.16s both fp-out}
+html[data-vt="lateral"]::view-transition-new(root){animation:.24s .04s both fp-in}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
