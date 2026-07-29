@@ -1,0 +1,91 @@
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+import { problemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
+
+const PASSWORD = 'p'.repeat(MIN_PASSWORD);
+const SECRET = 'a'.repeat(MIN_SECRET);
+
+describe('problemsIn', () => {
+  test('a good configuration reports nothing', () => {
+    assert.deepEqual(
+      problemsIn({ CMS_ADMIN_PASSWORD: PASSWORD, CMS_SESSION_SECRET: SECRET }),
+      [],
+    );
+  });
+
+  test('nothing set names both variables', () => {
+    const p = problemsIn({});
+    assert.equal(p.length, 2);
+    assert.ok(p.some((s) => s.startsWith('CMS_ADMIN_PASSWORD') && s.endsWith('not set')));
+    assert.ok(p.some((s) => s.startsWith('CMS_SESSION_SECRET') && s.endsWith('not set')));
+  });
+
+  /* The state a bare "not configured" could never distinguish: both variables
+     are present, so the dashboard looks right, but the secret is too weak to
+     sign a session with. */
+  test('a too-short secret reads as short, not missing', () => {
+    assert.deepEqual(
+      problemsIn({ CMS_ADMIN_PASSWORD: PASSWORD, CMS_SESSION_SECRET: 'tooshort' }),
+      [`CMS_SESSION_SECRET is shorter than ${MIN_SECRET} characters`],
+    );
+  });
+
+  test('a too-short password reads as short, not missing', () => {
+    assert.deepEqual(
+      problemsIn({ CMS_ADMIN_PASSWORD: 'abc', CMS_SESSION_SECRET: SECRET }),
+      [`CMS_ADMIN_PASSWORD is shorter than ${MIN_PASSWORD} characters`],
+    );
+  });
+
+  test('an empty string reads as unset, not as too short', () => {
+    const p = problemsIn({ CMS_ADMIN_PASSWORD: '', CMS_SESSION_SECRET: '' });
+    assert.equal(p.length, 2);
+    assert.ok(p.every((s) => s.endsWith('not set')));
+  });
+
+  test('one character short is still refused', () => {
+    assert.equal(
+      problemsIn({ CMS_ADMIN_PASSWORD: PASSWORD, CMS_SESSION_SECRET: 'a'.repeat(MIN_SECRET - 1) }).length,
+      1,
+    );
+  });
+
+  test('exactly the minimum is accepted', () => {
+    assert.deepEqual(
+      problemsIn({ CMS_ADMIN_PASSWORD: 'a'.repeat(MIN_PASSWORD), CMS_SESSION_SECRET: 'a'.repeat(MIN_SECRET) }),
+      [],
+    );
+  });
+
+  test('it never repeats the values it is complaining about', () => {
+    const joined = problemsIn({
+      CMS_ADMIN_PASSWORD: 'sup3rsecret',
+      CMS_SESSION_SECRET: 'z'.repeat(MIN_SECRET - 1),
+    }).join(' ');
+    assert.ok(!joined.includes('sup3rsecret'));
+    assert.ok(!joined.includes('zzz'));
+  });
+});
+
+/* The build-time warning is a standalone .mjs so it runs on any Node the
+   deployment happens to use, without type stripping. That means it restates
+   these two numbers, so they are pinned here rather than left to drift. */
+describe('the build-time check agrees with the runtime rule', () => {
+  const script = readFileSync(new URL('../scripts/check-cms-config.mjs', import.meta.url), 'utf8');
+
+  test('thresholds match', () => {
+    assert.match(script, new RegExp(`MIN_PASSWORD\\s*=\\s*${MIN_PASSWORD}\\b`));
+    assert.match(script, new RegExp(`MIN_SECRET\\s*=\\s*${MIN_SECRET}\\b`));
+  });
+
+  test('it checks both variables', () => {
+    assert.ok(script.includes('CMS_ADMIN_PASSWORD'));
+    assert.ok(script.includes('CMS_SESSION_SECRET'));
+  });
+
+  test('it warns rather than failing the build', () => {
+    assert.ok(!/process\.exit\(\s*[1-9]/.test(script), 'must not exit non-zero');
+  });
+});

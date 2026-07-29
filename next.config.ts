@@ -14,6 +14,12 @@ const supabaseHost = (() => {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /* The static site kept its editor at /admin/. That directory is gone — the
+     editor is now a mode of the site itself — so send old links to it. */
+  async redirects() {
+    return [{ source: '/admin', destination: '/#cms', permanent: false },
+            { source: '/admin/:path*', destination: '/#cms', permanent: false }];
+  },
   images: {
     remotePatterns: supabaseHost
       ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]

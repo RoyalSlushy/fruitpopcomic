@@ -21,8 +21,13 @@ unless you had edited that exact string. Neither side clobbers the other.
 
 ## Editing
 
-Go to **`/#cms`** and sign in. After that a marker cookie keeps the editor loading
-until you press **Done**.
+Click the **gear in the footer** and sign in. **`/#cms`** still does the same
+thing and is the fallback if the footer is ever out of reach. After that a marker
+cookie keeps the editor loading until you press **Done**.
+
+The gear ships to every visitor, which is deliberate and costs nothing: opening
+the editor shell without the password gets you a sign-in box and a 401 on every
+write. Nothing guards the door except the password — see the security note below.
 
 | | |
 |---|---|
@@ -107,7 +112,11 @@ origin, which would be stored XSS against the admin session.
   13 scripts, none of which contain the editor.
 - **Fails closed.** Missing `CMS_ADMIN_PASSWORD`, missing `CMS_SESSION_SECRET`, or
   a session secret under 32 characters → 503 on every CMS endpoint. There is no
-  fallback credential in the source, deliberately.
+  fallback credential in the source, deliberately. The 503 body names which
+  variable and why — see the README. That is safe to say unauthenticated: it
+  carries no value, only names and the published length rules, and it is only
+  reachable in a state where nobody can sign in at all. Once configured, the
+  endpoint says nothing about configuration; a wrong password is a plain 401.
 - The session cookie is `httpOnly`, `SameSite=Strict`, signed with HMAC-SHA256,
   and expires after 12 hours. The password is compared with a timing-safe equal
   over fixed-length digests.

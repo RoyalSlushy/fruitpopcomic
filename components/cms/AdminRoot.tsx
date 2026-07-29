@@ -15,7 +15,11 @@ const MARKER = 'fp-cms-admin-chunk';   // grepped for by scripts/assert-visitor-
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
-export default function AdminRoot() {
+export default function AdminRoot({ autoFocus = false }: {
+  /** true only when a deliberate click opened this, so landing on a page with
+      a stale session never yanks focus into a password box. */
+  autoFocus?: boolean;
+}) {
   const router = useRouter();
   const cms = useCms();
   const { editMode, enterEditMode, exitEditMode, changedSections, payload, commitSaved, discard } = cms;
@@ -116,6 +120,7 @@ export default function AdminRoot() {
             className="cms-login__input"
             type="password"
             autoComplete="current-password"
+            autoFocus={autoFocus}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

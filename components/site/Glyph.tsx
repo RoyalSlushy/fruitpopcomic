@@ -30,6 +30,14 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   star: <path d="M32 7l6.6 13.4L53.5 22l-10.7 10.5 2.5 14.8L32 40.3 18.7 47.3l2.5-14.8L10.5 22l14.9-1.6z" />,
+  speak: (
+    <>
+      <path d="M30 12 17 24H8v16h9l13 12z" />
+      <path d="M40 24a11 11 0 0 1 0 16" />
+      <path d="M48 16a22 22 0 0 1 0 32" />
+    </>
+  ),
+  stop: <rect x="16" y="16" width="32" height="32" rx="4" />,
   info: (
     <>
       <circle cx="32" cy="32" r="24" />
@@ -55,6 +63,19 @@ export function Glyph({ name, width = 5 }: { name: string; width?: number }) {
       aria-hidden="true"
     >
       {body}
+    </svg>
+  );
+}
+
+/* Eight teeth on a hub. Its own 24-grid rather than the 64 the rail glyphs
+   use, because it is only ever drawn at footer size. */
+export function Gear() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="6.8" />
+      <circle cx="12" cy="12" r="2.6" />
+      <path d="M18.8 12h2.5M16.81 7.19l1.77-1.77M12 5.2V2.7M7.19 7.19 5.42 5.42M5.2 12H2.7M7.19 16.81l-1.77 1.77M12 18.8v2.5M16.81 16.81l1.77 1.77" />
     </svg>
   );
 }

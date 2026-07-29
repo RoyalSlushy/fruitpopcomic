@@ -3,9 +3,23 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chevron } from './Glyph.tsx';
+import { Speak } from './Speak.tsx';
 import { EditableText } from '../cms/EditableText.tsx';
 import { mediaURL } from '../../lib/media.ts';
 import type { ComicPage } from '../../content/pages.ts';
+
+/* The one sentence that stands in for a page nobody can read as text.
+ *
+ * Shared by the <img> alt and the read-aloud button so the two cannot drift.
+ * When the creator writes alt text in the CMS it is used verbatim; until then
+ * the fallback says plainly why there is nothing to read, rather than pretending
+ * the lettering has been transcribed. */
+function describe(page: ComicPage | undefined, idx: number, total: number): string {
+  if (!page) return '';
+  return page.alt ||
+    `Page ${idx + 1} of ${total}${page.isDraft ? ' — rough draft' : ''}. ` +
+    'Dialogue is lettered into the artwork and cannot be read as text.';
+}
 
 /* The reader.
  *
@@ -53,6 +67,7 @@ export function Reader({
   }, [idx]);
 
   const page = pages[idx];
+  const description = describe(page, idx, pages.length);
 
   return (
     <section className="view view--panel">
@@ -63,6 +78,7 @@ export function Reader({
         <div className="panel__bar">
           <Link className="btn btn--back" href="/">Menu</Link>
           <h1 className="panel__title">Read</h1>
+          <Speak text={description} label="Describe" />
           <p className="panel__count">
             <span>{idx + 1}</span><span className="sep">/</span><span>{pages.length}</span>
           </p>
@@ -83,9 +99,7 @@ export function Reader({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={mediaURL(page.image)}
-                alt={page.alt ||
-                  `Page ${idx + 1} of ${pages.length}${page.isDraft ? ' — rough draft' : ''}. ` +
-                  'Dialogue is lettered into the artwork and cannot be read as text.'}
+                alt={description}
                 width={1080}
                 height={1620}
               />
