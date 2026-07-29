@@ -24,6 +24,15 @@ service-role string reaches the client.
 **Vercel.** Import the repo; the framework is detected. It cannot be GitHub Pages
 any more — the CMS writes through a server function.
 
+`vercel.json` pins `"framework": "nextjs"`, and it has to stay. This repo used to
+be a plain `index.html`, so a project imported back then carries the **Other**
+preset, which makes Vercel publish `public/` as a static folder. There is no
+`index.html` in it, so *every* path — `/` included — returns Vercel's own
+`404: NOT_FOUND` page rather than anything the app rendered. The pin in
+`vercel.json` overrides the stale preset. If a 404 like that ever comes back,
+check Project Settings → Build & Output for a leftover **Output Directory**
+override, which `vercel.json` does not clear.
+
 Set these in the Vercel project (and in `.env.local` locally):
 
 | Variable | |
