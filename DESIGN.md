@@ -301,6 +301,23 @@ reader controls is ever in the accessibility tree.
 | Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
 | Chrome | always | retracts on a tap on the page |
 
+**The drawers open in flow, and the page shrinks to make room.** They were
+overlays first — absolutely positioned sheets sliding up over the page, dimming
+it behind a scrim — and every one of that design's problems was the same
+problem: a positioned, animated overlay nested this deep is hit-tested against
+a composited layer that does not reliably agree with layout. The scrim ate the
+taps meant for the drawer; with the scrim gone, taps fell through to the page
+image, which then took pointer capture for the swipe and swallowed the click.
+
+In flow there is no stacking context to lose, no transform to go stale and
+nothing underneath to fall through to. It is also the better behaviour: an open
+drawer never covers the page you are reading, so no scrim is needed either.
+
+Their height is a **fixed share of the viewport, not a measurement of their own
+content**. Opening one shrinks the page above it, which re-lays out a
+1080 × 1620 image; with the height content-driven that settled a frame late, and
+the first tap after opening landed a row out.
+
 One thing has to give for the drawers to work at all: `.slab` carries a
 `drop-shadow` filter, and **a filter makes an element the containing block for
 every fixed-position descendant**, which would pin the sheets inside the panel

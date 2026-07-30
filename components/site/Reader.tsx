@@ -68,10 +68,29 @@ export function Reader({
   const [idx, setIdx] = useState(start);
   const [drawer, setDrawer] = useState<null | 'pages' | 'script'>(null);
   const [bare, setBare] = useState(false);          // chrome hidden (immersive)
-  const [dx, setDx] = useState(0);                  // live swipe offset
 
   const strip = useRef<HTMLElement>(null);
   const reader = useRef<HTMLDivElement>(null);
+  const plate = useRef<HTMLDivElement>(null);
+
+  /* The swipe offset is written straight to the node and never held in state.
+     A setState per pointermove re-renders this whole component — the script
+     column, ten filmstrip entries and their edit controls — sixty times a
+     second, which is what made the drag stutter. Nothing here needs React
+     until the page actually turns. */
+  const slide = useCallback((px: number | null) => {
+    const el = plate.current;
+    if (!el) return;
+    if (px === null) {
+      el.style.transition = '';
+      el.style.translate = '';
+      el.style.willChange = '';
+      return;
+    }
+    el.style.transition = 'none';
+    el.style.willChange = 'translate';
+    el.style.translate = `${px}px`;
+  }, []);
 
   useEffect(() => { setIdx(start); }, [start]);
 
@@ -86,9 +105,9 @@ export function Reader({
   const go = useCallback((flat: number) => {
     const i = Math.max(0, Math.min(pages.length - 1, flat));
     setIdx(i);
-    setDx(0);
+    slide(null);
     history.replaceState(null, '', `/read/${i + 1}`);
-  }, [pages.length]);
+  }, [pages.length, slide]);
 
   /* Relative moves walk the CHAPTER, not the whole comic. */
   const step = useCallback((delta: number) => {
@@ -119,14 +138,36 @@ export function Reader({
     return () => removeEventListener('keydown', onKey);
   }, [step, go, sibs, drawer]);
 
+  /* Keep the current page centred in the strip — but ONLY while the strip is
+     a horizontal rail with somewhere to scroll. In the phone's drawer it is a
+     grid that fits, and scrollIntoView on a box that cannot scroll walks up
+     and scrolls an ancestor instead: the drawer shifted under the finger
+     between pointerup and the click that follows it, so a tap on one
+     thumbnail opened the one a row above. */
   useEffect(() => {
-    const btn = strip.current?.querySelector<HTMLElement>(`[data-i="${at}"]`);
-    btn?.scrollIntoView({
+    const el = strip.current;
+    if (!el || el.scrollWidth <= el.clientWidth + 4) return;
+    el.querySelector<HTMLElement>(`[data-i="${at}"]`)?.scrollIntoView({
       inline: 'center',
       block: 'nearest',
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     });
   }, [at, drawer]);
+
+  /* Tapping away from an open drawer closes it. On pointerdown rather than on
+     click, so it never races the compatibility mouse events a touch screen
+     synthesises afterwards. The dock is excluded because its buttons toggle
+     the drawer themselves and would otherwise close and reopen it. */
+  useEffect(() => {
+    if (!drawer) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.closest('.timeline, .script, .rdock')) return;
+      setDrawer(null);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [drawer]);
 
   /* Full-screen on a phone means the page behind must not scroll under it.
      The rule itself is inside a media query, so this attribute is inert on a
@@ -145,6 +186,9 @@ export function Reader({
 
   const onDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    /* A drawer is open: this press is dismissing it, not starting a gesture,
+       and it must not also flip the chrome away. */
+    if (drawer) return;
     /* Capture, so a drag that wanders off the page still reports its moves and
        its release here instead of being silently dropped mid-turn. */
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -164,7 +208,7 @@ export function Reader({
     /* Resist at the ends rather than refusing: the page still moves a little,
        which is what tells you there is nothing there. */
     const room = (ax < 0 && !canNext) || (ax > 0 && !canPrev);
-    setDx(room ? ax * 0.22 : ax);
+    slide(room ? ax * 0.22 : ax);
   };
 
   const onUp = (e: React.PointerEvent) => {
@@ -179,7 +223,7 @@ export function Reader({
         step(ax < 0 ? 1 : -1);
         return;
       }
-      setDx(0);
+      slide(null);
       return;
     }
     /* A tap: no axis was ever decided and it did not linger. */
@@ -231,12 +275,9 @@ export function Reader({
                   onPointerDown={onDown}
                   onPointerMove={onMove}
                   onPointerUp={onUp}
-                  onPointerCancel={() => { drag.current.on = false; setDx(0); }}
+                  onPointerCancel={() => { drag.current.on = false; slide(null); }}
                 >
-                  <div
-                    className="plate"
-                    style={dx ? { translate: `${dx}px`, transition: 'none' } : undefined}
-                  >
+                  <div className="plate" ref={plate}>
                     <button
                       className="flip flip--prev" type="button" aria-label="Previous page"
                       disabled={!canPrev} onClick={() => step(-1)}
@@ -325,6 +366,18 @@ export function Reader({
                             data-i={p.index}
                             aria-label={`Page ${n + 1}`}
                             aria-current={p.index === at ? 'true' : 'false'}
+                            /* Both, and deliberately. The drawer is a fixed
+                               element nested several levels inside the panel,
+                               and Chromium hit-tests the real pointer stream
+                               and the compatibility mouse events it synthesises
+                               after touchend differently: pointerdown/up land
+                               on the thumbnail, the click that follows falls
+                               through to the page behind. onClick alone was
+                               therefore dead to a finger while working from a
+                               keyboard; onPointerUp alone would be dead to a
+                               keyboard. go() is idempotent, so when both do
+                               fire the second is a no-op. */
+                            onPointerUp={() => go(p.index)}
                             onClick={() => go(p.index)}
                           >
                             {isScriptPage(p.page) ? (
@@ -353,6 +406,7 @@ export function Reader({
                 </div>
               </div>
             </div>
+
 
             {/* The phone's controls. display:none above 860px, so exactly one
                 set of controls is ever in the accessibility tree. */}
@@ -394,15 +448,6 @@ export function Reader({
           </div>
         </div>
       </div>
-
-      {/* Closes whichever drawer is open. Only ever hit-testable on a phone. */}
-      <button
-        className="rscrim"
-        type="button"
-        tabIndex={drawer ? 0 : -1}
-        aria-label="Close"
-        onClick={() => setDrawer(null)}
-      />
     </section>
   );
 }

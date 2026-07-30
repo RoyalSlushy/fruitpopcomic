@@ -1042,8 +1042,11 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   block-size:100%;
   display:flex;align-items:center;
   max-inline-size:100%;
-  /* Swipe moves this. The inline style kills the transition mid-drag so the
-     page tracks the finger, and restoring it here is what snaps it back. */
+  /* Swipe moves this. The handler writes `translate` and `transition:none`
+     straight onto the node during a drag and clears both on release, so this
+     rule is what snaps the page back. Nothing about the drag goes through
+     React — a state update per pointermove re-rendered the script column and
+     the whole filmstrip on every frame, which is what made it stutter. */
   transition:translate .22s var(--ease);
 }
 /* pan-y, not none: a horizontal drag is ours, a vertical one belongs to the
@@ -1167,11 +1170,9 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
 /* ── the phone's controls ───────────────────────────────── */
 
-/* Both of these are display:none above 860px, so exactly one set of reader
-   controls is ever in the accessibility tree — the same rule the rail and the
-   tab bar already follow. */
+/* display:none above 860px, so exactly one set of reader controls is ever in
+   the accessibility tree — the same rule the rail and the tab bar follow. */
 .rdock{display:none}
-.rscrim{display:none}
 
 /* ── the standing note, folded into the heading ─────────── */
 
@@ -1761,12 +1762,21 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     display:flex;flex-direction:column;
     background:var(--navy);
   }
+  /* Flattened on purpose. .view--read is already a viewport-sized fixed box,
+     so the drawers below can be ABSOLUTE against it — and absolute inside a
+     plain subtree hit-tests the same for a mouse as it does for a finger,
+     which position:fixed nested in here did not. Dropping the filter, the
+     isolation and the positioning from these three is what leaves .view--read
+     as the nearest positioned ancestor. */
   .view--read>.slab{
-    filter:none;                 /* see above — this one is load-bearing */
+    filter:none;
     rotate:none;
+    position:static;
+    isolation:auto;
     flex:1;min-block-size:0;
     padding:0;
   }
+  .view--read .panel{position:static}
   .view--read>.slab::before{display:none}
   .view--read .panel{
     --cut:none;
@@ -1776,6 +1786,14 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .view--read .panel__in{
     clip-path:none;
+    /* overflow:hidden has to go, and it is not cosmetic. The drawers are
+       position:fixed against the viewport, so layout does not clip them — and
+       elementsFromPoint agreed the drawer was on top — but Chromium still
+       clips fixed descendants of a scroll/clip container when hit-testing real
+       input. The result was a drawer you could see and could not touch: every
+       tap fell through to the page image underneath, which then took pointer
+       capture for the swipe and ate the click. */
+    overflow:visible;
     background:none;
     display:flex;flex-direction:column;
     block-size:100%;
@@ -1794,7 +1812,19 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .view--read .panel__bar .btn{font-size:.6875rem;padding:.42rem .6rem}
   .view--read .panel__title{font-size:1rem;letter-spacing:.02em}
 
-  .view--read .stage{flex:1;min-block-size:0;display:flex;flex-direction:column}
+  /* container-type implies `contain: layout`, and layout containment makes an
+     element BOTH a stacking context AND the containing block for every
+     fixed-position descendant. With it on, the drawers inside .stage were
+     positioned against .stage rather than the viewport and their z-index was
+     clamped inside it, so the scrim — a sibling of .stage — covered them and
+     swallowed every tap. Nothing needs the query here: it only ever matches
+     at a container width of 900px, which cannot happen below an 860px
+     viewport, so turning containment off costs nothing. */
+  .view--read .stage{
+    container-type:normal;
+    position:static;
+    flex:1;min-block-size:0;display:flex;flex-direction:column;
+  }
   .view--read .spread{flex:1;min-block-size:0}
   .view--read .reader{
     block-size:100%;
@@ -1813,27 +1843,34 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .view--read .panel__count{display:none}
 
   /* ── the drawers ────────────────────────────────────────
-     Bottom sheets. Closed they are translated off, not
-     display:none, so the transition has something to animate;
-     `visibility` is what keeps them off the tab order until
-     they are actually open, stepped so it flips on before
-     focus can land inside. */
+     They open IN FLOW and the page shrinks to make room. They
+     were overlays first — absolutely positioned sheets sliding
+     up over the page — and that is where two days of "I can see
+     it but I cannot tap it" came from: a positioned, animated
+     overlay nested this deep is hit-tested against a composited
+     layer that does not always agree with layout, so taps in
+     the drawer's lower half were resolving to whatever sat
+     behind it, or to the row above.
+
+     In flow there is no stacking context to lose, no transform
+     to go stale, and nothing underneath to fall through to. It
+     is also the better behaviour on a phone: an open drawer
+     never covers the page you are reading. */
   .view--read .timeline,
   .view--read .script{
-    position:fixed;inset-inline:0;inset-block-end:0;z-index:84;
-    max-block-size:min(62dvh, 30rem);
+    display:none;
+    /* A fixed share, not a content-measured one. Opening a drawer shrinks the
+       page above it, which re-lays out a 1080x1620 image; with the drawer's
+       height depending on its own content that settled a frame late and the
+       first tap after opening landed a row out. */
+    flex:0 0 min(40dvh,19rem);
+    block-size:min(40dvh,19rem);
+    overflow-y:auto;
     background:var(--navy-lift);
     border-block-start:var(--keyline) solid #fff;
-    box-shadow:0 -12px 30px rgba(0,0,0,.6);
-    translate:0 100%;visibility:hidden;
-    transition:translate .26s var(--ease), visibility 0s linear .26s;
-    overflow-y:auto;
   }
   .view--read[data-drawer="pages"] .timeline,
-  .view--read[data-drawer="script"] .script{
-    translate:0 0;visibility:visible;
-    transition:translate .26s var(--ease), visibility 0s;
-  }
+  .view--read[data-drawer="script"] .script{display:block}
 
   /* Open, the strip is a grid rather than a rail: on a phone a chapter is
      something you scan, not something you scrub. */
@@ -1857,24 +1894,11 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
   .view--read .script{border-inline-start:0}
 
-  /* Both drawers end above the dock rather than under it. */
-  .view--read .timeline,
-  .view--read .script{
-    padding-block-end:calc(4.6rem + env(safe-area-inset-bottom));
-  }
 
-  .rscrim{
-    display:block;
-    position:fixed;inset:0;z-index:82;
-    border:0;padding:0;cursor:pointer;
-    background:rgba(6,10,22,.62);
-    opacity:0;visibility:hidden;
-    transition:opacity .22s var(--ease), visibility 0s linear .22s;
-  }
-  .view--read:not([data-drawer="none"]) .rscrim{
-    opacity:1;visibility:visible;
-    transition:opacity .22s var(--ease), visibility 0s;
-  }
+
+  /* No scrim. An in-flow drawer covers nothing, so there is nothing to dim —
+     and an overlay that exists only to be dimmed is an overlay that can
+     intercept a tap. */
 
   .rdock{
     display:flex;align-items:center;justify-content:space-between;gap:.5rem;
