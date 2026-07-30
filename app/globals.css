@@ -1199,6 +1199,51 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   transition:opacity .12s var(--ease), visibility 0s linear .12s;
 }
 
+/* ── the voice picker ───────────────────────────────────── */
+
+.vm{position:relative;display:inline-flex;flex:0 0 auto}
+.vm__open{cursor:pointer;font-family:inherit}
+.vm__open.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+
+.vm__panel{
+  position:absolute;z-index:30;
+  inset-block-start:calc(100% + 9px);
+  inset-inline-end:0;
+  inline-size:min(23rem,84vw);
+  display:flex;flex-direction:column;gap:.65rem;
+  padding:.95rem;
+  background:var(--navy);color:#fff;
+  border:3px solid #fff;
+  box-shadow:0 12px 28px rgba(0,0,0,.62);
+  /* The bar this drops out of is all tracked caps. The panel is a form. */
+  text-align:start;text-transform:none;letter-spacing:0;font-weight:400;
+}
+.vm__head{
+  margin:0;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.1em;color:var(--gold);
+}
+.vm__row{
+  display:grid;grid-template-columns:3.6rem 1fr auto;
+  align-items:center;gap:.6rem;margin:0;
+}
+.vm__label{font-size:.75rem;color:var(--ink-soft)}
+.vm__select{
+  grid-column:2/-1;min-inline-size:0;
+  font:inherit;font-size:.8125rem;
+  padding:.42rem .5rem;
+  background:var(--navy-lift);color:#fff;
+  border:2px solid var(--navy-line);border-radius:4px;
+}
+.vm__range{inline-size:100%;min-inline-size:0;accent-color:var(--gold)}
+.vm__out{
+  font-size:.75rem;color:#fff;
+  font-variant-numeric:tabular-nums;
+  min-inline-size:2.5rem;text-align:end;
+}
+.vm__foot{display:flex;gap:.5rem;margin-block-start:.15rem}
+.vm__none{margin:0;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
+
 /* ── the script column ──────────────────────────────────── */
 
 .script{
@@ -1595,6 +1640,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .filmstrip{padding-inline:.9rem}
   .filmstrip button img{width:44px;height:66px}
   .tip__body{inline-size:min(34ch,86vw)}
+  /* Anchored to the bar rather than to its own button: on a narrow screen a
+     panel hung off a button sitting mid-row runs straight off the edge. */
+  .vm{position:static}
+  .vm__panel{inset-inline:.6rem;inline-size:auto}
   .nav{width:40px}
   .foot{padding-bottom:1.5rem}
 }

@@ -55,6 +55,16 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M21 21h22M21 31h22M21 41h13" />
     </>
   ),
+  /* A speaker with a slider under it — the voice control, distinct from the
+     plain speaker that means "read this aloud". */
+  voice: (
+    <>
+      <path d="M27 14 16 24H9v16h7l11 10z" />
+      <path d="M37 20v24" />
+      <path d="M47 26v12" />
+      <path d="M57 30v4" />
+    </>
+  ),
   info: (
     <>
       <circle cx="32" cy="32" r="24" />

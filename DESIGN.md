@@ -354,6 +354,33 @@ Added with the reader rebuild:
   state would leave the loser's button stuck reading "Stop" for audio that had
   already been cancelled. `owner` is what makes the other one render idle
   without being told.
+- **The voice is chosen, not accepted.** Read-aloud is only as good as the voice
+  it is handed, and the one a browser hands you by default is usually the oldest
+  synth installed. Every current platform ships something genuinely good —
+  Microsoft's Natural set on Edge, Siri and the Premium downloads on Apple,
+  Google's on Android — in the same `getVoices()` list as decades of legacy
+  formant synths and the macOS novelty voices. `lib/voices.ts` sorts that list
+  so the best thing the visitor already owns comes first, and the picker beside
+  every read-aloud button offers it, with speed and pitch and a preview.
+
+  Three details are load-bearing:
+
+  - **Language outranks every quality signal**, by a margin nothing else can
+    close. A superb German voice reading English is worse than any English one.
+  - **The recommended group is a relative cut, not a score threshold.** A
+    threshold high enough to mean "neural" leaves the group empty on any device
+    whose best voices are named plainly — which is Android and Chrome OS, where
+    Google's are the whole story. So: the neural ones if any exist, otherwise
+    the best three in the right language. It is never empty when a usable voice
+    exists.
+  - **Preview is not a nicety.** A list of voice names tells you nothing about
+    what any of them sound like, so choosing without hearing is guessing.
+
+  The choice is persisted, applies to both callers, and changing it mid-sentence
+  restarts from the line being read rather than from the top. `getVoices()` is
+  empty on its first call in every Chromium browser, so the list is also taken
+  from the `voiceschanged` event — without that the picker is permanently empty
+  for most visitors.
 
 ## Content
 
@@ -369,6 +396,17 @@ Two design consequences worth recording:
   comic that goes blank when a database is down has failed at the one thing it
   exists to do. This is now verified on every build: the production build runs with
   the database unreachable and still prerenders all 18 pages.
+- **A save is visible without reloading.** `revalidateTag(tag, 'max')` is
+  stale-while-revalidate by design, and Next deliberately does not mark the path
+  revalidated in that mode — its own comment says "so that server actions don't
+  pull their own writes". The editor is precisely the caller that must pull its
+  own write, so on its own that left them looking at the old copy until they
+  reloaded by hand. `updateTag()` is the read-your-own-writes answer but throws
+  outside a Server Action, and the save is a Route Handler, so the immediate
+  half of the job is `revalidatePath('/', 'layout')` — scoped to the layout
+  because the rail, the footer and the derived counters render from the same
+  sections on every route. The tag call stays: it is what keeps everyone else's
+  caches honest.
 - **The honesty rules are now enforced by shape, not by discipline.** There is no
   field anywhere in the CMS for a release date, a view count, or a follower
   number, because there is no column for one. The cast counter sums figures that
@@ -419,6 +457,15 @@ that lazy-loads its implementation, and the build fails if that stops being true
 - The Adobe Fonts kit is a third-party dependency on a domain-locked resource, and
   it is now the site's single largest availability risk: an unregistered domain
   degrades every surface at once. Self-hosting is not permitted by the licence.
+- Read-aloud quality is bounded by what the visitor's device happens to have
+  installed. The picker gets the best of those to the top, which is a large
+  improvement over the default and costs nothing, but it cannot conjure a good
+  voice onto a device with none. A hosted neural voice would remove that
+  variance and make every visitor hear the same thing; it would also mean an API
+  key, a per-character bill, and a third-party runtime dependency on the read
+  path. It slots into one function — `say()` in `lib/tts.ts` — if that trade is
+  ever worth making. It has not been abstracted ahead of time, because there is
+  no second engine to abstract over yet.
 - The Supabase project is shared with an unrelated site. The comic's tables live
   in their own `fruitpop` schema and writes are gated on an explicit editor
   allowlist rather than on `authenticated`, because auth is shared. A dedicated
