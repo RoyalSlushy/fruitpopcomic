@@ -842,6 +842,25 @@ html[data-drawer="open"] .scrim{
 .quick__rail{flex:1;min-width:0;gap:.75rem;padding:.4rem .15rem .7rem;scroll-snap-type:x mandatory}
 .quick .nav{align-self:center}
 
+/* The round channel control. The reader used to share it for paging and no
+   longer does — its flips are slim and revealed — so this is the quick rail's
+   scroll button and nothing else. */
+.nav{
+  flex:0 0 auto;
+  width:clamp(44px,5vw,58px);aspect-ratio:1;
+  display:grid;place-items:center;
+  border-radius:50%;cursor:pointer;
+  background:var(--ch,var(--magenta));color:#fff;
+  border:3px solid #fff;
+  box-shadow:0 5px 0 var(--ch-dp,var(--magenta-dp));
+  transition:transform .16s var(--ease);
+}
+.nav svg{width:52%;height:52%}
+.nav:hover:not(:disabled){transform:translateY(-3px)}
+.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--ch-dp,var(--magenta-dp))}
+.nav:disabled{opacity:.32;cursor:not-allowed;box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.nav--rail{width:42px}
+
 /* The mini tiles stay square-cornered and keep a real box-shadow plinth.
    They are the only framed thing on the page small enough that a corner
    cut would eat the glyph, and without a clip they need no wrapper trick.
@@ -896,8 +915,8 @@ html[data-drawer="open"] .scrim{
 }
 
 .panel__bar{
-  position:relative;
-  display:flex;align-items:center;gap:1rem;
+  position:relative;z-index:5;   /* the note's popover drops out of this bar */
+  display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
   padding:.8rem .95rem;
   background:var(--ch);border-bottom:var(--keyline) solid #fff;
   color:var(--ch-ink);
@@ -977,50 +996,141 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .notice>*{position:relative}
 .notice strong{color:var(--gold)}
 
-/* ── reader ─────────────────────────────────────────────── */
+/* ═══ READER ══════════════════════════════════════════════
+   The page is the product, so the page gets the room. Three
+   controls are revealed rather than parked on screen — the
+   standing note, the flips, and the timeline — and every one
+   of them obeys the same three rules:
+
+     · it also appears on :focus-within, so a keyboard reaches it
+     · it is never the ONLY route to the thing (the note is on
+       aria-describedby, paging is on the arrow keys, the strip
+       is duplicated by the counter and the progress rail)
+     · it is permanently visible under @media (hover:none),
+       because a control that exists only under a pointer is a
+       control half the visitors do not have
+
+   .stage is both the hover host and the size container. Whether
+   there is room for a script column beside the page is a
+   question about this box, not about the viewport — the rail
+   takes 238px off one and not the other — so it is a container
+   query and not a media query.
+   ═══════════════════════════════════════════════════════ */
+
+.stage{
+  position:relative;
+  container-type:inline-size;
+  container-name:read;
+}
+.spread{display:flex;flex-direction:column;min-inline-size:0}
 
 .reader{
-  display:flex;align-items:center;justify-content:center;gap:clamp(.5rem,2vw,1.25rem);
-  padding:clamp(1rem,3vw,1.75rem);
+  flex:1 1 auto;min-inline-size:0;
+  display:flex;align-items:center;justify-content:center;
+  /* The flips live in this padding rather than over the artwork. The chrome
+     stops at the page border, and that rule does not get an exception for
+     being convenient. */
+  padding:clamp(.7rem,1.8vw,1.1rem) clamp(38px,6%,64px);
+  block-size:clamp(340px, calc(100dvh - 21rem), 900px);
 }
-.page{margin:0;position:relative;flex:0 1 auto}
+/* Shrink-wraps the page, which is what lets the flips sit against its edges
+   instead of stranded at the far sides of a column the page does not fill.
+   A portrait page in a landscape panel leaves a lot of room; the handles
+   should be next to the thing they turn. */
+.plate{
+  position:relative;
+  block-size:100%;
+  display:flex;align-items:center;
+  max-inline-size:100%;
+}
+.page{
+  margin:0;position:relative;
+  block-size:100%;
+  display:flex;align-items:center;justify-content:center;
+  min-inline-size:0;
+}
+/* Fills its parent's height, and gives that up rather than distort when the
+   box is narrower than a 2:3 page — which is only ever a small phone. */
 .page img{
-  max-height:clamp(300px,calc(100dvh - 360px),820px);width:auto;
+  block-size:auto;inline-size:auto;
+  max-block-size:100%;max-inline-size:100%;
   border:3px solid #fff;border-radius:var(--r-sm);
   background:#fff;
   box-shadow:0 14px 34px rgba(0,0,0,.55);
 }
 .page__tag{
-  position:absolute;top:.6rem;left:.6rem;
+  position:absolute;top:.55rem;left:.55rem;
+  display:inline-flex;align-items:baseline;gap:.3rem;
   font-size:.625rem;letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.3rem .55rem;border-radius:999px;
+  padding:.3rem .7rem .34rem .55rem;
   background:var(--navy);color:var(--gold);
-  border:2px solid var(--gold);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  font-variant-numeric:tabular-nums;
   rotate:-4deg;
 }
+.page__of{color:var(--ink-soft);font-weight:400}
 
-.nav{
-  flex:0 0 auto;
-  width:clamp(44px,5vw,58px);aspect-ratio:1;
+/* ── the flips ──────────────────────────────────────────── */
+
+.flip{
+  position:absolute;inset-block:0;z-index:2;
+  inline-size:clamp(34px,4vw,56px);
   display:grid;place-items:center;
-  border-radius:50%;cursor:pointer;
-  background:var(--ch,var(--magenta));color:#fff;
-  border:3px solid #fff;
-  box-shadow:0 5px 0 var(--ch-dp,var(--magenta-dp));
-  transition:transform .16s var(--ease);
+  padding:0;border:0;cursor:pointer;
+  background:transparent;color:var(--ink-soft);
+  opacity:0;
+  transition:opacity .18s var(--ease), color .16s, background-color .16s;
 }
-.nav svg{width:52%;height:52%}
-.nav:hover:not(:disabled){transform:translateY(-3px)}
-.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--ch-dp,var(--magenta-dp))}
-.nav:disabled{opacity:.32;cursor:not-allowed;box-shadow:0 5px 0 rgba(0,0,0,.35)}
-.nav--rail{width:42px}
+/* Anchored to the page's own edges — 100% of .plate is the page. */
+.flip--prev{inset-inline-end:100%}
+.flip--next{inset-inline-start:100%}
+.flip svg{inline-size:26px;block-size:26px}
+.flip:hover:not(:disabled){color:#fff;background:rgba(255,255,255,.07)}
+.flip:disabled{cursor:default}
+
+.stage:hover .flip,
+.stage:focus-within .flip{opacity:1}
+/* Dimmed rather than gone at the ends: a handle that vanishes reads as a
+   glitch, one that greys out reads as the end of the comic. */
+.stage:hover .flip:disabled,
+.stage:focus-within .flip:disabled{opacity:.26}
+
+/* ── the timeline ───────────────────────────────────────── */
+
+.timeline{--film-h:104px}
+
+/* Always visible, and the only part that is. It reports position on its own
+   and doubles as the affordance saying the strip is underneath. */
+.timeline__rail{
+  block-size:7px;
+  background:var(--navy);
+  border-block:2px solid var(--navy-line);
+  overflow:hidden;
+}
+.timeline__rail span{
+  display:block;block-size:100%;
+  background:var(--gold);
+  transition:inline-size .3s var(--ease);
+}
+
+.timeline__clip{
+  block-size:0;overflow:hidden;
+  transition:block-size .28s var(--ease);
+}
+.stage:hover .timeline__clip,
+.stage:focus-within .timeline__clip{block-size:var(--film-h)}
+@media (hover:none){
+  .flip{opacity:1}
+  .timeline__clip{block-size:var(--film-h)}
+}
 
 .filmstrip{
   gap:.5rem;
-  padding:0 clamp(1rem,3vw,1.75rem) clamp(1rem,3vw,1.75rem);
+  padding:.7rem clamp(1rem,3vw,1.75rem);
 }
 .filmstrip button{
+  position:relative;
   flex:0 0 auto;padding:0;cursor:pointer;background:none;
   border:3px solid var(--navy-line);border-radius:3px;
   overflow:hidden;line-height:0;
@@ -1029,6 +1139,184 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .filmstrip button img{width:52px;height:78px;object-fit:cover}
 .filmstrip button:hover{transform:translateY(-3px);border-color:#fff}
 .filmstrip button[aria-current="true"]{border-color:var(--gold);transform:translateY(-3px)}
+
+.film__n{
+  position:absolute;inset-block-end:0;inset-inline-start:0;
+  padding:.12rem .3rem .14rem;
+  font-family:var(--face);font-weight:700;
+  font-size:.5625rem;letter-spacing:.05em;line-height:1;
+  font-variant-numeric:tabular-nums;
+  background:var(--navy);color:var(--ink-soft);
+}
+.filmstrip button[aria-current="true"] .film__n{background:var(--gold);color:var(--navy)}
+
+/* ── the standing note, folded into the heading ─────────── */
+
+.tip{position:relative;display:inline-flex;flex:0 0 auto}
+.tip__mark{
+  inline-size:30px;block-size:30px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:3px solid #fff;border-radius:999px;
+  background:var(--ch-dp);color:#fff;
+  transition:transform .14s var(--ease);
+}
+.tip__mark svg{inline-size:14px;block-size:14px}
+.tip__mark:hover{transform:translateY(-2px)}
+
+.tip__body{
+  position:absolute;z-index:20;
+  inset-block-start:calc(100% + 9px);
+  inset-inline-end:0;
+  inline-size:min(34ch,68vw);
+  padding:.75rem .9rem;
+  background:var(--navy);color:#FFE2B4;
+  border:3px solid var(--gold);
+  font-size:.8125rem;line-height:1.5;
+  font-weight:400;text-transform:none;letter-spacing:0;
+  text-align:start;
+  box-shadow:0 12px 28px rgba(0,0,0,.62);
+  opacity:0;visibility:hidden;
+  transition:opacity .16s var(--ease), visibility 0s linear .16s;
+}
+/* The bridge across the 9px gap. Without it the pointer loses the tip on the
+   way down to it, which is the "hoverable" half of WCAG 1.4.13. */
+.tip__body::before{
+  content:"";position:absolute;
+  inset-block-end:100%;inset-inline:0;block-size:11px;
+}
+.tip:hover .tip__body,
+.tip:focus-within .tip__body,
+.tip[data-open="true"] .tip__body{
+  opacity:1;visibility:visible;
+  transition:opacity .16s var(--ease), visibility 0s;
+}
+/* Escape wins over all three. It comes last so it beats them on order alone,
+   and it lasts until the pointer or the focus genuinely leaves — otherwise
+   focus returning to the mark would re-open what was just dismissed. */
+.tip[data-dismissed="true"] .tip__body{
+  opacity:0;visibility:hidden;
+  transition:opacity .12s var(--ease), visibility 0s linear .12s;
+}
+
+/* ── the script column ──────────────────────────────────── */
+
+.script{
+  display:flex;flex-direction:column;gap:.7rem;
+  min-inline-size:0;
+  padding:clamp(.9rem,2vw,1.3rem);
+  background:rgba(8,14,29,.55);
+  border-block-start:var(--keyline) solid #fff;
+}
+.script__bar{display:flex;align-items:center;gap:.6rem}
+.script__bar .script__head{flex:1}
+.script__head{
+  min-inline-size:0;margin:0;
+  display:flex;align-items:center;gap:.45rem;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.8125rem;letter-spacing:.08em;color:var(--gold);
+}
+.script__head svg{inline-size:16px;block-size:16px;flex:0 0 16px}
+.script__page{
+  margin-inline-start:auto;
+  font-size:.6875rem;letter-spacing:.06em;color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;
+}
+
+.script__transport{display:flex;gap:.4rem;flex:0 0 auto}
+.tbtn{
+  inline-size:34px;block-size:34px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:3px solid #fff;border-radius:999px;
+  background:var(--navy);color:#fff;
+  box-shadow:0 3px 0 rgba(0,0,0,.45);
+  transition:transform .14s var(--ease);
+}
+.tbtn svg{inline-size:13px;block-size:13px}
+.tbtn:hover:not(:disabled){transform:translateY(-2px)}
+.tbtn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+.tbtn.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+.tbtn:disabled{opacity:.34;cursor:not-allowed}
+
+.script__lines{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:.15rem;
+}
+.script__line{
+  position:relative;
+  padding:.34rem .5rem .38rem 1.95rem;
+  font-size:.875rem;line-height:1.5;
+  color:#DCE6FA;
+}
+/* A slug is a heading — tracked caps, like every other label on the site.
+   A direction is something the artist acts on rather than something anyone
+   says, so it stays sentence case and leans. Two different jobs, two looks. */
+.script__line[data-kind="mark"]{
+  margin-block-start:.5rem;
+  color:var(--gold);
+  font-family:var(--face);font-weight:700;
+  font-size:.625rem;letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.script__line[data-kind="mark"]:first-child{margin-block-start:0}
+.script__line[data-kind="note"]{
+  color:var(--ink-soft);
+  font-size:.8125rem;font-style:italic;
+}
+.script__who{
+  display:block;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.08em;
+  color:var(--gold);
+}
+/* The line being spoken, and the line the next Play will start from. Two
+   different states, so they cannot be the same highlight. */
+.script__line.is-live{background:rgba(252,176,64,.17);color:#fff}
+.script__line.is-from{background:rgba(159,179,217,.09)}
+
+.script__cue{
+  position:absolute;inset-inline-start:.25rem;inset-block-start:.42rem;
+  inline-size:21px;block-size:21px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:2px solid var(--navy-line);border-radius:999px;
+  background:var(--navy);color:var(--ink-soft);
+  opacity:0;transition:opacity .14s var(--ease), color .14s, border-color .14s;
+}
+.script__cue svg{inline-size:9px;block-size:9px}
+.script__line:hover .script__cue{opacity:1}
+.script__cue:focus-visible{opacity:1}
+.script__cue:hover{color:#fff;border-color:#fff}
+.script__line.is-live .script__cue{opacity:1;border-color:var(--gold);color:var(--gold)}
+@media (hover:none){.script__cue{opacity:1}}
+
+.script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
+.script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}
+/* The raw text behind the parsed view. Editor-only — admin.css reveals it,
+   and admin.css only ever loads for someone signed in. */
+.script__slot{display:none}
+
+/* Side by side once the panel is wide enough to hold both without squeezing
+   the artwork. Below that the script stacks under the page rather than
+   disappearing: it is the only text version of the page there is, and hiding
+   it on a phone would take the comic away from exactly the readers who most
+   need it as text. */
+@container read (min-width:900px){
+  .spread{flex-direction:row;align-items:stretch}
+  .script{
+    flex:0 0 clamp(290px,32%,420px);
+    border-block-start:0;
+    border-inline-start:var(--keyline) solid #fff;
+    overflow-y:auto;
+  }
+  /* A page with no script still says so — the reason there is no text is a
+     fact about this comic worth stating, not an embarrassment to hide. But it
+     is three sentences, not a transcript, so it does not get a transcript's
+     share of the width. */
+  .script--empty{flex-basis:clamp(240px,24%,320px)}
+  .reader{block-size:clamp(380px, calc(100dvh - 19rem), 920px)}
+}
 
 /* ── cast / art ─────────────────────────────────────────── */
 
@@ -1294,8 +1582,19 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .quick__rail{gap:.55rem}
   .ch--mini{flex:0 0 clamp(112px,34vw,150px)}
 
-  .reader{padding:.9rem;gap:.4rem}
-  .page img{max-height:clamp(240px,calc(100dvh - 330px),640px)}
+  /* A portrait page in a portrait viewport is bound by WIDTH, not height, so
+     a fixed reader height here would only pad dead navy above and below it.
+     The box wraps the page instead, and the page is capped so a tall phone
+     still shows the flips and the timeline without scrolling for them. */
+  .reader{
+    padding:.7rem clamp(34px,10%,44px);
+    block-size:auto;
+  }
+  .page img{max-block-size:calc(100dvh - 17rem)}
+  .timeline{--film-h:92px}
+  .filmstrip{padding-inline:.9rem}
+  .filmstrip button img{width:44px;height:66px}
+  .tip__body{inline-size:min(34ch,86vw)}
   .nav{width:40px}
   .foot{padding-bottom:1.5rem}
 }

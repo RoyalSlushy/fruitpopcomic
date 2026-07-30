@@ -166,3 +166,25 @@
 @media (max-width: 620px) {
   .cms-bar { bottom: calc(var(--tabh) + .6rem) }
 }
+
+/* The raw script box behind the reader's parsed transcript. Hidden for
+   visitors by globals.css, and revealed here — which means it is revealed
+   only for someone who has actually signed in, because this file ships with
+   the async admin chunk and with nothing else.
+
+   A blank script is the normal state on every page, so the box has to be a
+   real target before there is anything in it: without a min-height an empty
+   contenteditable is a zero-pixel line nobody can click into. */
+.script__slot {
+  display: block;
+  min-height: 6.5rem;
+  margin: 0;
+  padding: .55rem .7rem;
+  border: 2px dashed var(--navy-line);
+  border-radius: 4px;
+  background: var(--navy);
+  color: #DCE6FA;
+  font-size: .8125rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}

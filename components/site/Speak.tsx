@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
-import { chunk } from '../../lib/speech.ts';
+import { speak, stop, supported, useTts } from '../../lib/tts.ts';
 
 /* Read a block of text aloud, using the browser's own speech synthesiser.
  *
@@ -14,7 +14,11 @@ import { chunk } from '../../lib/speech.ts';
  *
  * This is not a substitute for a screen reader — someone using one already has
  * a better version of this. It is for everyone else: reading with your eyes
- * elsewhere, long prose, or simply preferring to listen. */
+ * elsewhere, long prose, or simply preferring to listen.
+ *
+ * The queue itself lives in lib/tts.ts, because the reader has a second thing
+ * that can speak. `owner` is how this button knows the transcript column took
+ * the channel from it and renders idle again instead of lying. */
 
 export function Speak({ text, label = 'Listen', className = '' }: {
   /** what to read; nothing renders if it is blank */
@@ -24,65 +28,34 @@ export function Speak({ text, label = 'Listen', className = '' }: {
 }) {
   /* Resolved after mount: `speechSynthesis` cannot be probed on the server, and
      rendering the button unconditionally would mean showing a dead one. */
-  const [supported, setSupported] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
+  const [ok, setOk] = useState(false);
+  useEffect(() => { setOk(supported()); }, []);
 
-  /* Bumped on every start and stop. Utterance callbacks captured an older
-     value are stale — cancel() delivers `onerror` to everything still queued,
-     and without this each one would race to reset the button. */
-  const run = useRef(0);
-
-  useEffect(() => { setSupported('speechSynthesis' in window); }, []);
+  const id = useId();
+  const tts = useTts();
+  const mine = tts.owner === id;
 
   /* Navigating away mid-sentence should not keep talking over the next page. */
-  useEffect(() => () => {
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
-  }, []);
-
-  const stop = useCallback(() => {
-    run.current++;
-    speechSynthesis.cancel();
-    setSpeaking(false);
-  }, []);
-
-  const start = useCallback(() => {
-    const parts = chunk(text);
-    if (!parts.length) return;
-
-    const mine = ++run.current;
-    speechSynthesis.cancel();
-    setSpeaking(true);
-
-    const say = (n: number) => {
-      if (mine !== run.current) return;
-      if (n >= parts.length) { setSpeaking(false); return; }
-      const u = new SpeechSynthesisUtterance(parts[n]);
-      u.lang = document.documentElement.lang || 'en';
-      u.onend = () => say(n + 1);
-      u.onerror = () => { if (mine === run.current) setSpeaking(false); };
-      speechSynthesis.speak(u);
-    };
-    say(0);
-  }, [text]);
+  useEffect(() => () => { stop(); }, []);
 
   /* A text change under a running utterance — paging the reader — should read
      the new text, not finish the old. */
   useEffect(() => {
-    if (speaking) start();
+    if (mine) speak(id, [text]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 
-  if (!supported || !text.trim()) return null;
+  if (!ok || !text.trim()) return null;
 
   return (
     <button
       type="button"
-      className={`btn speak${speaking ? ' is-speaking' : ''}${className ? ` ${className}` : ''}`}
-      onClick={speaking ? stop : start}
-      aria-label={speaking ? 'Stop reading aloud' : `${label} — read this aloud`}
+      className={`btn speak${mine ? ' is-speaking' : ''}${className ? ` ${className}` : ''}`}
+      onClick={() => (mine ? stop() : speak(id, [text]))}
+      aria-label={mine ? 'Stop reading aloud' : `${label} — read this aloud`}
     >
-      <Glyph name={speaking ? 'stop' : 'speak'} width={4} />
-      {speaking ? 'Stop' : label}
+      <Glyph name={mine ? 'stop' : 'speak'} width={4} />
+      {mine ? 'Stop' : label}
     </button>
   );
 }

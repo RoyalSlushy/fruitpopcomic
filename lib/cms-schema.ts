@@ -20,7 +20,7 @@ export const TEMPLATES: Record<string, unknown> = {
   'home.quick.*': { id: '', label: 'New', sub: '', href: '/', glyph: 'info', hue: 'indigo' },
 
   'pages.items.*': {
-    id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '',
+    id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '', script: '',
   },
 
   'sheets.items.*': {
@@ -64,6 +64,7 @@ export const LABELS: Record<string, string> = {
 
   'pages.items.*.stage': 'Pencil stage',
   'pages.items.*.alt': 'Alt text',
+  'pages.items.*.script': 'Page script — one beat per line, "NAME: line" for dialogue',
   'pages.items.*.image': 'Page image',
   'pages.items.*.thumb': 'Thumbnail',
 

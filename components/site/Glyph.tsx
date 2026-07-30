@@ -38,6 +38,23 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   stop: <rect x="16" y="16" width="32" height="32" rx="4" />,
+  /* Transport marks are solid. The rest of the set is drawn in stroke, so
+     these two have to opt out of the shared fill/stroke on the <svg>. */
+  play: <path d="M23 15 49 32 23 49z" fill="currentColor" stroke="none" />,
+  pause: (
+    <g fill="currentColor" stroke="none">
+      <rect x="20" y="16" width="8" height="32" rx="2" />
+      <rect x="36" y="16" width="8" height="32" rx="2" />
+    </g>
+  ),
+  /* the transcript column's mark: a page of ruled lines, one indented the way
+     a speaker's line is */
+  script: (
+    <>
+      <rect x="12" y="8" width="40" height="48" rx="5" />
+      <path d="M21 21h22M21 31h22M21 41h13" />
+    </>
+  ),
   info: (
     <>
       <circle cx="32" cy="32" r="24" />

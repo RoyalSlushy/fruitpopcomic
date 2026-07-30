@@ -235,6 +235,40 @@ A single repeating-conic speed-line burst sits behind the spread, thrown from
 behind the hero and masked to an ellipse. It is the page's one authored flourish;
 everything else is halftone, which is texture rather than event.
 
+**Reader.** The page is the product, so the page gets the room. The image fills
+its parent's height and gives that up rather than distort when the box is
+narrower than a 2:3 page, which is only ever a phone — there the reader wraps the
+page instead of padding dead navy around it.
+
+Three controls are revealed rather than parked on screen:
+
+| Control | At rest | Revealed by |
+|---|---|---|
+| The standing note | an `ⓘ` in the heading | hover, focus, or click on the mark |
+| The page flips | nothing | hover or focus anywhere in `.stage` |
+| The timeline | a 7px progress rail | hover or focus anywhere in `.stage` |
+
+Each obeys the same three rules, and they are not optional:
+
+1. It also appears on `:focus-within`, so a keyboard reaches it.
+2. It is never the **only** route to the thing. The note is on
+   `aria-describedby`; paging is on the arrow keys plus Home and End; the strip
+   is duplicated by the counter and by the progress rail.
+3. It is permanently visible under `@media (hover: none)`. A control that exists
+   only under a mouse pointer is a control half the visitors do not have.
+
+The flips are anchored to `.plate`, which shrink-wraps the page, so they sit
+against its edges rather than stranded at the sides of a column a portrait page
+never fills. They stay outside the page border — the chrome stops there, and
+that rule does not get an exception for being convenient. At the ends they dim
+rather than vanish: a handle that disappears reads as a glitch, one that greys
+out reads as the end of the comic.
+
+Whether there is room for the script column beside the page is a question about
+the panel, not about the viewport — the rail takes 238px off one and not the
+other — so it is a **container query** (`@container read (min-width: 900px)`)
+and not a media query.
+
 Shell is `min(1240px, 100% - 2.5rem)`, tightening to `min(1180px, 100% - 3rem)`
 once the rail appears. At ≤620px the radius and keyline step down to 18px/3px.
 
@@ -266,6 +300,20 @@ These are design decisions, not copy suggestions.
   mission list, this puts the five things that are and aren't done. It is the site's
   thesis rendered as instrumentation rather than an apology in a paragraph.
 - **The empty wiki ships empty**, with an empty state that says so.
+- **The script column ships empty too, and that is the point.** Every page now
+  carries a `script` field, one beat per line, rendered beside the artwork as
+  attributed dialogue. It is blank on all ten pages and must stay blank until
+  the creator writes one out. The lettering is drawn into the drawing; there is
+  nothing to extract, so anything in that column that the creator did not type
+  would be invented dialogue — which is invented story, and the one rule this
+  project does not bend. The empty state says why rather than apologising, and
+  it is narrower than a populated column, because three sentences do not earn a
+  transcript's share of the width.
+
+  What the field buys once it is filled: the page becomes selectable,
+  searchable, translatable and reachable by a screen reader, none of which an
+  image is. Read-aloud gets something worth reading — before this the only
+  spoken thing was a one-sentence description of a page nobody can read.
 
 ## Accessibility
 
@@ -282,7 +330,30 @@ These are design decisions, not copy suggestions.
 - `BUILD STATUS` is a list with an `aria-hidden` glyph and the state in text. It is
   deliberately **not** checkboxes — they would be controls that do nothing.
 - Comic-page alt text names the lettering limitation rather than pretending
-  otherwise.
+  otherwise. Where a script exists it stops apologising and points at the
+  column instead, because the page is genuinely readable then.
+
+Added with the reader rebuild:
+
+- **Hover-revealed content meets WCAG 1.4.13 on all three counts.** The standing
+  note is *dismissible* (Escape closes it), *hoverable* (a `::before` bridges
+  the 9px gap so the pointer can reach the panel without it vanishing) and
+  *persistent* (it stays until the pointer leaves, focus leaves, or Escape).
+  Escape needs a `data-dismissed` flag to beat the CSS as well as the state:
+  dismissing returns focus to the mark, the mark is inside the tip, and
+  `:focus-within` would otherwise light it straight back up.
+- **Paging never moves focus** — that would yank a keyboard visitor off the
+  arrow they are holding — so the change is announced through a polite live
+  region instead of being silent.
+- `Home` and `End` jump to the first and last page. Arrow keys are ignored
+  inside a field or a `contenteditable`, so they never fight the editor.
+- The spoken line carries `aria-current`, and a second live region names it, so
+  following along works by eye and by screen reader both.
+- One speech queue for the whole page (`lib/tts.ts`). `speechSynthesis` is a
+  single global device, so two components each holding their own `speaking`
+  state would leave the loser's button stuck reading "Stop" for audio that had
+  already been cancelled. `owner` is what makes the other one render idle
+  without being told.
 
 ## Content
 
@@ -340,9 +411,11 @@ that lazy-loads its implementation, and the build fails if that stops being true
 - Routing is hash-based (`#/read`, `#/read/4`), so page URLs are linkable but not
   server-rendered. Fine for GitHub Pages; revisit if search indexing of individual
   pages matters.
-- Dialogue is lettered into the artwork and cannot be read as text. Alt text
-  describes each page's position and states the limitation rather than pretending
-  otherwise.
+- Dialogue is lettered into the artwork and cannot be read as text. There is now
+  a route out of this — the per-page `script` field — but it is a route, not a
+  fix: every page is still blank, and each one has to be typed out by hand
+  before that page becomes readable. Until then the alt text describes the
+  page's position and states the limitation rather than pretending otherwise.
 - The Adobe Fonts kit is a third-party dependency on a domain-locked resource, and
   it is now the site's single largest availability risk: an unregistered domain
   degrades every surface at once. Self-hosting is not permitted by the licence.
