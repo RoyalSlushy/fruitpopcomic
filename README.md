@@ -72,14 +72,45 @@ by the deployment that was built, so a deployment that already exists keeps the
 values it was deployed with. Editing a variable in the dashboard changes nothing
 until a new deployment picks it up.
 
-Check the **build log** rather than waiting to be surprised at the sign-in box:
-`npm run build` ends with either `✓ CMS secrets present` or a warning naming
-what is missing. It only ever warns — the build has to succeed without secrets so
-that forks and preview deployments of docs-only changes still work.
+Check the **build log** rather than waiting to be surprised at the sign-in box.
+`npm run build` ends with two independent lines — one for signing in, one for
+saving:
+
+```
+✓ CMS secrets present — the editor will accept a sign-in
+✓ Supabase write credentials present — the editor will be able to save
+```
+
+Either can be a warning instead, naming what is missing. It only ever warns —
+the build has to succeed without secrets so that forks and preview deployments
+of docs-only changes still work.
+
+This is also the fastest way to answer **"I set the variable and it still
+doesn't work"**: the build log reflects what the deployment was actually built
+with. If you set `SUPABASE_SERVICE_ROLE_KEY` in Vercel and the build log still
+says it is not set, the value never reached that build — it is scoped to a
+different environment (Production and Preview are separate), or the deployment
+predates the change and needs a redeploy.
 
 These variables gate the *editor*. The `SUPABASE_*` ones gate where edits are
 *stored*: without them the site still renders from `content/*.ts`, and a save
 fails at write time rather than at sign-in.
+
+### "Saving is not configured on this deployment"
+
+The write-side counterpart of the 503 above, and the reason a save can fail on a
+deployment you just signed into perfectly well. It names the variable:
+
+| | |
+|---|---|
+| `SUPABASE_SERVICE_ROLE_KEY is not set` | add it — it is the only credential that can write |
+| `SUPABASE_URL is not set` | add it, or `NEXT_PUBLIC_SUPABASE_URL` as the fallback |
+
+If instead the save reports **`the database rejected the service key`**, the
+variable is set but holds the wrong key. `site_content` has no write policy, so
+an `anon` or `sb_publishable_…` key gets refused by RLS — it must be the
+`service_role` key, and it must never carry a `NEXT_PUBLIC_` prefix. Redeploy
+after changing it. Full detail in [`docs/cms.md`](docs/cms.md#when-save-fails).
 
 Type is **Shuttleblock**, from an Adobe Fonts kit that is **domain-locked**: every
 domain serving the site has to be registered in the web project or the stylesheet

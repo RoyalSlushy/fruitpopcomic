@@ -22,7 +22,7 @@ export const status: StatusContent = {
     { id: 'st1', label: 'Character art', state: 'done', note: 'Finished',     chip: '5 sheets' },
     { id: 'st2', label: 'Comic pages',   state: 'wip',  note: 'Rough drafts', chip: '10' },
     { id: 'st3', label: 'Reading order', state: 'wip',  note: 'Provisional',  chip: 'unset' },
-    { id: 'st4', label: 'Wiki',          state: 'none', note: 'Not started',  chip: 'empty' },
+    { id: 'st4', label: 'Wiki',          state: 'wip',  note: 'First entry',  chip: '1 entry' },
     { id: 'st5', label: 'Logo',          state: 'wip',  note: 'Raster only',  chip: 'SVG wanted' },
   ],
 };

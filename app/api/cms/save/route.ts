@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { requireAdmin, badOrigin, readJson, auditJson } from '../../../../lib/cms-auth.ts';
 import { isSectionKey, mergeSection, SECTION_KEYS, type SectionKey } from '../../../../lib/cms.ts';
-import { upsertSection } from '../../../../lib/supabase.ts';
+import { upsertSection, serviceProblems, SupabaseWriteError } from '../../../../lib/supabase.ts';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,6 +17,23 @@ export async function POST(req: Request) {
       { status: auth.status });
   }
   if (badOrigin(req)) return NextResponse.json({ error: 'Bad origin' }, { status: 403 });
+
+  /* Signing in only proves the EDITOR is configured; storing needs a separate
+     pair of variables. Checked before the merge so a deployment with nowhere to
+     write says so up front, naming the variable, instead of doing the work and
+     collapsing into a flat 500 at the last step.
+
+     Safe to name: this is behind requireAdmin() above, so unlike the login 503
+     it is only ever reachable by someone already signed in — and it carries a
+     variable name, never a value or a length. */
+  const unconfigured = serviceProblems();
+  if (unconfigured.length) {
+    console.error(`[cms] save refused — ${unconfigured.join('; ')}`);
+    return NextResponse.json({
+      error: `Saving is not configured on this deployment: ${unconfigured.join('; ')}.`,
+      problems: unconfigured,
+    }, { status: 503 });
+  }
 
   const parsed = await readJson(req, MAX_BODY);
   if (parsed.kind === 'too-large') return NextResponse.json({ error: 'Payload too large' }, { status: 413 });
@@ -58,9 +75,27 @@ export async function POST(req: Request) {
     for (const r of rows) await upsertSection(r.key, r.value);
   } catch (e) {
     /* Supabase errors can echo hostnames and constraint names — log them,
-       return a flat string. */
+       return one of our own fixed strings rather than anything upstream said.
+
+       A 401/403 is worth separating out: it means the key arrived and was
+       refused, which is a different fix from every other failure and is
+       otherwise indistinguishable from the browser. `site_content` has no write
+       policy, so an anon or publishable key pasted into the service-role slot
+       lands here rather than being rejected as malformed. */
     console.error('[cms] save failed', e);
-    return NextResponse.json({ error: 'Save failed' }, { status: 500 });
+    const status = e instanceof SupabaseWriteError ? e.status : 0;
+    /* 404 means the request arrived somewhere real and that somewhere has no
+       site_content table — which is what a SUPABASE_URL aimed at the wrong
+       project looks like, and is otherwise indistinguishable from a refusal. */
+    const hint =
+      status === 401 || status === 403
+        ? 'the database rejected the service key. Check SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or publishable key cannot write.'
+        : status === 404
+          ? 'no site_content table exists at SUPABASE_URL. Check it points at the right Supabase project.'
+          : null;
+    return NextResponse.json({
+      error: hint ? `Save failed: ${hint}` : 'Save failed',
+    }, { status: 500 });
   }
 
   /* The read path tags its fetch with 'cms', so this is what makes a save
