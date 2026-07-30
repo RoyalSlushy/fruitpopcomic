@@ -5,10 +5,21 @@ Recorded from the built site, not written ahead of it. Values here are what
 
 ## Direction
 
-**System Dashboard.** The site is a handheld console dashboard — a persistent
-channel rail down the side, and the home screen is an instrument panel rather
-than a menu you leave. Chosen by roll after two re-rolls and a "go screen-native"
-steer; seed key `e61a73a4`.
+**Comic Spread.** The site is a handheld console dashboard drawn as a comic page
+— a persistent channel rail down the side, and a home screen of inked panels cut
+off-square, tilted, and overlapping at the gutters over a ben-day halftone
+ground. The shell direction was chosen by roll after two re-rolls and a
+"go screen-native" steer (seed key `e61a73a4`); the panel language replaced a
+card grid at the creator's direction, keeping the palette and the face and
+changing only structure, weight, and texture.
+
+The change was convergent with the pinned brief rather than a departure from it.
+[`docs/aesthetic-references.md`](docs/aesthetic-references.md) already read two
+rules off the board that the card grid was quietly opting out of: **"nothing is
+square to the grid — tilt is the board's default, not an accent"**, and
+**"texture under the chrome — none of these sit on flat colour."** Halftone is
+named there explicitly, behind the Monkey Ball tiles. This build finally puts
+both up.
 
 The governing rule, derived from the assets in
 [`docs/art-analysis.md`](docs/art-analysis.md): **the chrome is loud, the artwork
@@ -56,7 +67,10 @@ label, the name plate, the plinth shadow, and any small text.
 
 The router writes the active section onto `<html data-section>`, so `--ch` and
 `--ch-dp` follow the route with no per-element JS. Dashboard panels set theirs
-inline, one hue each, so all five brand colours appear on one screen.
+inline on the **`.slab` wrapper**, one hue each, so all five brand colours appear
+on one screen. The wrapper rather than the panel, because the wrapper is what
+paints the plinth now — a hue set on the panel inside would leave every plinth
+the section's colour instead of its own.
 
 ### Ink
 
@@ -66,10 +80,18 @@ inline, one hue each, so all five brand colours appear on one screen.
 | `--ink-soft` | `#9FB3D9` | 8.73 on ground, 7.05 on `--navy-lift`. Tinted from the ground's own hue — never grey |
 
 **The one measured constraint:** white on bright magenta is **4.00**. That is AA
-for large text only, and WCAG counts "large" from 24px at a 400-weight face. So
-the hero headline's clamp floors at exactly `1.5rem`, and everything smaller moves
-onto a deep-tone chip — the page counter, the hero's subtitle readout, the status
-chips and the rank chips are all built that way.
+for large text only — from 24px at a 400-weight face, or 18.66px at 700. Two
+clamps are set by that number and nothing else: the hero headline floors at
+`1.75rem`, and `.panel__title` floors at `1.1875rem` (19px, bold), just past the
+large-text threshold. Everything smaller moves onto a deep-tone chip — the page
+counter, the hero's subtitle readout, the status chips and the rank chips are all
+built that way.
+
+The halftone never makes a pair worse: every dot field is the deep tone screened
+over the bright one, or the bright tone over the dark ground, so the field under
+any text is between the two measured values rather than outside them. The inner
+views' header band is the tightest case — navy on gold dotted with `--gold-dp`
+measures **5.46**, against 10.05 for the flat plate.
 
 Measured on the components this build added:
 
@@ -106,26 +128,64 @@ Adobe serves it only to domains registered in the web project, so an unregistere
 host gets a 403 and falls through to `ui-sans-serif, system-ui`. The fallback was
 checked; caps, weight and layout all survive it, but it is not the design.
 
-Display maxes at `clamp(1.5rem, 3.1vw, 2.15rem)`. Prose is capped at 68ch.
+Display maxes at `clamp(1.75rem, 4.4vw, 3.15rem)` — the hero headline, raised
+when the dashboard went bolder. Prose is capped at 68ch.
 
 ## Form
 
-- **Keyline:** 4px white border with a deep-tone inline. This is the wordmark's own
-  treatment — white cut-line outside, deep-magenta inline — applied to every tile,
-  panel, ribbon, button and nav control.
-- **Elevation:** hard offset plinth in the channel's deep tone, plus a soft blurred
-  shadow. `0 7px 0 var(--ch-dp), 0 16px 30px rgba(0,0,0,.5)`. The plinth is the
-  toy-plastic reading; the blur carries real depth.
-- **Ribbon:** dashboard panels are labelled by a tab that overhangs the panel's top
-  edge, rotated `-1.4deg` for the board's sticker logic. It sits on a `.slab`
-  wrapper rather than inside the panel, because the panel keeps `overflow:hidden`.
+- **Cut, not rounded.** Every framed surface is clipped to a `--cut` polygon. The
+  default is an honest rectangle; the dashboard overrides it per panel from four
+  named shapes, so no two neighbours share an edge angle:
+
+  | Token | Shape | Where |
+  |---|---|---|
+  | `--cut-rise` | top edge climbs left to right | `WHAT'S HOT`, `BUILD STATUS` |
+  | `--cut-fall` | the same wedge mirrored | `THE DRAFTS` |
+  | `--cut-nick` | leading corners trimmed off | `START HERE`, every inner view |
+  | `--cut-band` | a long banner, both ends chevroned | `QUICK ACCESS` |
+
+  The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
+  trim.
+- **Keyline:** 5px white, and it is **not a border**. A `clip-path` clips a border
+  square at the cut corners, so the keyline is the element's own white background
+  showing through its padding, with the interior painted inset by exactly that
+  much and clipped to the same shape. `.pane` does this with a `::before`;
+  `.ch` and `.panel` need a real interior element (`.ch__in`, `.panel__in`)
+  because they stack children with different fills. This is still the wordmark's
+  own treatment — white cut-line outside, deep tone inside.
+- **Elevation:** `clip-path` clips shadows with everything else, so elevation
+  cannot be a `box-shadow` on a cut panel. The plinth is a **second copy of the
+  same cut shape** in the channel's deep tone, painted by the `.slab` wrapper and
+  translated down 10px; one `drop-shadow` filter on the same wrapper traces the
+  clipped silhouette for the soft depth underneath. The mini quick-access tiles
+  are the exception — too small for a corner cut to survive, so they stay
+  square-cornered and keep a real `box-shadow` plinth.
+- **Halftone.** `--ht` is a substitution mixin: it is inherited unresolved, so
+  `--ht-c` (dot colour), `--ht-r` (dot radius) and `--ht-s` (cell pitch) can be
+  re-set on any element and `background:var(--ht)` picks them up there. Two offset
+  dot grids make the staggered screen a press actually lays down. Every field is
+  masked so the dots decay rather than tiling flat: 20px magenta and 15px cyan on
+  the ground, 14px in the hero's magenta face, 9px of the bright channel tone
+  inside each panel, 9px of the deep tone across each inner view's header band.
+- **Ribbon:** dashboard panels are labelled by a caption box overhanging the
+  panel's top-left corner — where a letterer would put it — rotated `-2.4deg`,
+  chevroned on its trailing edge, and drawing its own keyline the same way the
+  panels draw theirs. It sits on the `.slab` wrapper rather than inside the panel.
   The five inner views do **not** carry one — their `.panel__bar` is already the
   header, and a second label would only repeat the section name.
-- **Radius:** `22px` on tiles and panels, `12px` on inner elements, pills on small
-  controls. Chunkier than a conventional UI floor, per the committed world.
-- **Press:** hover lifts 5px and grows the plinth; active drops 4px and collapses it
-  to 3px in 60ms. Tiles read as physically pressable. The hero and the quick-access
-  tiles are the same `.ch` component, so the press physics are identical sitewide.
+- **Radius:** effectively gone. `0` on panels and tiles, `3–4px` on inner
+  elements, pills still on small controls. The old `22px` toy-plastic radius was
+  the card grid's; a comic panel has corners.
+- **Press:** hover lifts the face 7px while `.slab:has(>.ch:hover)` drives the
+  plinth to 17px; active drops the face 4px and collapses the plinth to 3px in
+  60ms. The face moves by `transform` and the plinth by `translate` — two
+  properties on two elements, so neither fights the other. The hero and the
+  quick-access tiles are the same `.ch` component, so the press physics are
+  identical sitewide.
+- **Tilt:** every dashboard panel is rotated a fraction of a degree, no two the
+  same, between `-1.1deg` and `+1.7deg`. The draft cards carry a four-step
+  rotation cycle so the rhythm never resolves into a pattern the eye can lock
+  onto, and the quick tiles alternate `±1.5deg`.
 
 ## Motion
 
@@ -151,13 +211,29 @@ stays the scroll container — a second scroll container would break the starfie
 which sizes itself from `document.body.scrollHeight`. Between 1024 and 1219px the
 rail narrows to `78px` of glyphs and shows the monogram instead of the wordmark.
 
-**Dashboard.** One column below 860px; above it, `1fr` plus a `268–324px` rail:
+**Dashboard.** Laid out as a comic page, not a card grid. Three devices do the
+work, and all three are load-bearing:
+
+1. Twelve columns, but the two content rows **do not split them at the same
+   place** — 8/4 over 7/5, stepping to 7/5 over 6/6 once the narrow rail appears.
+   A shared vertical gutter is what makes a grid read as a grid.
+2. Every panel tilted, no two the same, and no two cut to the same edge angle.
+3. Negative margins pull the panels into each other so their keylines butt and
+   overlap the way inked panels do. The tilt needs that overlap — square gaps
+   between rotated boxes read as a broken grid rather than a spread.
 
 ```
-WHAT'S HOT    START HERE
-THE DRAFTS    BUILD STATUS
-QUICK ACCESS  (full width)
+WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
+THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
+QUICK ACCESS (full width)
 ```
+
+One column below 860px, where the panels keep their tilt and still bite into each
+other by `-0.4 × --gap`.
+
+A single repeating-conic speed-line burst sits behind the spread, thrown from
+behind the hero and masked to an ellipse. It is the page's one authored flourish;
+everything else is halftone, which is texture rather than event.
 
 Shell is `min(1240px, 100% - 2.5rem)`, tightening to `min(1180px, 100% - 3rem)`
 once the rail appears. At ≤620px the radius and keyline step down to 18px/3px.

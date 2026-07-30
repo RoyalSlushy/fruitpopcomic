@@ -1,10 +1,16 @@
 /* ═══════════════════════════════════════════════════════════
-   Fruit Pop Comic — System Dashboard
+   Fruit Pop Comic — Comic Spread
    Palette sampled from the wordmark's flat vector fills.
 
    Shell: a persistent channel rail on desktop, a bottom tab bar
    and a drawer on phones. The moodboard pinned both — reference 1
    has a glyph-labelled bottom bar, reference 5 a five-slot one.
+
+   The home screen is laid out as a comic page rather than a card
+   grid: inked panels, cut off-square, tilted, overlapping at the
+   gutters, on a ben-day halftone ground. The board's own reading —
+   "nothing is square to the grid", "texture under the chrome" —
+   applied at page scale.
    ═══════════════════════════════════════════════════════════ */
 
 :root{
@@ -28,9 +34,51 @@
   --ink:         #FFFFFF;
   --ink-soft:    #9FB3D9;   /* tinted from the ground's hue, never grey */
 
-  --keyline:     4px;
-  --r:           22px;      /* toy-plastic radius, per the committed world */
-  --r-sm:        12px;
+  --keyline:     5px;
+  --r:           0px;       /* panels are cut, not rounded — see --cut */
+  --r-sm:        4px;
+
+  /* ── halftone ────────────────────────────────────────────
+     Two offset dot grids make the staggered ben-day screen a
+     press actually lays down. --ht is a substitution mixin:
+     it is inherited unresolved, so the four knobs below can be
+     re-set on any element and `background:var(--ht)` picks them
+     up there. One line per use instead of six.
+
+     --ht-c dot colour · --ht-r dot radius · --ht-s cell pitch
+     ────────────────────────────────────────────────────── */
+  --ht-c:        rgba(0,0,0,.5);
+  --ht-r:        30%;
+  --ht-s:        8px;
+  --ht:
+    radial-gradient(circle at 50% 50%,
+      var(--ht-c) var(--ht-r), transparent calc(var(--ht-r) + 6%))
+      0 0 / var(--ht-s) var(--ht-s),
+    radial-gradient(circle at 50% 50%,
+      var(--ht-c) var(--ht-r), transparent calc(var(--ht-r) + 6%))
+      calc(var(--ht-s) / 2) calc(var(--ht-s) / 2) / var(--ht-s) var(--ht-s);
+
+  /* ── panel cuts ──────────────────────────────────────────
+     Every framed surface is clipped to --cut, and its white
+     keyline is padding showing through from underneath. The
+     default is an honest rectangle; the dashboard overrides it
+     per panel so no two share an edge angle.
+
+     clip-path clips shadows too, so elevation cannot be a
+     box-shadow any more — the plinth is a second copy of the
+     same shape, offset down, painted by the .slab wrapper.
+     ────────────────────────────────────────────────────── */
+  --cut:      polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  /* corners nicked, top-left and bottom-right — the trimmed panel */
+  --cut-nick: polygon(0 20px, 20px 0, 100% 0,
+                      100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  /* the angled gutter: top edge climbs left to right */
+  --cut-rise: polygon(0 15px, 100% 0, 100% calc(100% - 13px), 0 100%);
+  /* the same wedge mirrored, so neighbours never run parallel */
+  --cut-fall: polygon(0 0, 100% 14px, 100% 100%, 0 calc(100% - 12px));
+  /* a long banner, both ends chevroned inward */
+  --cut-band: polygon(0 11px, 26px 0, 100% 0,
+                      100% calc(100% - 11px), calc(100% - 26px) 100%, 0 100%);
 
   --rail:        0px;       /* sidebar column; only real at ≥1024px */
   --tabh:        62px;      /* bottom bar height on phones */
@@ -144,6 +192,28 @@ main:focus,section:focus{outline:none}
     radial-gradient(58% 42% at 50% 68%, rgba(44,194,229,.17), transparent 70%),
     radial-gradient(46% 34% at 78% 12%, rgba(237,35,144,.13), transparent 72%);
 }
+/* The ground's own halftone. Coarse dots — 22px pitch, so they read as
+   printed screen rather than as noise — decaying out of the top-right
+   corner the magenta wash already occupies. */
+.nebula::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:rgba(237,35,144,.78);
+  --ht-s:20px;
+  --ht-r:17%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
+  mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
+}
+/* and a second, finer field rising off the bottom-left in cyan */
+.nebula::after{
+  content:"";position:absolute;inset:0;
+  --ht-c:rgba(44,194,229,.6);
+  --ht-s:15px;
+  --ht-r:17%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
+  mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
+}
 
 /* ── shared horizontal rails ────────────────────────────── */
 
@@ -208,7 +278,7 @@ html[data-drawer="open"] .scrim{
   position:relative;
   padding:.6rem .8rem;
   border:3px solid var(--navy-line);
-  border-radius:14px;
+  border-radius:4px;
   background:var(--f);
   color:var(--ink-soft);
   text-decoration:none;
@@ -286,7 +356,7 @@ html[data-drawer="open"] .scrim{
   flex:0 0 auto;
   width:44px;height:44px;
   display:grid;place-items:center;
-  border:3px solid #fff;border-radius:12px;
+  border:3px solid #fff;border-radius:4px;
   background:var(--navy-lift);cursor:pointer;
   box-shadow:0 4px 0 var(--navy-line);
 }
@@ -300,7 +370,7 @@ html[data-drawer="open"] .scrim{
 }
 .crumb__step{
   font-size:.9375rem;line-height:1;
-  padding:.42rem .6rem;border-radius:10px;
+  padding:.42rem .6rem;border-radius:3px;
   background:var(--ch-dp);color:#fff;
   border:3px solid #fff;
   font-variant-numeric:tabular-nums;
@@ -332,72 +402,185 @@ html[data-drawer="open"] .scrim{
 .readout__flag{color:var(--gold)!important;font-size:.9375rem!important}
 
 /* ═══ SLAB + RIBBON ══════════════════════════════════════
-   The panel keeps overflow:hidden, so the overhanging tab
-   label lives on a wrapper instead of inside it.
-   Ribbon face is the DEEP tone: white on a bright channel
+   .slab is what makes a cut panel possible. Its child is
+   clipped to --cut, and clip-path clips shadows with it, so
+   the slab carries the elevation the panel can no longer hold:
+   ::before is a second copy of the same cut shape in the deep
+   tone, shifted down — a real plinth rather than a shadow —
+   and one drop-shadow filter traces the clipped silhouette for
+   the soft depth underneath.
+
+   The ribbon is the comic's caption box: it overhangs the
+   panel's top-left corner where a letterer would put it.
+   Its face is the DEEP tone — white on a bright channel
    measures 4.00 and would fail at label size.
    ═══════════════════════════════════════════════════════ */
 
-.slab{position:relative;padding-top:1.15rem;display:flex;flex-direction:column}
+.slab{
+  position:relative;z-index:1;isolation:isolate;
+  padding-top:1.35rem;
+  display:flex;flex-direction:column;
+  filter:drop-shadow(0 16px 20px rgba(0,0,0,.55));
+}
 /* the panel fills its grid row, so neighbouring slabs line up bottom-to-bottom */
-.slab>.pane,.slab>.ch{flex:1}
+.slab>.pane,.slab>.ch,.slab>.panel{flex:1}
+
+.slab::before{
+  content:"";position:absolute;z-index:-1;
+  left:0;right:0;top:1.35rem;bottom:0;
+  background:var(--ch-dp,var(--navy-line));
+  clip-path:var(--cut);
+  translate:0 10px;
+  transition:translate .22s var(--ease);
+}
+/* Press physics, kept from the tile: hovering drives the plinth taller,
+   pressing collapses it in 60ms while the face drops onto it. The face
+   moves by transform, the plinth by translate — two separate properties
+   on two elements, so neither fights the other. */
+.slab:has(>.ch:hover)::before,
+.slab:has(>.ch:focus-visible)::before{translate:0 17px}
+.slab:has(>.ch:active)::before{translate:0 3px;transition-duration:.06s}
+
+/* No ribbon: the inner views' .panel__bar is already the header. */
+.slab--bare{padding-top:0}
+.slab--bare::before{top:0}
 
 .ribbon{
-  position:absolute;top:0;left:1.35rem;z-index:3;
+  position:absolute;top:0;left:1.5rem;z-index:3;
   display:inline-flex;align-items:center;gap:.45rem;
-  padding:.42rem .95rem .48rem;
-  border:3px solid #fff;
-  border-radius:10px 10px 4px 4px;
-  background:var(--ch-dp);color:#fff;
-  font-size:.75rem;letter-spacing:.07em;line-height:1;
+  padding:.5rem 1.05rem .55rem;
+  border:0;
+  background:#fff;color:#fff;
+  clip-path:polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  font-size:.8125rem;letter-spacing:.08em;line-height:1;
   text-transform:uppercase;
-  box-shadow:0 4px 0 rgba(0,0,0,.45);
-  rotate:-1.4deg;
+  rotate:-2.4deg;
 }
-.ribbon--wide{font-size:.8125rem}
+/* the caption box's own keyline, drawn the same way the panels draw theirs:
+   white shape underneath, deep tone inset on top */
+.ribbon::before{
+  content:"";position:absolute;inset:3px;z-index:-1;
+  background:var(--ch-dp);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.ribbon>*{position:relative}
+.ribbon--wide{font-size:.9375rem;letter-spacing:.06em}
 
-/* ═══ DASHBOARD ══════════════════════════════════════════ */
+/* ═══ DASHBOARD ══════════════════════════════════════════
+   Laid out as a comic page, not a card grid. Three devices do
+   the work, and all three are load-bearing:
 
-.view--home{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
+   1. The two content rows split the twelve columns differently
+      (8/4 over 7/5), so the vertical gutter never runs straight
+      down the page. A shared gutter is what makes a grid read
+      as a grid.
+   2. Every panel is tilted a fraction of a degree, no two the
+      same, and no two cut to the same edge angle.
+   3. Negative margins pull the panels into each other so their
+      keylines butt and overlap the way inked panels do. The
+      tilt needs that overlap — square gaps between rotated
+      boxes read as a broken grid rather than a spread.
+   ═══════════════════════════════════════════════════════ */
+
+.view--home{
+  position:relative;
+  width:var(--shell);margin-inline:auto;padding-bottom:3rem;
+}
+/* One speed-line burst behind the whole spread, thrown from behind the
+   hero. The page's single authored flourish — everything else on the
+   dashboard is halftone, which is texture rather than event. */
+.view--home::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:-5% 0 auto;height:80%;
+  background:repeating-conic-gradient(from -18deg at 26% 34%,
+    rgba(255,255,255,.075) 0 1.6deg, transparent 1.6deg 7deg);
+  -webkit-mask-image:radial-gradient(46% 52% at 26% 34%, transparent 8%, #000 44%, transparent 82%);
+  mask-image:radial-gradient(46% 52% at 26% 34%, transparent 8%, #000 44%, transparent 82%);
+}
 
 .dash{
   display:grid;gap:var(--gap);
   grid-template-columns:minmax(0,1fr);
 }
 
+/* Single column: the tilt alternates and the panels still bite into
+   each other, so a phone gets the spread rather than a stack of cards. */
+.dash__hot   {rotate:-.85deg;z-index:2;--cut:var(--cut-rise)}
+.dash__start {rotate:1.45deg;z-index:3;--cut:var(--cut-nick)}
+.dash__drafts{rotate:-1.1deg;z-index:2;--cut:var(--cut-fall)}
+.dash__status{rotate:1.70deg;z-index:3;--cut:var(--cut-rise)}
+.dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
+.dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
+
+/* ── the inked panel ────────────────────────────────────────
+   The white keyline is not a border: a border would be clipped
+   square at the cut corners. The panel's own background IS the
+   keyline, padding holds it open, and ::before paints the
+   interior inset by exactly that much, clipped to the same
+   shape. ::after lays the channel's halftone over the interior.
+   Both sit at z-index 0; content is lifted to 1.
+   ───────────────────────────────────────────────────────── */
+
 .pane{
   position:relative;
   display:flex;flex-direction:column;
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
-  background:var(--navy-lift);
-  box-shadow:0 7px 0 var(--ch-dp), 0 18px 34px rgba(0,0,0,.5);
-  padding:1.55rem .95rem 1rem;
+  clip-path:var(--cut);
+  background:#fff;
+  padding:calc(1.55rem + var(--keyline)) calc(.95rem + var(--keyline)) calc(1rem + var(--keyline));
   min-height:0;
 }
+.pane::before{
+  content:"";position:absolute;inset:var(--keyline);z-index:0;
+  clip-path:var(--cut);
+  background:var(--navy-lift);
+}
+.pane::after{
+  content:"";position:absolute;inset:var(--keyline);z-index:0;
+  clip-path:var(--cut);
+  pointer-events:none;
+  --ht-c:var(--ch,var(--cyan));
+  --ht-s:9px;
+  --ht-r:27%;
+  background:var(--ht);
+  opacity:.3;
+  -webkit-mask-image:linear-gradient(202deg, #000 0%, transparent 72%);
+  mask-image:linear-gradient(202deg, #000 0%, transparent 72%);
+}
+.pane>*{position:relative;z-index:1}
 
-/* ── channel tile: the atom the hero and quick tiles ride on ─ */
+/* ── channel tile: the atom the hero and quick tiles ride on ─
+   Same construction as .pane — the outer element is the white
+   keyline and the clip, .ch__in is the interior. A tile has two
+   stacked children with different fills, so the interior has to
+   be a real element rather than a pseudo: it is what carries the
+   cut through to the inside edge of the keyline.
+   ───────────────────────────────────────────────────────── */
 
 .ch{
   --plate:var(--ch-dp);
   position:relative;display:flex;flex-direction:column;
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
-  background:var(--ch);
+  clip-path:var(--cut);
+  background:#fff;
+  padding:var(--keyline);
   text-decoration:none;color:var(--ch-ink);
-  overflow:hidden;isolation:isolate;
-  box-shadow:0 7px 0 var(--ch-dp), 0 16px 30px rgba(0,0,0,.5);
-  transition:transform .22s var(--ease), box-shadow .22s var(--ease);
+  isolation:isolate;
+  transition:transform .22s var(--ease);
 }
-.ch:hover,.ch:focus-visible{
-  transform:translateY(-5px);
-  box-shadow:0 12px 0 var(--ch-dp), 0 26px 44px rgba(0,0,0,.55);
+.ch__in{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  clip-path:var(--cut);
+  background:var(--ch);
+  overflow:hidden;
 }
-.ch:active{
-  transform:translateY(4px);
-  box-shadow:0 3px 0 var(--ch-dp), 0 8px 16px rgba(0,0,0,.5);
-  transition-duration:.06s;
-}
+.ch:hover,.ch:focus-visible{transform:translateY(-7px)}
+.ch:active{transform:translateY(4px);transition-duration:.06s}
+/* A clip-path clips the focus outline away with everything else, so the
+   keyline IS the focus ring: the white cut-line goes gold. It traces the
+   panel's real shape, which a rectangular outline never did. The mini tiles
+   are not clipped and keep a border, so theirs recolours instead. */
+.ch:focus-visible{outline:none;background:var(--gold)}
+.ch--mini:focus-visible{background:var(--ch);border-color:var(--gold)}
 
 .ch__screen{
   position:relative;flex:1;min-height:0;
@@ -407,7 +590,19 @@ html[data-drawer="open"] .scrim{
 }
 .ch__screen img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
 .ch__screen--glyph{color:var(--ch-ink);opacity:.9;padding:1.4rem}
-.ch__screen--glyph svg{width:clamp(46px,6vw,68px);height:auto}
+.ch__screen--glyph svg{width:clamp(46px,6vw,68px);height:auto;position:relative}
+/* dots behind the glyph, in the plate tone, so an iconless tile still
+   has a printed surface under it rather than a flat fill */
+.ch__screen--glyph::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--ch-dp);
+  --ht-s:9px;
+  --ht-r:28%;
+  background:var(--ht);
+  opacity:.42;
+  -webkit-mask-image:linear-gradient(165deg, #000, transparent 78%);
+  mask-image:linear-gradient(165deg, #000, transparent 78%);
+}
 
 /* the sweep across a lit screen */
 .ch__scan{
@@ -420,9 +615,9 @@ html[data-drawer="open"] .scrim{
 
 .ch__plate{
   display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;
-  padding:.7rem 1rem .75rem;
+  padding:.72rem 1rem .78rem;
   background:var(--plate);color:#fff;
-  border-top:3px solid #fff;
+  border-top:var(--keyline) solid #fff;
 }
 .ch__name{
   font-size:clamp(1rem,1.6vw,1.375rem);
@@ -434,11 +629,11 @@ html[data-drawer="open"] .scrim{
 
 .hero{
   --plate:var(--magenta-dp);
-  flex-direction:row;
-  min-height:clamp(268px,38vw,392px);
+  min-height:clamp(300px,42vw,440px);
 }
+.hero .ch__in{flex-direction:row;gap:var(--keyline);background:#fff}
 .hero__screen{
-  position:relative;flex:1 1 52%;min-width:0;
+  position:relative;flex:1 1 50%;min-width:0;
   background:#fff;overflow:hidden;
 }
 /* out of flow: the page is 2:3, and left in flow its own ratio would
@@ -449,26 +644,42 @@ html[data-drawer="open"] .scrim{
 }
 
 .hero__body{
-  flex:1 1 48%;min-width:0;
+  position:relative;
+  flex:1 1 50%;min-width:0;
   display:flex;flex-direction:column;justify-content:center;
   gap:.7rem;
-  padding:clamp(1rem,2.4vw,1.7rem);
+  padding:clamp(1.1rem,2.6vw,1.9rem);
   background:var(--magenta);
-  border-left:var(--keyline) solid #fff;
 }
+/* The loudest halftone on the site: 12px dots in the deep tone, thrown
+   from the bottom-left corner of the magenta field. This is the panel
+   that has to stop a scroll, so it gets the coarse screen. */
+.hero__body::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--magenta-dp);
+  --ht-s:14px;
+  --ht-r:32%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
+  mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
+}
+.hero__body>*{position:relative;z-index:1}
 .hero__kicker{
-  font-size:.625rem;letter-spacing:.12em;
+  font-size:.6875rem;letter-spacing:.14em;
   text-transform:uppercase;line-height:1;
   align-self:flex-start;
-  padding:.35rem .6rem;border-radius:999px;
+  padding:.42rem .7rem .46rem;
   background:var(--magenta-dp);color:#fff;
-  border:2px solid rgba(255,255,255,.55);
+  clip-path:polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  rotate:-1.6deg;
 }
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
-   at 24px for a 400-weight face. The floor of this clamp is exactly that. */
+   at 24px for a 400-weight face. The floor of this clamp is well above it. */
 .hero__title{
   margin:0;font-weight:700;
-  font-size:clamp(1.5rem,3.1vw,2.15rem);line-height:1.06;
+  font-size:clamp(1.75rem,4.4vw,3.15rem);line-height:.96;
+  letter-spacing:-.02em;
+  text-wrap:balance;
   color:#fff;
 }
 /* the subtitle is small, so it moves off the bright face onto a deep-tone
@@ -476,11 +687,11 @@ html[data-drawer="open"] .scrim{
 .hero__sub{
   margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
   color:#fff;
-  padding:.5rem .75rem;border-radius:10px;
+  padding:.55rem .8rem;
   background:var(--magenta-dp);
-  border:2px solid rgba(255,255,255,.4);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
-.hero .btn{align-self:flex-start;margin-top:.25rem}
+.hero .btn{align-self:flex-start;margin-top:.3rem}
 
 /* ── START HERE: the ranking slot, without the metrics ──── */
 
@@ -491,7 +702,7 @@ html[data-drawer="open"] .scrim{
 .rank__row{
   display:flex;align-items:center;gap:.65rem;
   padding:.35rem .45rem;
-  border-radius:10px;
+  border-radius:4px;
   text-decoration:none;color:inherit;
   border:2px solid transparent;
   transition:background-color .16s, border-color .16s, transform .16s var(--ease);
@@ -505,7 +716,7 @@ html[data-drawer="open"] .scrim{
 }
 .rank__thumb{
   flex:0 0 auto;width:38px;height:57px;object-fit:cover;
-  border:2px solid #fff;border-radius:6px;background:#fff;
+  border:2px solid #fff;border-radius:3px;background:#fff;
 }
 .rank__label{
   flex:1;min-width:0;
@@ -534,45 +745,60 @@ html[data-drawer="open"] .scrim{
 /* ── THE DRAFTS: the chapter-card row ───────────────────── */
 
 .cardrow{
-  gap:.6rem;padding:.15rem .15rem .5rem;
+  gap:.75rem;padding:.5rem .15rem .75rem;
   scroll-snap-type:x mandatory;
 }
+/* The drafts are the one place the site shows the pages as objects, so they
+   are pinned down rather than aligned: every card sits at its own angle,
+   the way a page of thumbnails gets taped to a wall. Four-step cycle, so
+   the rhythm never resolves into a pattern the eye can lock onto. */
 .card{
   position:relative;flex:0 0 auto;
-  width:clamp(112px,15vw,144px);
+  width:clamp(116px,15vw,150px);
   scroll-snap-align:start;
   text-decoration:none;color:inherit;
-  border:3px solid #fff;border-radius:var(--r-sm);
+  border:var(--keyline) solid #fff;border-radius:var(--r-sm);
   overflow:hidden;background:var(--navy);
-  box-shadow:0 5px 0 var(--cyan-dp), 0 12px 22px rgba(0,0,0,.45);
+  box-shadow:0 6px 0 var(--cyan-dp), 0 12px 22px rgba(0,0,0,.45);
   transition:transform .18s var(--ease);
 }
-.card:hover,.card:focus-visible{transform:translateY(-5px)}
+.card:nth-child(4n+1){rotate:-1.6deg}
+.card:nth-child(4n+2){rotate:1.1deg;margin-top:.3rem}
+.card:nth-child(4n+3){rotate:-.5deg;margin-top:-.25rem}
+.card:nth-child(4n)  {rotate:1.9deg}
+.card:hover,.card:focus-visible{transform:translateY(-7px);z-index:2}
 .card img{width:100%;aspect-ratio:2/3;object-fit:cover;background:#fff}
 .card__foot{
   display:flex;align-items:baseline;gap:.35rem;
-  padding:.4rem .55rem .45rem;
+  padding:.42rem .55rem .48rem;
   background:var(--cyan-dp);
-  border-top:2px solid #fff;
+  border-top:3px solid #fff;
 }
 .card__n{
-  font-size:.75rem;line-height:1;
+  font-size:.8125rem;line-height:1;
   font-variant-numeric:tabular-nums;
 }
 .card__stage{font-size:.625rem;font-weight:700;color:rgba(255,255,255,.78);text-transform:capitalize}
 
-/* the "NEW" corner flag, rewritten as what is actually true */
+/* The corner flag, rewritten as what is actually true. Cut to a pennant
+   rather than a pill — a pill is UI, and this is a sticker slapped on the
+   panel. Struck through the keyline at the corner so it reads as applied
+   after the fact, not printed with it. */
 .badge,.ch__badge{
-  position:absolute;top:.5rem;left:.5rem;z-index:3;
-  font-size:.5625rem;letter-spacing:.08em;
+  position:absolute;top:.55rem;left:.55rem;z-index:4;
+  font-size:.625rem;letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.28rem .5rem;border-radius:999px;
-  background:var(--gold);color:var(--navy);
-  border:3px solid #fff;
-  box-shadow:0 3px 0 var(--gold-dp);
+  padding:.34rem .82rem .38rem .58rem;
+  background:#fff;color:var(--navy);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%);
   rotate:-7deg;
 }
-.ch__badge{top:.7rem;right:.7rem;left:auto;font-size:.625rem;padding:.35rem .6rem}
+.badge::before,.ch__badge::before{
+  content:"";position:absolute;inset:3px;z-index:-1;
+  background:var(--gold);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%);
+}
+.ch__badge{top:.85rem;right:.85rem;left:auto;font-size:.6875rem;padding:.4rem .95rem .44rem .66rem}
 
 /* ── BUILD STATUS: the mission slot, told straight ──────── */
 
@@ -580,13 +806,13 @@ html[data-drawer="open"] .scrim{
 .status li{
   display:flex;align-items:center;gap:.6rem;
   padding:.42rem .5rem;
-  border-radius:10px;
+  border-radius:4px;
   border:2px solid transparent;
 }
 .status li:hover{background:rgba(28,66,108,.42)}
 .status__mark{
   flex:0 0 auto;width:22px;height:22px;
-  display:grid;place-items:center;border-radius:6px;
+  display:grid;place-items:center;border-radius:3px;
   border:2px solid currentColor;
 }
 .status__mark svg{width:12px;height:12px}
@@ -609,42 +835,89 @@ html[data-drawer="open"] .scrim{
 
 /* ── QUICK ACCESS ───────────────────────────────────────── */
 
-.quick{flex-direction:row;align-items:stretch;gap:.7rem;padding-block:1.55rem 1rem}
-.quick__rail{flex:1;min-width:0;gap:.6rem;padding:.15rem .15rem .45rem;scroll-snap-type:x mandatory}
+.quick{
+  flex-direction:row;align-items:stretch;gap:.85rem;
+  padding-block:calc(1.55rem + var(--keyline)) calc(1rem + var(--keyline));
+}
+.quick__rail{flex:1;min-width:0;gap:.75rem;padding:.4rem .15rem .7rem;scroll-snap-type:x mandatory}
 .quick .nav{align-self:center}
 
+/* The mini tiles stay square-cornered and keep a real box-shadow plinth.
+   They are the only framed thing on the page small enough that a corner
+   cut would eat the glyph, and without a clip they need no wrapper trick.
+   Their variation is the tilt instead. */
 .ch--mini{
-  flex:0 0 auto;width:clamp(104px,13vw,132px);
+  flex:1 0 clamp(112px,13vw,150px);
   scroll-snap-align:start;
-  box-shadow:0 5px 0 var(--ch-dp), 0 12px 22px rgba(0,0,0,.45);
+  clip-path:none;padding:0;
+  border:var(--keyline) solid #fff;border-radius:3px;
+  background:var(--ch);
+  box-shadow:0 6px 0 var(--ch-dp), 0 12px 22px rgba(0,0,0,.45);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease);
 }
-.ch--mini .ch__screen{min-height:64px;padding:.7rem}
-.ch--mini .ch__screen--glyph svg{width:34px}
-.ch--mini .ch__plate{padding:.42rem .6rem .48rem;flex-direction:column;gap:.1rem;align-items:flex-start}
+.ch--mini .ch__in{clip-path:none}
+.ch--mini:nth-child(odd) {rotate:-1.5deg}
+.ch--mini:nth-child(even){rotate:1.5deg;margin-top:.35rem}
+.ch--mini:hover,.ch--mini:focus-visible{
+  transform:translateY(-6px);
+  box-shadow:0 12px 0 var(--ch-dp), 0 20px 30px rgba(0,0,0,.5);
+}
+.ch--mini:active{
+  transform:translateY(4px);
+  box-shadow:0 2px 0 var(--ch-dp), 0 6px 12px rgba(0,0,0,.45);
+}
+.ch--mini .ch__screen{min-height:clamp(70px,7vw,104px);padding:.75rem}
+.ch--mini .ch__screen--glyph svg{width:36px}
+.ch--mini .ch__plate{padding:.45rem .6rem .5rem;flex-direction:column;gap:.1rem;align-items:flex-start}
 .ch--mini .ch__name{font-size:.75rem}
 .ch--mini .ch__sub{font-size:.625rem}
 
 /* ── panels ─────────────────────────────────────────────── */
 
+/* An inner view is one panel, so it takes the single boldest cut on the
+   site — the whole page tilts a hair and both leading corners come off.
+   Same construction as the dashboard's tiles: .panel is the keyline and
+   the clip, .panel__in is the interior. */
 .view--panel{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
+.view--panel>.slab{--cut:var(--cut-nick);rotate:-.4deg}
 
 .panel{
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
+  position:relative;
+  clip-path:var(--cut);
+  background:#fff;
+  padding:var(--keyline);
+  display:flex;flex-direction:column;
+}
+.panel__in{
+  flex:1;min-height:0;
+  clip-path:var(--cut);
   background:var(--navy-lift);
-  box-shadow:0 7px 0 var(--ch-dp,var(--navy-line)), 0 20px 40px rgba(0,0,0,.5);
   overflow:hidden;
 }
 
 .panel__bar{
+  position:relative;
   display:flex;align-items:center;gap:1rem;
-  padding:.7rem .9rem;
-  background:var(--ch);border-bottom:3px solid #fff;
+  padding:.8rem .95rem;
+  background:var(--ch);border-bottom:var(--keyline) solid #fff;
   color:var(--ch-ink);
 }
+/* the header band gets the deep tone screened over it, decaying to the
+   right so the title sits on the densest part of the field */
+.panel__bar::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--ch-dp);
+  --ht-s:9px;
+  --ht-r:28%;
+  background:var(--ht);
+  opacity:.5;
+  -webkit-mask-image:linear-gradient(96deg, #000 4%, transparent 62%);
+  mask-image:linear-gradient(96deg, #000 4%, transparent 62%);
+}
+.panel__bar>*{position:relative;z-index:1}
 .panel__title{
   margin:0;font-weight:700;
-  font-size:clamp(1rem,2vw,1.375rem);line-height:1;
+  font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;letter-spacing:.01em;
   margin-inline-end:auto;
 }
 /* counter rides in a deep-tone chip: reads as HUD instrumentation, and
@@ -685,11 +958,23 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .speak.is-speaking{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 
 .notice{
-  margin:0;padding:.8rem 1rem;
-  background:rgba(252,176,64,.13);
-  border-bottom:2px solid rgba(252,176,64,.32);
+  position:relative;
+  margin:0;padding:.85rem 1.1rem;
+  background:rgba(252,176,64,.14);
+  border-bottom:3px solid rgba(252,176,64,.42);
   font-size:.875rem;line-height:1.5;color:#FFE2B4;
 }
+.notice::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--gold);
+  --ht-s:9px;
+  --ht-r:26%;
+  background:var(--ht);
+  opacity:.16;
+  -webkit-mask-image:linear-gradient(92deg, #000, transparent 46%);
+  mask-image:linear-gradient(92deg, #000, transparent 46%);
+}
+.notice>*{position:relative}
 .notice strong{color:var(--gold)}
 
 /* ── reader ─────────────────────────────────────────────── */
@@ -737,7 +1022,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .filmstrip button{
   flex:0 0 auto;padding:0;cursor:pointer;background:none;
-  border:3px solid var(--navy-line);border-radius:8px;
+  border:3px solid var(--navy-line);border-radius:3px;
   overflow:hidden;line-height:0;
   transition:border-color .16s,transform .16s var(--ease);
 }
@@ -806,7 +1091,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .wiki__card:hover{transform:translateY(-4px);border-color:#fff}
 .wiki__card img,.wiki__card-mark{
-  flex:0 0 auto;width:56px;height:56px;border-radius:8px;
+  flex:0 0 auto;width:56px;height:56px;border-radius:3px;
   object-fit:cover;background:var(--navy-lift);
   border:2px solid var(--navy-line);
 }
@@ -909,14 +1194,23 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
 /* ═══ RESPONSIVE ═════════════════════════════════════════ */
 
-/* the dashboard's two-column top zone arrives before the rail does */
+/* The spread. Twelve columns, but the two content rows do not split them
+   at the same place — 8/4 over 7/5 — so the vertical gutter steps a full
+   column between rows and never reads as a grid line. The negative margins
+   then close the tilt gaps and let the keylines overlap. */
 @media (min-width:860px){
-  .dash{grid-template-columns:minmax(0,1fr) minmax(268px,324px)}
-  .dash__hot   {grid-column:1;grid-row:1}
-  .dash__start {grid-column:2;grid-row:1}
-  .dash__drafts{grid-column:1;grid-row:2}
-  .dash__status{grid-column:2;grid-row:2}
-  .dash__quick {grid-column:1/-1;grid-row:3}
+  .dash{
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:calc(var(--gap) + .35rem);
+  }
+  .dash>.slab + .slab{margin-top:0}
+
+  .dash__hot   {grid-column:1/9;  grid-row:1}
+  .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
+  .dash__drafts{grid-column:1/8;  grid-row:2; margin-top:-1.15rem;margin-right:-.6rem}
+  .dash__status{grid-column:8/13; grid-row:2; margin-left:-.7rem;margin-top:-1.8rem}
+  .dash__quick {grid-column:1/13; grid-row:3; margin-top:-1rem}
+
   .crumb{display:flex}
 }
 
@@ -957,29 +1251,48 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .rail__item[aria-current="page"]::after{display:none}
   .rail__promo{display:none}
-  .dash{grid-template-columns:minmax(0,1fr) minmax(240px,290px)}
+  /* the narrow rail costs the spread a column: the split steps to 7/5
+     over 6/6 so the two rows still refuse to share a gutter */
+  .dash__hot   {grid-column:1/8}
+  .dash__start {grid-column:8/13}
+  .dash__drafts{grid-column:1/7}
+  .dash__status{grid-column:7/13}
 }
 
 @media (max-width:859px){
-  .hero{flex-direction:column;min-height:0}
+  .hero .ch__in{flex-direction:column}
+  .hero{min-height:0}
   .hero__screen{flex:0 0 clamp(180px,44vw,280px);width:100%}
-  .hero__body{border-left:0;border-top:var(--keyline) solid #fff}
 }
 
 @media (max-width:620px){
-  :root{--r:18px;--keyline:3px}
+  /* the cuts scale down with the keyline — a 20px nick on a 320px panel
+     is a bite, not a trim */
+  :root{
+    --keyline:4px;
+    --cut-nick: polygon(0 12px, 12px 0, 100% 0,
+                        100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    --cut-rise: polygon(0 9px, 100% 0, 100% calc(100% - 8px), 0 100%);
+    --cut-fall: polygon(0 0, 100% 9px, 100% 100%, 0 calc(100% - 8px));
+    --cut-band: polygon(0 7px, 16px 0, 100% 0,
+                        100% calc(100% - 7px), calc(100% - 16px) 100%, 0 100%);
+  }
 
   .sysbar{padding-top:.85rem;gap:.6rem}
   .readout{width:100%}
   .readout>div{flex:1;min-width:0}
 
-  .pane{padding:1.4rem .75rem .85rem}
-  .ribbon{left:1rem;font-size:.6875rem;padding:.36rem .8rem .42rem}
+  .pane{
+    padding:calc(1.4rem + var(--keyline)) calc(.75rem + var(--keyline)) calc(.85rem + var(--keyline));
+  }
+  .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
+  .ribbon--wide{font-size:.8125rem}
 
-  .hero__body{padding:1rem}
+  .hero__body{padding:1.1rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
-  .quick__rail{gap:.5rem}
+  .quick__rail{gap:.55rem}
+  .ch--mini{flex:0 0 clamp(112px,34vw,150px)}
 
   .reader{padding:.9rem;gap:.4rem}
   .page img{max-height:clamp(240px,calc(100dvh - 330px),640px)}

@@ -71,65 +71,66 @@ export function Reader({
 
   return (
     <section className="view view--panel">
-      <div
-        className="panel"
-        style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}
-      >
-        <div className="panel__bar">
-          <Link className="btn btn--back" href="/">Menu</Link>
-          <h1 className="panel__title">Read</h1>
-          <Speak text={description} label="Describe" />
-          <p className="panel__count">
-            <span>{idx + 1}</span><span className="sep">/</span><span>{pages.length}</span>
-          </p>
+      <div className="slab slab--bare" style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
+        <div className="panel">
+          <div className="panel__in">
+            <div className="panel__bar">
+              <Link className="btn btn--back" href="/">Menu</Link>
+              <h1 className="panel__title">Read</h1>
+              <Speak text={description} label="Describe" />
+              <p className="panel__count">
+                <span>{idx + 1}</span><span className="sep">/</span><span>{pages.length}</span>
+              </p>
+            </div>
+
+            <EditableText as="p" className="notice" path="about.reader.notice" value={notice} multiline />
+
+            <div className="reader">
+              <button
+                className="nav nav--prev" type="button" aria-label="Previous page"
+                disabled={idx === 0} onClick={() => go(idx - 1)}
+              >
+                <Chevron dir="left" />
+              </button>
+
+              <figure className="page">
+                {page ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={mediaURL(page.image)}
+                    alt={description}
+                    width={1080}
+                    height={1620}
+                  />
+                ) : null}
+                <figcaption className="page__tag">{page?.isDraft ? 'Draft' : 'Page'}</figcaption>
+              </figure>
+
+              <button
+                className="nav nav--next" type="button" aria-label="Next page"
+                disabled={idx >= pages.length - 1} onClick={() => go(idx + 1)}
+              >
+                <Chevron />
+              </button>
+            </div>
+
+            <nav className="filmstrip" ref={strip} aria-label="All pages">
+              {pages.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  data-i={i}
+                  aria-label={`Page ${i + 1}`}
+                  aria-current={i === idx ? 'true' : 'false'}
+                  onClick={() => go(i)}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaURL(p.thumb || p.image)} alt="" width={52} height={78} loading="lazy" />
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
-
-        <EditableText as="p" className="notice" path="about.reader.notice" value={notice} multiline />
-
-        <div className="reader">
-          <button
-            className="nav nav--prev" type="button" aria-label="Previous page"
-            disabled={idx === 0} onClick={() => go(idx - 1)}
-          >
-            <Chevron dir="left" />
-          </button>
-
-          <figure className="page">
-            {page ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={mediaURL(page.image)}
-                alt={description}
-                width={1080}
-                height={1620}
-              />
-            ) : null}
-            <figcaption className="page__tag">{page?.isDraft ? 'Draft' : 'Page'}</figcaption>
-          </figure>
-
-          <button
-            className="nav nav--next" type="button" aria-label="Next page"
-            disabled={idx >= pages.length - 1} onClick={() => go(idx + 1)}
-          >
-            <Chevron />
-          </button>
-        </div>
-
-        <nav className="filmstrip" ref={strip} aria-label="All pages">
-          {pages.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              data-i={i}
-              aria-label={`Page ${i + 1}`}
-              aria-current={i === idx ? 'true' : 'false'}
-              onClick={() => go(i)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={mediaURL(p.thumb || p.image)} alt="" width={52} height={78} loading="lazy" />
-            </button>
-          ))}
-        </nav>
       </div>
     </section>
   );
