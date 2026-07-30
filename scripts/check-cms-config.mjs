@@ -39,6 +39,17 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   writeProblems.push('SUPABASE_SERVICE_ROLE_KEY is not set');
 }
 
+/* Reading back is a third, separate configuration, and the quietest to get
+   wrong: with no anon key the save succeeds, says so, and the site keeps
+   rendering content/*.ts — a save that appears to do nothing. */
+const readProblems = [];
+if (!process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  readProblems.push('SUPABASE_URL is not set (NEXT_PUBLIC_SUPABASE_URL is the fallback)');
+}
+if (!process.env.SUPABASE_ANON_KEY) {
+  readProblems.push('SUPABASE_ANON_KEY is not set');
+}
+
 if (problems.length === 0) {
   console.log('✓ CMS secrets present — the editor will accept a sign-in');
 } else {
@@ -70,5 +81,20 @@ if (writeProblems.length === 0) {
   console.warn('  It must be the service_role key — an anon or sb_publishable_ key');
   console.warn('  is refused by row level security, since site_content has no write');
   console.warn('  policy. Never give it a NEXT_PUBLIC_ name.');
+  console.warn('');
+}
+
+if (readProblems.length === 0) {
+  console.log('✓ Supabase read credentials present — saved edits will render');
+} else {
+  console.warn('');
+  console.warn('⚠ SAVED EDITS WILL NOT RENDER — the site will build and serve from');
+  console.warn('  content/*.ts, and a save can succeed and still appear to do');
+  console.warn('  nothing, because the stored row is never read back.');
+  for (const p of readProblems) console.warn(`    · ${p}`);
+  console.warn('');
+  console.warn('  SUPABASE_ANON_KEY is the public read key, and is a DIFFERENT');
+  console.warn('  value from the service-role key. Both are needed: one saves,');
+  console.warn('  the other reads back.');
   console.warn('');
 }

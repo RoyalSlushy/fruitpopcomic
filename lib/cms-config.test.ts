@@ -2,7 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { problemsIn, writeProblemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
+import { problemsIn, writeProblemsIn, readProblemsIn, MIN_PASSWORD, MIN_SECRET } from './cms-config.ts';
 
 const PASSWORD = 'p'.repeat(MIN_PASSWORD);
 const SECRET = 'a'.repeat(MIN_SECRET);
@@ -128,6 +128,48 @@ describe('writeProblemsIn', () => {
   });
 });
 
+describe('readProblemsIn', () => {
+  test('a good configuration reports nothing', () => {
+    assert.deepEqual(
+      readProblemsIn({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_ANON_KEY: 'anon' }),
+      [],
+    );
+  });
+
+  /* The silent one: writing is fully configured, reading is not, so a save
+     succeeds and the site still renders content/*.ts. */
+  test('write credentials alone do not make an edit visible', () => {
+    assert.deepEqual(
+      readProblemsIn({
+        SUPABASE_URL: 'https://x.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+      }),
+      ['SUPABASE_ANON_KEY is not set'],
+    );
+  });
+
+  /* The state the deployment was actually in: a service-role key and no URL,
+     which stops reads and writes alike. */
+  test('a missing URL breaks reading as well as writing', () => {
+    const env = { SUPABASE_SERVICE_ROLE_KEY: 'service-role-key' };
+    assert.ok(readProblemsIn(env).some((s) => s.startsWith('SUPABASE_URL')));
+    assert.ok(writeProblemsIn(env).some((s) => s.startsWith('SUPABASE_URL')));
+    assert.deepEqual(writeProblemsIn(env), ['SUPABASE_URL is not set']);
+  });
+
+  test('the public URL satisfies the URL requirement', () => {
+    assert.deepEqual(
+      readProblemsIn({ NEXT_PUBLIC_SUPABASE_URL: 'https://x.supabase.co', SUPABASE_ANON_KEY: 'a' }),
+      [],
+    );
+  });
+
+  test('it never repeats the values it is complaining about', () => {
+    const joined = readProblemsIn({ SUPABASE_ANON_KEY: '', SUPABASE_URL: '' }).join(' ');
+    assert.ok(!joined.includes('supabase.co'));
+  });
+});
+
 /* The build-time warning is a standalone .mjs so it runs on any Node the
    deployment happens to use, without type stripping. That means it restates
    these two numbers, so they are pinned here rather than left to drift. */
@@ -152,6 +194,10 @@ describe('the build-time check agrees with the runtime rule', () => {
     assert.ok(script.includes('SUPABASE_SERVICE_ROLE_KEY'));
     assert.ok(script.includes('SUPABASE_URL'));
     assert.ok(script.includes('NEXT_PUBLIC_SUPABASE_URL'));
+  });
+
+  test('it checks the read variables too', () => {
+    assert.ok(script.includes('SUPABASE_ANON_KEY'));
   });
 
   test('it warns rather than failing the build', () => {

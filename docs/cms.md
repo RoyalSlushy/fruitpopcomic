@@ -149,11 +149,23 @@ Named rather than glossed over:
 
 ## When Save fails
 
-Signing in and saving are configured **separately**. Signing in needs
-`CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET`; saving needs `SUPABASE_URL` and
-`SUPABASE_SERVICE_ROLE_KEY`. A deployment with only the first pair renders,
-signs in, and lets you edit — then fails at the moment you press Save, because
-the service-role key is the only credential that can write.
+Signing in, saving, and reading back are **three separate configurations**:
+
+| Step | Needs | Fails as |
+|---|---|---|
+| Sign in | `CMS_ADMIN_PASSWORD`, `CMS_SESSION_SECRET` | 503 at the sign-in box |
+| Save | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Save button errors |
+| Render the edit | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | **Save succeeds, page unchanged** |
+
+A deployment with only the first pair renders, signs in, and lets you edit —
+then fails at the moment you press Save, because the service-role key is the
+only credential that can write. Get that far and the third row is the next trap:
+`getSection()` falls back to code defaults on any read failure, so a save with
+no anon key reports success and changes nothing visible.
+
+`SUPABASE_URL` is easy to overlook because nothing else needs it — the site
+renders entirely from `content/*.ts`. A service-role key with no URL is the
+shape this actually failed in: a write credential and no address to send it to.
 
 The editor shows the server's own words:
 

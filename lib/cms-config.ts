@@ -43,6 +43,31 @@ export function problemsIn(env: Env): string[] {
  * Names and nothing else. The service-role key bypasses RLS, so no part of it —
  * length included — may travel back to a client.
  */
+/**
+ * Why a saved edit will not COME BACK, in words.
+ *
+ * The quietest failure of the three. readStoredSections() needs the URL and
+ * the anon key; getSection() falls back to code defaults on any failure. So a
+ * deployment with write credentials but no read credentials saves happily,
+ * reports success, and then renders content/*.ts anyway — indistinguishable
+ * from the save having done nothing at all.
+ */
+export function readProblemsIn(env: Env): string[] {
+  const out: string[] = [];
+
+  const url = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  if (typeof url !== 'string' || url.length === 0) {
+    out.push('SUPABASE_URL is not set');
+  }
+
+  const key = env.SUPABASE_ANON_KEY;
+  if (typeof key !== 'string' || key.length === 0) {
+    out.push('SUPABASE_ANON_KEY is not set');
+  }
+
+  return out;
+}
+
 export function writeProblemsIn(env: Env): string[] {
   const out: string[] = [];
 

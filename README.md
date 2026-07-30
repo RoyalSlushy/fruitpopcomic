@@ -79,7 +79,14 @@ saving:
 ```
 ✓ CMS secrets present — the editor will accept a sign-in
 ✓ Supabase write credentials present — the editor will be able to save
+✓ Supabase read credentials present — saved edits will render
 ```
+
+Three lines because they are three separate configurations and each fails
+differently: you cannot sign in, or you can sign in but Save fails, or Save
+succeeds and the page still shows the old text because the stored row is never
+read back. The last needs `SUPABASE_ANON_KEY`, which is a **different value**
+from the service-role key — one writes, the other reads.
 
 Either can be a warning instead, naming what is missing. It only ever warns —
 the build has to succeed without secrets so that forks and preview deployments
