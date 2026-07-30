@@ -19,9 +19,14 @@ export const TEMPLATES: Record<string, unknown> = {
 
   'home.quick.*': { id: '', label: 'New', sub: '', href: '/', glyph: 'info', hue: 'indigo' },
 
+  /* image blank on purpose: a page added here is a SCRIPT PAGE until a
+     drawing is uploaded onto it. */
   'pages.items.*': {
-    id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '', script: '',
+    id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '',
+    chapter: '', script: '',
   },
+
+  'pages.chapters.*': { id: '', title: 'New chapter', blurb: '' },
 
   'sheets.items.*': {
     id: '', kind: 'cast', image: '', figures: 1, description: '', name: '',
@@ -62,6 +67,9 @@ export const LABELS: Record<string, string> = {
   'home.quick.*.label': 'Tile name',
   'home.quick.*.sub': 'Tile subtitle',
 
+  'pages.chapters.*.title': 'Chapter title',
+  'pages.chapters.*.blurb': 'Chapter blurb',
+  'pages.items.*.chapter': 'Chapter id — must match one in the chapter list',
   'pages.items.*.stage': 'Pencil stage',
   'pages.items.*.alt': 'Alt text',
   'pages.items.*.script': 'Page script — one beat per line, "NAME: line" for dialogue',

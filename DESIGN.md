@@ -235,6 +235,23 @@ A single repeating-conic speed-line burst sits behind the spread, thrown from
 behind the hero and masked to an ellipse. It is the page's one authored flourish;
 everything else is halftone, which is texture rather than event.
 
+**The shelf.** `/read` opens the chapter list, not page one. "Start reading"
+and "go back to where I was" are different intentions and page one only ever
+served the first. The reader itself stays at `/read/[n]`, indexed into the flat
+running order, so no existing link moved.
+
+Chapters are a **view over that flat array**, not a second nested structure that
+could disagree with it. The array stays the single running order — it is what
+`/read/[n]` indexes, what reordering moves things within, and what the merge
+matches by id across an edit — and each page names its chapter. One rule falls
+out of that and is worth stating: a page whose chapter names one that does not
+exist still appears, under `Unsorted`. A reading surface that silently hides a
+page is worse than one that admits it does not know where the page goes.
+
+There is one chapter, and its title says what the pages actually are. The drafts
+carry timestamp filenames, no numbers and no grouping — the real chapter breaks
+are not known, and inventing them would be inventing the story's shape.
+
 **Reader.** The page is the product, so the page gets the room. The image fills
 its parent's height and gives that up rather than distort when the box is
 narrower than a 2:3 page, which is only ever a phone — there the reader wraps the
@@ -269,6 +286,40 @@ the panel, not about the viewport — the rail takes 238px off one and not the
 other — so it is a **container query** (`@container read (min-width: 900px)`)
 and not a media query.
 
+**The phone's reader.** Below 860px the reader stops being a panel on a page and
+becomes the whole screen. Same markup: the drawers **are** the timeline and the
+script column, repositioned as bottom sheets, so there is one filmstrip and one
+transcript rather than a desktop copy and a phone copy that drift apart. Only
+the dock and the scrim are phone-only, and both are `display:none` above 860px —
+the same rule the rail and the tab bar already follow, so exactly one set of
+reader controls is ever in the accessibility tree.
+
+| | Desktop | Phone |
+|---|---|---|
+| Page timeline | strip under the page, on hover | `Pages` drawer, a grid |
+| Script | column beside the page | `Script` drawer |
+| Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
+| Chrome | always | retracts on a tap on the page |
+
+One thing has to give for the drawers to work at all: `.slab` carries a
+`drop-shadow` filter, and **a filter makes an element the containing block for
+every fixed-position descendant**, which would pin the sheets inside the panel
+instead of to the viewport. The full-screen reader has nothing to cast a shadow
+onto, so the filter comes off there.
+
+Swipe is one gesture with three outcomes — a horizontal drag turns the page, a
+vertical one is left to the scroller (`touch-action: pan-y`), and a tap that went
+nowhere toggles the chrome. The axis is decided once, on the first 10px, so a
+turn cannot start halfway through a scroll, and the page resists rather than
+refuses at a chapter's edges: it still moves a little, which is what says there
+is nothing there. Two details make it work at all — `draggable={false}` and
+`-webkit-user-drag:none`, because Chromium starts a native image drag on
+pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+The page/cast/status readout is desktop furniture and is `display:none` on a
+phone: three numbers between the visitor and the comic, and the same counts are
+on the dashboard anyway.
+
 Shell is `min(1240px, 100% - 2.5rem)`, tightening to `min(1180px, 100% - 3rem)`
 once the rail appears. At ≤620px the radius and keyline step down to 18px/3px.
 
@@ -300,6 +351,13 @@ These are design decisions, not copy suggestions.
   mission list, this puts the five things that are and aren't done. It is the site's
   thesis rendered as instrumentation rather than an apology in a paragraph.
 - **The empty wiki ships empty**, with an empty state that says so.
+- **A page can exist before it is drawn.** A page with no image is a *script
+  page*: it holds its place in the running order and shows its script on a
+  paper-coloured sheet at the same 2:3 as every real page, so the shape of a
+  chapter can be laid out before the art exists. It is rendered as a page rather
+  than as a gap because that is what it is. A page added in the editor starts
+  as one, since the template ships a blank image — and a script page does not
+  also get the script column beside it, because it already is the script.
 - **The script column ships empty too, and that is the point.** Every page now
   carries a `script` field, one beat per line, rendered beside the artwork as
   attributed dialogue. It is blank on all ten pages and must stay blank until

@@ -65,6 +65,16 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M57 30v4" />
     </>
   ),
+  /* The page grid behind the reader's Pages drawer. */
+  grid: (
+    <>
+      <rect x="9" y="9" width="19" height="19" rx="3" />
+      <rect x="36" y="9" width="19" height="19" rx="3" />
+      <rect x="9" y="36" width="19" height="19" rx="3" />
+      <rect x="36" y="36" width="19" height="19" rx="3" />
+    </>
+  ),
+  close: <path d="M18 18 46 46M46 18 18 46" />,
   info: (
     <>
       <circle cx="32" cy="32" r="24" />
