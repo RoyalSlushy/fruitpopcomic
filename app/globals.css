@@ -659,14 +659,23 @@ html[data-drawer="open"] .scrim{
   display:flex;flex-direction:column;justify-content:center;
   gap:.7rem;
   padding:clamp(1.1rem,2.6vw,1.9rem);
-  background:var(--magenta);
+  /* Bright magenta at the top running into the DEEP peach, not the bright one
+     (`--peach-dp`, not `--peach`): white on the bright coral peach measures
+     2.23 — a hard fail even at the headline's large size — while the deep
+     tone measures 6.67, comfortably past AA. Reading warmer as it goes down
+     is the same move the halftone below already makes; this just does it
+     with the base fill too. */
+  background:linear-gradient(180deg, var(--magenta), var(--peach-dp));
 }
 /* The loudest halftone on the site: 12px dots in the deep tone, thrown
-   from the bottom-left corner of the magenta field. This is the panel
-   that has to stop a scroll, so it gets the coarse screen. */
+   from the bottom-left corner of the field. This is the panel that has to
+   stop a scroll, so it gets the coarse screen — and its dot colour follows
+   the fill down into peach, since that corner is where the gradient reads
+   peach now and a magenta dot there would be a mismatched hue rather than a
+   shade of the ground under it. */
 .hero__body::before{
   content:"";position:absolute;inset:0;
-  --ht-c:var(--magenta-dp);
+  --ht-c:var(--peach-dp);
   --ht-s:14px;
   --ht-r:32%;
   background:var(--ht);
@@ -2083,17 +2092,25 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      to land on: the hero fills the whole window under it.
 
      So the strip stays exactly what it was everywhere else, and
-     only here does it become a chip floating on top of the hero
+     only here does it becomes a chip laid over the hero artwork
      — which is the other half of what lets .dash__hot claim the
-     true 100dvh. `top`/`left` rather than an inset shorthand, so
+     true 100dvh. ABSOLUTE, not fixed: fixed pins it to the
+     viewport, so it would still be sitting in the corner after
+     the hero had scrolled out from under it — a mark on the
+     glass rather than a mark on the page. Absolute (against the
+     initial containing block, since nothing between here and
+     `<html>` is itself positioned) anchors it to the same
+     y-origin the hero panel starts at, so the two scroll away
+     together and the chip only ever reads as sitting ON the
+     artwork. `top`/`left` rather than an inset shorthand, so
      each axis carries its own safe-area term: a notch eats into
      one edge at a time, never both.
 
      Everything that could still be in this row at ≤859px
      (`.crumb`, the readout) is already `display:none` there, so
      the wordmark is the strip's only remaining content and the
-     fixed box shrinks to wrap exactly it — no width or margin
-     left to override.
+     box shrinks to wrap exactly it — no width or margin left to
+     override.
 
      Its own backing plate is new: floating over a hand-drawn
      page is floating over unpredictable ground, unlike the dark
@@ -2101,12 +2118,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      on this site — the burger, the tab bar, the DRAFTS badge —
      already carries one for exactly that reason. */
   .shell[data-section="home"] .sysbar{
-    position:fixed;z-index:63;
+    position:absolute;z-index:63;
     top:calc(.6rem + env(safe-area-inset-top));
     left:calc(.6rem + env(safe-area-inset-left));
     /* the base rule's own width and centring are what a strip needs and a
-       chip does not — without these two the fixed box keeps --shell's width
-       and stretches back out across the screen */
+       chip does not — without these two the box keeps --shell's width and
+       stretches back out across the screen */
     width:auto;margin:0;
     padding:.5rem .7rem;
     border:3px solid #fff;border-radius:var(--r-sm);

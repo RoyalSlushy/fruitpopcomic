@@ -93,6 +93,18 @@ any text is between the two measured values rather than outside them. The inner
 views' header band is the tightest case — navy on gold dotted with `--gold-dp`
 measures **5.46**, against 10.05 for the flat plate.
 
+**The hero body is the one gradient fill on the site**, magenta at the top
+running into peach at the bottom — and it is the DEEP peach, `--peach-dp`, not
+the bright one. White on the bright coral peach measures 2.23, a hard fail even
+at the headline's large size; the deep tone measures 6.67, comfortably past AA
+for text of any size. Reading warmer going down is the same move the halftone
+already made (deep tone screened over bright), just carried into the base fill
+too — and the dot colour follows it: `.hero__body::before`'s screen sits in the
+bottom-left corner, which is where the gradient reads peach, so its dots are
+`--peach-dp` now rather than `--magenta-dp`. A magenta dot in a peach field
+would have been a mismatched hue sitting on the ground rather than a shade of
+it.
+
 Measured on the components this build added:
 
 | Pair | Ratio |
@@ -277,17 +289,24 @@ it just lands on top of that bar. The dashboard is the one route with nothing
 at that y-range to land on — the hero fills the whole window under it — so it
 is the one route where the header can leave.
 
-There, at ≤859px, `.sysbar` becomes a fixed chip pinned `top`/`left` (each axis
-carrying its own `env(safe-area-inset-*)` term, since a notch eats into one
-edge at a time and never both), with the same solid backing every other
-floating control on the site already carries — the burger, the tab bar, the
-DRAFTS badge — because floating over a hand-drawn page is floating over
-unpredictable ground, unlike the dark ground the strip sat on in flow. It stays
-put through the whole scroll rather than riding off with the hero, the same way
-the burger stays reachable through its own window: a landmark, not part of the
-panel. The wordmark shrinks to fit the chip instead of the chip stretching to
-fit the strip-sized mark, and its drop-shadow filter goes with it — the plate
-already buys the legibility the shadow used to.
+There, at ≤859px, `.sysbar` becomes an absolutely positioned chip pinned
+`top`/`left` (each axis carrying its own `env(safe-area-inset-*)` term, since a
+notch eats into one edge at a time and never both), with the same solid backing
+every other floating control on the site already carries — the burger, the tab
+bar, the DRAFTS badge — because floating over a hand-drawn page is floating
+over unpredictable ground, unlike the dark ground the strip sat on in flow.
+
+**Absolute, not fixed.** Fixed would pin it to the *viewport*, so it would
+still be sitting in the corner after the hero scrolled out from under it — a
+mark on the glass rather than a mark on the page, and a second landmark
+competing with the burger's own fixed one. Absolute, against the initial
+containing block (nothing between `.sysbar` and `<html>` is itself
+positioned), anchors it to the same document y-origin the hero panel starts
+at, so the two scroll away together: the chip only ever reads as sitting ON
+the artwork, never as furniture bolted to the screen. The wordmark shrinks to
+fit the chip instead of the chip stretching to fit the strip-sized mark, and
+its drop-shadow filter goes with it — the plate already buys the legibility
+the shadow used to.
 
 **The picture is a 4:5 window and the caption box takes the remainder.** The
 other way round — the artwork growing into whatever the copy left — made its
