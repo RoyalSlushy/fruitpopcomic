@@ -4,7 +4,6 @@ import { EditableText } from '../components/cms/EditableText.tsx';
 import { EditableImage } from '../components/cms/EditableImage.tsx';
 import { Glyph } from '../components/site/Glyph.tsx';
 import { QuickRail } from '../components/site/QuickRail.tsx';
-import { Reel } from '../components/site/Reel.tsx';
 import { pad, mediaURL } from '../lib/media.ts';
 
 /* The dashboard. A server component: every editable value is passed to a leaf
@@ -48,14 +47,10 @@ export default async function HomePage() {
                 <span className="ch__scan" aria-hidden="true" />
               </span>
               <span className="hero__body">
+                <EditableText as="span" className="hero__kicker" path="home.hero.kicker" value={home.hero.kicker} />
                 <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
                 <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
                 <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
-                {/* The backdrop, in the caption box's own bottom section. Whole
-                    pages, uncropped, panning behind the copy that sends you to
-                    them — decorative only, and every one of them is a real card
-                    two panels down. */}
-                <Reel pages={pages.items.map((p) => mediaURL(p.thumb || p.image))} />
               </span>
             </span>
           </Link>

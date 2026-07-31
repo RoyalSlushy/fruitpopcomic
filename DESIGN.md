@@ -80,19 +80,12 @@ the section's colour instead of its own.
 | `--ink-soft` | `#9FB3D9` | 8.73 on ground, 7.05 on `--navy-lift`. Tinted from the ground's own hue — never grey |
 
 **The one measured constraint:** white on bright magenta is **4.00**. That is AA
-for large text only — from 24px at a 400-weight face, or 18.66px at 700. Three
+for large text only — from 24px at a 400-weight face, or 18.66px at 700. Two
 clamps are set by that number and nothing else: the hero headline floors at
-`1.75rem`, and `.panel__title` and the hero standfirst both floor at `1.1875rem`
-(19px, bold), just past the large-text threshold. Everything smaller moves onto a
-deep-tone chip — the page counter, the status chips and the rank chips are all
+`1.75rem`, and `.panel__title` floors at `1.1875rem` (19px, bold), just past the
+large-text threshold. Everything smaller moves onto a deep-tone chip — the page
+counter, the hero's subtitle readout, the status chips and the rank chips are all
 built that way.
-
-The hero's standfirst is the one that had to be argued twice. It used to sit on a
-deep-tone plate at 14px, measuring 7.37; that plate is now a 4px rule and an
-indent, which is a lighter thing to put under a headline but takes the 7.37 with
-it. So the type carries the ratio instead — 19px at 700 is past the large-text
-threshold, where 4.00 is a pass. A plate is not the only way to buy contrast on
-the bright face; it is just the way that does not cost type size.
 
 The halftone never makes a pair worse: every dot field is the deep tone screened
 over the bright one, or the bright tone over the dark ground, so the field under
@@ -111,7 +104,7 @@ Measured on the components this build added:
 | Card foot — white on `--cyan-dp` | 7.27 |
 | Status pending chip — `#FFE2B4` on tinted lift | 9.29 |
 | Status done chip — `#C7F4DA` on tinted lift | 9.16 |
-| Hero standfirst — white on `--magenta` at 19px/700 | 4.00 — AA at large text |
+| Hero subtitle readout — white on `--magenta-dp` | 7.37 |
 
 ## Typography
 
@@ -206,13 +199,8 @@ still in `globals.css` (`view-transition-name` on `.rail`/`.tabbar`, the
 `::view-transition-*` rules), so restoring it is a small change once a stable API
 lands.
 
-What remains: a single diagonal light sweep across the hero on hover, the tile
-press, and the backdrop's Ken Burns pan — five moves, assigned by which page is
-showing rather than by which cell is holding it, so no cell repeats a move every
-other slide and no two cells are on the same one at once.
-`prefers-reduced-motion` disables the sweep and stops the
-backdrop dead; see **Layout** for why stopping it beats letting the global reduce
-rule flatten it.
+What remains: a single diagonal light sweep across the hero on hover, and the tile
+press. `prefers-reduced-motion` disables the sweep.
 
 ## Layout
 
@@ -260,80 +248,6 @@ The strip's height is **measured**, not written down: it is a clamp on a `vw`
 wordmark that can wrap, so the shell puts its real height on `<html>` as
 `--sysbar-h` with a `ResizeObserver` and the CSS subtracts that. `globals.css`
 carries a fallback for the first paint.
-
-**The headline climbs out of the caption box.** On a phone the copy rides
-`--rise` above the box's top edge, so the headline breaks the line onto the
-artwork and everything under it keeps the rhythm it had. Nothing else on the
-panel does this: the device is only worth anything while it is the exception.
-
-It is done with a **translate, and that is not a preference.** The box is the
-flex item that gives its space to the picture — shorten it with a negative margin
-and `.hero__screen` simply grows into what it gave up, the edge follows the type
-down, and nothing ever crosses anything. A translate moves the paint and leaves
-the layout alone, and the bottom padding gives back exactly what the rise took so
-the box does not end up with a `--rise`-shaped hole under the backdrop.
-
-Only the headline clears the edge, and that is geometry rather than taste: it is
-first in the stack, and with the standfirst and the backdrop below it the button
-is in the middle of the box. No amount of rise puts a middle child over a top
-edge without dragging the headline clean off the panel.
-
-The edge it crosses is a **solid one** — the white keyline every plate on this
-site draws, plus a deep-tone line outside it that the others do not need. Theirs
-sit under a coloured channel field; this one sits under white paper, where a
-white keyline is not an edge at all.
-
-The headline itself is the panels' **plinth done in type** — two hard offsets in
-the deep tone rather than a blur, so the letters sit on the magenta field the way
-a tile sits on its plinth, with one soft shadow under them for the drop. The deep
-tone darkens every edge the glyph meets, so the depth is worth a little contrast
-rather than costing any. There is no eyebrow over it any more: an uppercase
-kicker above an uppercase headline was two tracked lines saying one thing, and
-the headline is the one that matters.
-
-**The headline is sized against its column, not the window.** That column is half
-a panel that is two-thirds of the shell, so `4.4vw` outgrew it between roughly
-1000 and 1400px and the frame took the last letter of `BEGINNING` off. It is
-`min(4.4vw, 15.5cqi)` now, with the hero body as the query container — the ratio
-at which this line exactly fills its measure is `16.1cqi` at every width, and the
-slack is there because the line is editable content. On a phone `4.4vw` is the
-smaller term, so none of this touches the climb above.
-
-**The backdrop** is the caption box's own bottom section: the pages themselves,
-whole and uncropped, drifting under the button that sends you to them. `Reel.tsx`
-for which page, `globals.css` for the move.
-
-It is a **row of cells rather than one picture**, and that follows from the frames
-being `contain`. A 2:3 page laid whole into a single short wide band is a sliver
-in a sea of backing — a flex share gave 48px of drawing in a 152px box. So a cell
-is the *shape of a page* instead of a share of the row, the pages fill their
-cells, and the surplus simply runs off both ends into the mask, which is what a
-contact sheet does anyway.
-
-The pages are pencil on white paper, and a row of white cells inside a magenta
-caption box would be the brightest thing in the hero — which a backdrop must not
-be. So they are not dimmed, they are **printed**: `mix-blend-mode: multiply` lays
-the channel's ink over the paper, the paper takes the ink, and the pencil stays
-the darkest thing in the frame. A flat scrim washed both to the same grey. The
-screen is deliberately light: the frames are `contain` precisely so a whole page
-is visible, and ink heavy enough to bury one would have wasted the letterboxing.
-
-Three things keep a decorative animation from being a tax on a phone. It runs on
-**thumbs** — at cell width 300px is more than enough, and the drafts shelf and
-the start-here rail have already fetched those exact URLs, so the band usually
-costs nothing at all. It **only ticks while it is on screen**. And
-`prefers-reduced-motion` **stops** it rather than speeding it up: the global
-reduce rule flattens animation durations, which would leave a Ken Burns pan
-snapping between end states, so the tick never starts and the band is one still
-contact sheet.
-
-Two details in the moves. Each runs longer than its slide is lit, starting while
-the layer is still dark and still running when it goes dark again, so a visitor
-only ever sees the middle of a move and never a start or a stop. And they are
-gentler than a Ken Burns over a cropped photograph, because `contain` means the
-page is exactly in view at `scale(1)` and every step past it is a step back into
-cropping — they stay close enough to 1 that a page is still a whole page while it
-moves.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its

@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 /* Bungee was caps-only and carried its weight in the drawing.
    Shuttleblock has to be told both. */
 .rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
-.ribbon,.ch__name,.hero__title,.rank__n,.rank__label,
+.ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
 .rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
 .btn,.empty h2,.prose h2,.prose h3{
   font-family:var(--face);
@@ -209,22 +209,22 @@ main:focus,section:focus{outline:none}
    corner the magenta wash already occupies. */
 .nebula::before{
   content:"";position:absolute;inset:0;
-  --ht-c:rgba(237,35,144,.9);
-  --ht-s:19px;
-  --ht-r:23%;
+  --ht-c:rgba(237,35,144,.78);
+  --ht-s:20px;
+  --ht-r:17%;
   background:var(--ht);
-  -webkit-mask-image:radial-gradient(84% 68% at 88% 0%, #000, transparent 78%);
-  mask-image:radial-gradient(84% 68% at 88% 0%, #000, transparent 78%);
+  -webkit-mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
+  mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
 }
 /* and a second, finer field rising off the bottom-left in cyan */
 .nebula::after{
   content:"";position:absolute;inset:0;
-  --ht-c:rgba(44,194,229,.72);
-  --ht-s:14px;
-  --ht-r:23%;
+  --ht-c:rgba(44,194,229,.6);
+  --ht-s:15px;
+  --ht-r:17%;
   background:var(--ht);
-  -webkit-mask-image:radial-gradient(76% 58% at 4% 100%, #000, transparent 76%);
-  mask-image:radial-gradient(76% 58% at 4% 100%, #000, transparent 76%);
+  -webkit-mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
+  mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
 }
 
 /* ── shared horizontal rails ────────────────────────────── */
@@ -527,103 +527,6 @@ html[data-drawer="open"] .scrim{
 .dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
 .dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
 
-/* ═══ THE BACKDROP ═══════════════════════════════════════
-   The hero's bottom section: the pages themselves, whole and
-   uncropped, drifting under the button that sends you to them.
-
-   A ROW of cells, not one picture, and that follows from the
-   frames being `contain`. A 2:3 page laid whole into a single
-   short wide band is a sliver in a sea of nothing; four of
-   them across is a contact sheet, and a contact sheet is what
-   the width of the caption box is good for.
-
-   Everything about which page is showing lives in Reel.tsx —
-   this is where the move lives, because a Ken Burns pan is a
-   transform over time and nothing else.
-   ═══════════════════════════════════════════════════════ */
-
-.reel{
-  position:relative;isolation:isolate;
-  display:flex;gap:var(--keyline);justify-content:center;
-  block-size:clamp(5rem,17vw,6.4rem);
-  margin-block-start:.15rem;
-  overflow:hidden;
-  /* the ends dissolve rather than stopping at an edge, so the band reads as
-     something behind the copy instead of one more box inside the box */
-  -webkit-mask-image:linear-gradient(to right,transparent,#000 7% 93%,transparent);
-  mask-image:linear-gradient(to right,transparent,#000 7% 93%,transparent);
-}
-/* A cell is the shape of a page, not a share of the row. `contain` means the
-   page is drawn to fit its cell, so a cell that is not page-shaped is a page
-   marooned in a field of backing — 48px of drawing in a 152px box was what a
-   flex share gave. Shaped, they fill, and the row simply runs off both ends
-   into the mask, which is what a contact sheet does anyway. */
-.reel__cell{
-  position:relative;
-  flex:0 0 auto;
-  block-size:100%;aspect-ratio:2/3;
-  overflow:hidden;
-}
-.reel__frame{
-  position:absolute;inset:0;
-  inline-size:100%;block-size:100%;
-  /* whole pages: nothing here is cropped to fit a band */
-  object-fit:contain;
-  /* the pencil is soft graphite on warm paper; a little more contrast is what
-     survives being printed over */
-  filter:contrast(1.14) saturate(.92);
-  opacity:0;
-  transition:opacity 1.4s linear;
-}
-.reel__frame[data-lit="on"]{opacity:1}
-/* Longer than the slide is lit, deliberately: the move starts while the layer
-   is still dark and is still running when it goes dark again, so the visitor
-   only ever sees the middle of it and never a start or a stop. */
-.reel__frame[data-kb]{animation-duration:13s;animation-timing-function:linear;animation-fill-mode:both}
-.reel__frame[data-kb="0"]{animation-name:kb-0}
-.reel__frame[data-kb="1"]{animation-name:kb-1}
-.reel__frame[data-kb="2"]{animation-name:kb-2}
-.reel__frame[data-kb="3"]{animation-name:kb-3}
-.reel__frame[data-kb="4"]{animation-name:kb-4}
-
-/* Gentler than a Ken Burns over a cropped photograph, and for a reason: these
-   frames are `contain`, so the page is exactly in view at 1 and every step of
-   scale past it is a step back into cropping. These stay close enough to 1
-   that the page is still a whole page while it moves. */
-/* in from the left, drifting up */
-@keyframes kb-0{from{transform:scale(1) translate(-2%,1.5%)}    to{transform:scale(1.12) translate(1.5%,-2%)}}
-/* and back out again */
-@keyframes kb-1{from{transform:scale(1.13) translate(1.5%,-1%)} to{transform:scale(1) translate(-1%,1.5%)}}
-/* straight climb */
-@keyframes kb-2{from{transform:scale(1.06) translate(0,3%)}     to{transform:scale(1.14) translate(0,-2.5%)}}
-/* across, right to left */
-@keyframes kb-3{from{transform:scale(1.1) translate(2.5%,.5%)}  to{transform:scale(1.02) translate(-2.5%,-.5%)}}
-/* the slow push, no pan */
-@keyframes kb-4{from{transform:scale(1)}                        to{transform:scale(1.14)}}
-
-/* The pages are pencil on white paper, and four white cells inside a magenta
-   caption box would be the brightest thing in the hero — which a backdrop must
-   not be. So they are not dimmed, they are PRINTED: multiply lays the channel's
-   ink over the paper, the paper takes the ink, and the pencil stays the darkest
-   thing in the frame. A flat scrim washed both to the same grey.
-
-   .reel carries a mask, so it is a stacking context and the blend cannot reach
-   past it to the magenta field behind. */
-.reel__screen{
-  position:absolute;inset:0;pointer-events:none;
-  mix-blend-mode:multiply;
-  /* Enough ink to sit under the copy, not so much that the pages stop being
-     pages — they are drawn `contain` precisely so a whole page is visible, and
-     a screen heavy enough to bury one would have wasted the letterboxing. */
-  opacity:.72;
-  --ht-c:var(--magenta-dp);
-  --ht-s:7px;
-  --ht-r:28%;
-  background:
-    var(--ht),
-    linear-gradient(172deg, var(--magenta), var(--magenta-dp));
-}
-
 /* ── the inked panel ────────────────────────────────────────
    The white keyline is not a border: a border would be clipped
    square at the cut corners. The panel's own background IS the
@@ -756,71 +659,52 @@ html[data-drawer="open"] .scrim{
 }
 
 .hero__body{
-  /* Named, because the phone layout re-uses it on children that leave it. */
-  --hero-pad:clamp(1.1rem,2.6vw,1.9rem);
-  /* so the headline can be sized against THIS column rather than the window;
-     see the min() in .hero__title */
-  container-type:inline-size;
   position:relative;
   flex:1 1 50%;min-width:0;
   display:flex;flex-direction:column;justify-content:center;
   gap:.7rem;
-  padding:var(--hero-pad);
+  padding:clamp(1.1rem,2.6vw,1.9rem);
   background:var(--magenta);
 }
-/* The loudest halftone on the site: coarse dots in the deep tone, thrown
-   from the bottom-left corner of the magenta field. This is the panel that
-   has to stop a scroll, so it gets the coarse screen — and the screen is
-   worth contrast as well as texture, since every dot of it is the deep tone
-   over the bright one and the field it leaves under white type is darker
-   than the flat magenta underneath. */
+/* The loudest halftone on the site: 12px dots in the deep tone, thrown
+   from the bottom-left corner of the magenta field. This is the panel
+   that has to stop a scroll, so it gets the coarse screen. */
 .hero__body::before{
   content:"";position:absolute;inset:0;
   --ht-c:var(--magenta-dp);
-  --ht-s:13px;
-  --ht-r:38%;
+  --ht-s:14px;
+  --ht-r:32%;
   background:var(--ht);
-  -webkit-mask-image:radial-gradient(124% 124% at 0% 112%, #000 14%, transparent 88%);
-  mask-image:radial-gradient(124% 124% at 0% 112%, #000 14%, transparent 88%);
+  -webkit-mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
+  mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
 }
 .hero__body>*{position:relative;z-index:1}
+.hero__kicker{
+  font-size:.6875rem;letter-spacing:.14em;
+  text-transform:uppercase;line-height:1;
+  align-self:flex-start;
+  padding:.42rem .7rem .46rem;
+  background:var(--magenta-dp);color:#fff;
+  clip-path:polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  rotate:-1.6deg;
+}
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
    at 24px for a 400-weight face. The floor of this clamp is well above it. */
-/* Sized against the window AND against the column it is actually set in,
-   whichever is smaller. On a desktop that column is half a panel that is
-   two-thirds of the shell, so 4.4vw outgrew it between about 1000 and 1400px
-   and .ch__in's overflow took the last letter of BEGINNING off. The ratio at
-   which this headline exactly fills its measure is 16.1cqi at every width;
-   15.5 is that with the slack to survive a slightly longer word, since the
-   line is editable content. The clamp floor still wins outright — it is the
-   contrast floor below, not a taste — and on a phone 4.4vw is the smaller
-   term anyway, so the break-out down there is untouched by any of this. */
 .hero__title{
   margin:0;font-weight:700;
-  font-size:clamp(1.75rem,min(4.4vw,15.5cqi),3.15rem);line-height:.96;
+  font-size:clamp(1.75rem,4.4vw,3.15rem);line-height:.96;
   letter-spacing:-.02em;
   text-wrap:balance;
   color:#fff;
-  /* The panels' plinth, done in type. Two hard offsets in the deep tone
-     rather than a blur — the letters sit ON the magenta field the way a tile
-     sits on its plinth — and one soft shadow under them for the drop. The
-     deep tone also darkens every edge the glyph meets, so the depth is worth
-     a little contrast rather than costing any. */
-  text-shadow:
-    2px 2px 0 var(--magenta-dp),
-    4px 5px 0 var(--magenta-dp),
-    6px 9px 14px rgba(10,4,20,.4);
 }
-/* No plate. The standfirst is an indent off a rule instead — but the plate was
-   never decoration: it was how 14px white cleared 4.00 on the bright face. Off
-   it, the type itself has to clear the large-text threshold, so this floors at
-   19px/700 exactly the way .panel__title does. */
+/* the subtitle is small, so it moves off the bright face onto a deep-tone
+   readout — the same rule the page counter follows. 4.00 → 7.37. */
 .hero__sub{
-  margin:0;
-  font-size:clamp(1.1875rem,3.1vw,1.375rem);line-height:1.32;font-weight:700;
+  margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
   color:#fff;
-  padding:.1rem 0 .15rem .8rem;
-  border-inline-start:4px solid #fff;
+  padding:.55rem .8rem;
+  background:var(--magenta-dp);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
 .hero .btn{align-self:flex-start;margin-top:.3rem}
 
@@ -2171,42 +2055,8 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   /* The picture takes whatever the copy leaves, rather than a fixed band of
      it: the panel is now as tall as the window, and the artwork is the thing
      that should grow into the difference. */
+  .hero__body{flex:0 0 auto}
   .hero__screen{flex:1 1 auto;width:100%;min-block-size:clamp(180px,44vw,280px)}
-
-  /* ── the caption box, and the headline that leaves it ─────
-     A solid field with a hard white edge along the top, which
-     is the same keyline every plate on this site draws. The
-     copy rides --rise above that edge, so the headline breaks
-     the line onto the artwork and everything under it keeps
-     the rhythm it had.
-
-     By TRANSLATE, not by margin, and that is not a preference.
-     The box is the flex item that gives its space to the
-     picture: shorten it with a negative margin and .hero__screen
-     just grows into what it gave up, the edge follows the type
-     down, and nothing ever crosses anything. A translate moves
-     the paint and leaves the layout alone — and the bottom
-     padding gives back exactly what the rise took, so the box
-     does not end up with a --rise-shaped hole under the reel.
-
-     Only the headline clears the edge. It is first in the
-     stack, and with the standfirst and the backdrop under it
-     the button is in the middle of the box now — no amount of
-     rise puts a middle child over a top edge without dragging
-     the headline off the panel entirely.
-     ─────────────────────────────────────────────────────── */
-  .hero__body{
-    flex:0 0 auto;
-    --rise:.95rem;
-    padding-block:0 calc(var(--hero-pad) - var(--rise));
-    /* The keyline every plate on this site draws — plus a deep-tone line
-       outside it, which the others do not need. Theirs sit under a coloured
-       channel field; this one sits under white paper, and a white keyline on
-       white paper is not an edge at all. */
-    border-block-start:var(--keyline) solid #fff;
-    box-shadow:0 calc(var(--keyline) * -.7) 0 var(--magenta-dp);
-  }
-  .hero__body>*{translate:0 calc(var(--rise) * -1)}
 
   /* The bar rides in on the first scroll, so the hero above is the whole of
      the first screen. Dashboard only: it is the one route guaranteed to be
@@ -2414,7 +2264,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
   .ribbon--wide{font-size:.8125rem}
 
-  .hero__body{--hero-pad:1.1rem}
+  .hero__body{padding:1.1rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
   .quick__rail{gap:.55rem}
