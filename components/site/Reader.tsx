@@ -7,6 +7,7 @@ import { Speak } from './Speak.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
+import { ListDrag } from '../cms/ListDrag.tsx';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
 import { scriptLines } from '../../lib/script.ts';
@@ -401,6 +402,10 @@ export function Reader({
                       <li className="filmstrip__add">
                         <ListAdd listPath="pages.items" length={pages.length} />
                       </li>
+                      {/* Adds press-and-hold reordering to the list above it.
+                          Renders nothing for a visitor, and the list needs to
+                          know nothing about it. */}
+                      <ListDrag listPath="pages.items" />
                     </ul>
                   </nav>
                 </div>

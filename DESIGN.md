@@ -368,6 +368,44 @@ These are design decisions, not copy suggestions.
   mission list, this puts the five things that are and aren't done. It is the site's
   thesis rendered as instrumentation rather than an apology in a paragraph.
 - **The empty wiki ships empty**, with an empty state that says so.
+- **Pages are reordered by dragging them.** Press and hold a page in the
+  filmstrip, drag it between two others, let go. It is editor-only, and the
+  drag code is in the async admin chunk with the rest of the CMS — a visitor's
+  markup gains nothing, not even an attribute.
+
+  Four things had to be true for it to feel like picking something up, and each
+  one is a bug that was there first:
+
+  - **Hold, not grab.** A tap on a thumbnail already means "go to that page",
+    so the lift waits 320ms and any real movement before then cancels it —
+    that is a scroll, not a lift.
+  - **Capture on the list.** Once lifted the pointer is captured by the list,
+    so the thumbnail's own handlers stop firing. Without it, letting go over a
+    different page would also navigate to it.
+  - **Scrolling gives way.** `touch-action:none` on the thumbnail is not
+    enough: the gesture still belongs to whichever ancestor scrolls, and the
+    moment the drag moved, that ancestor claimed it and the browser answered
+    with `pointercancel`. Every scroll container above the list gives its
+    `touch-action` up for the duration and gets it back on drop.
+  - **No click afterwards.** A drag ends in a pointerup and the browser follows
+    that with a click. Swallowed once, or every drop would navigate.
+
+  The drop target is the **gap**, not the item, so the indicator is drawn on
+  the near edge of the page you are next to rather than around it — an outline
+  around a page reads as "replace this one". The arithmetic is in
+  `lib/reorder.ts`, separated out and tested because dragging thinks in gaps
+  while `moveItem` thinks in indices, and the item is spliced out before it is
+  put back.
+
+  **Dragging is never the only way.** The ↑ ↓ buttons stay exactly where they
+  were; a drag has no keyboard equivalent, and inventing one out of the arrow
+  keys would collide with the reader's own paging.
+
+  One thing this exposed rather than caused: the editor's save bar is fixed to
+  the bottom centre of the viewport, which is where the reader keeps its page
+  strip. Those thumbnails could not be clicked at all. The bar now folds down
+  to a pill, and the shell reserves room below the page so the strip can be
+  scrolled clear of it.
 - **A page can exist before it is drawn.** A page with no image is a *script
   page*: it holds its place in the running order and shows its script on a
   paper-coloured sheet at the same 2:3 as every real page, so the shape of a
