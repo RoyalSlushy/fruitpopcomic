@@ -82,6 +82,38 @@ export default async function HomePage() {
           </div>
         </div>
 
+        {/* QUICK ACCESS */}
+        <div className="slab dash__quick" style={{ '--ch': 'var(--indigo)', '--ch-dp': 'var(--indigo-dp)' } as React.CSSProperties}>
+          <EditableText as="span" className="ribbon" path="home.ribbons.quick" value={home.ribbons.quick} />
+          <div className="pane quick">
+            <h2 className="sr-only">Jump to a section</h2>
+            <QuickRail>
+              {home.quick.map((t, i) => (
+                <Link
+                  key={t.id}
+                  className="ch ch--mini"
+                  href={t.href}
+                  style={{
+                    '--ch': `var(--${t.hue})`,
+                    '--ch-dp': `var(--${t.hue}-dp)`,
+                    '--ch-ink': t.hue === 'indigo' ? '#fff' : 'var(--navy)',
+                  } as React.CSSProperties}
+                >
+                  <span className="ch__in">
+                    <span className="ch__screen ch__screen--glyph" aria-hidden="true">
+                      <Glyph name={t.glyph} width={4.5} />
+                    </span>
+                    <span className="ch__plate">
+                      <EditableText as="span" className="ch__name" path={`home.quick.${i}.label`} value={t.label} />
+                      <EditableText as="span" className="ch__sub" path={`home.quick.${i}.sub`} value={t.sub} />
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </QuickRail>
+          </div>
+        </div>
+
         {/* THE DRAFTS */}
         <div className="slab dash__drafts" style={{ '--ch': 'var(--cyan)', '--ch-dp': 'var(--cyan-dp)' } as React.CSSProperties}>
           <EditableText as="span" className="ribbon" path="home.ribbons.drafts" value={home.ribbons.drafts} />
@@ -138,37 +170,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* QUICK ACCESS */}
-        <div className="slab dash__quick" style={{ '--ch': 'var(--indigo)', '--ch-dp': 'var(--indigo-dp)' } as React.CSSProperties}>
-          <EditableText as="span" className="ribbon" path="home.ribbons.quick" value={home.ribbons.quick} />
-          <div className="pane quick">
-            <h2 className="sr-only">Jump to a section</h2>
-            <QuickRail>
-              {home.quick.map((t, i) => (
-                <Link
-                  key={t.id}
-                  className="ch ch--mini"
-                  href={t.href}
-                  style={{
-                    '--ch': `var(--${t.hue})`,
-                    '--ch-dp': `var(--${t.hue}-dp)`,
-                    '--ch-ink': t.hue === 'indigo' ? '#fff' : 'var(--navy)',
-                  } as React.CSSProperties}
-                >
-                  <span className="ch__in">
-                    <span className="ch__screen ch__screen--glyph" aria-hidden="true">
-                      <Glyph name={t.glyph} width={4.5} />
-                    </span>
-                    <span className="ch__plate">
-                      <EditableText as="span" className="ch__name" path={`home.quick.${i}.label`} value={t.label} />
-                      <EditableText as="span" className="ch__sub" path={`home.quick.${i}.sub`} value={t.sub} />
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </QuickRail>
-          </div>
-        </div>
       </div>
     </section>
   );

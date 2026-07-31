@@ -224,9 +224,14 @@ work, and all three are load-bearing:
 
 ```
 WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
-THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
 QUICK ACCESS (full width)
+THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
 ```
+
+Quick access sits directly under the two top panels because it is the only row
+that is navigation rather than the comic: a visitor who did not come to read
+should not have to pass the whole draft shelf to find the way to everything
+else. Only which row each panel is in changed — every overlap is the one it had.
 
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
@@ -252,6 +257,17 @@ There is one chapter, and its title says what the pages actually are. The drafts
 carry timestamp filenames, no numbers and no grouping — the real chapter breaks
 are not known, and inventing them would be inventing the story's shape.
 
+**And it lists chapters, not pages.** Each entry used to unroll into a scrolling
+strip of every page it holds, which made the chapter list a page list wearing
+chapter headings — ten thumbnails to skim before the next title, and the trade
+gets worse with every chapter the comic gains. An entry is now a cover, a name,
+a line about it, a count and one destination. Choosing a particular page is the
+reader's own `Pages` control, which is where you already are when you want one.
+
+The cover is not a link and not in the tab order. The entry has exactly one
+destination and it is the button beside it; a second link to the same place is
+noise in a tab sequence and nothing at all to a screen reader.
+
 **Reader.** The page is the product, so the page gets the room — the whole
 window of it. On a desktop the reader is a viewport-tall flex column from the
 view down to the artwork, and everything that used to sit above and below it is
@@ -263,7 +279,17 @@ either gone for this route or behind a control:
 - **The filmstrip is behind a `Pages` button** rather than opening on hover.
   Parked under the artwork it cost every page a hundred pixels of height, all
   day, to show ten thumbnails of the pages you are not reading.
+- **The page number is not tipped over the artwork.** It was a corner flag on
+  the drawing that said what the bar already said two feet away, and the bar's
+  copy is the one that is never in the way.
 - What is left is a bar, the page, and three controls.
+
+The bar itself is down to the chapter and the count. `Chapters` is a back mark
+rather than a word, because the room it was taking is the title's; it keeps the
+label as an `aria-label` and as a tip on hover and on focus, so the only thing
+lost is the width. Beside the title is **`(Chapter NN)`** — the title is the
+creator's words and may carry no number at all, while this one is the running
+order's and always does.
 
 Nothing in that column is sized by a figure. The page takes what the bar and the
 controls leave, at any window height, rather than a `calc()` worked out from how

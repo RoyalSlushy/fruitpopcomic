@@ -247,6 +247,9 @@ export function Reader({
   const sibs = useMemo(() => siblings(chs, pages, at), [chs, pages, at]);
   const pos = sibs.findIndex((p) => p.index === at);
   const chapter = chapterOf(chs, page);
+  /* 1-based, and 0 for a page that is in no chapter — the shelf lists those
+     under "Unsorted", and an unsorted page has no number to give. */
+  const chapterNo = chapter ? chs.findIndex((c) => c.id === chapter.id) + 1 : 0;
 
   const go = useCallback((flat: number) => {
     const i = Math.max(0, Math.min(pages.length - 1, flat));
@@ -503,12 +506,29 @@ export function Reader({
           <div className="panel__in">
             <div className="panel__bar">
               {/* Back to the shelf, not to the site menu: the chapter list is
-                  where this was opened from and where the next one is. */}
-              <Link className="btn btn--back" href="/read">
+                  where this was opened from and where the next one is.
+
+                  A mark rather than a word, because the room it was taking is
+                  the chapter title's. The label it lost is still on it twice:
+                  as an aria-label for a screen reader, and as a tip on hover
+                  and on focus for everyone else. */}
+              <Link
+                className="btn btn--back btn--mark tipped"
+                href="/read"
+                aria-label="To Chapters"
+                data-tip="To Chapters"
+              >
                 <Chevron dir="left" />
-                Chapters
               </Link>
-              <h1 className="panel__title">{chapter?.title ?? 'Read'}</h1>
+              <h1 className="panel__title">
+                {chapter?.title ?? 'Read'}
+                {/* Which chapter this is, next to what it is called. The title
+                    is the creator's words and may not carry a number at all —
+                    this one is the running order's, and always does. */}
+                {chapterNo > 0 && (
+                  <span className="panel__of">(Chapter {pad(chapterNo - 1)})</span>
+                )}
+              </h1>
               <NoteTip label="About these pages" text={notice} path="about.reader.notice" />
               <Speak text={description} label="Describe" />
               <p className="panel__count">
@@ -587,10 +607,10 @@ export function Reader({
                         </div>
                       )}
 
-                      <figcaption className="page__tag">
-                        {page?.isDraft ? 'Draft' : 'Page'} {pad(pos)}
-                        <span className="page__of">/ {pad(total - 1)}</span>
-                      </figcaption>
+                      {/* No caption. The page number was tipped over the top
+                          corner of the artwork and said again in the bar, and
+                          the count in the bar is the one that is never in the
+                          way of the drawing. */}
                     </figure>
 
                     <button

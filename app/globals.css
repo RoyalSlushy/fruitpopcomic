@@ -161,7 +161,7 @@ button{font:inherit;color:inherit}
 .rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
 .ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
 .rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
-.btn,.page__tag,.empty h2,.prose h2,.prose h3{
+.btn,.empty h2,.prose h2,.prose h3{
   font-family:var(--face);
   font-weight:700;
   text-transform:uppercase;
@@ -946,6 +946,15 @@ html[data-drawer="open"] .scrim{
   margin:0;font-weight:700;
   font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;letter-spacing:.01em;
   margin-inline-end:auto;
+  display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
+}
+/* The chapter's number, beside the creator's name for it. Smaller and quieter:
+   it is the shelf's index into the running order, not part of the title. */
+.panel__of{
+  font-size:.6875rem;letter-spacing:.08em;
+  color:var(--ch-ink,#fff);opacity:.72;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
 }
 /* counter rides in a deep-tone chip: reads as HUD instrumentation, and
    keeps small text off the bright plate where it would sit at 4:1 */
@@ -971,6 +980,42 @@ a.btn:hover{transform:translateY(-2px)}
 a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .btn--solid{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 .ch:hover .btn--solid{transform:translateY(-2px)}
+/* A button that is only its mark: square, so the pill does not read as a word
+   with the word missing. It always carries the word somewhere else — an
+   aria-label, and the tip below. */
+.btn--mark{
+  flex:0 0 auto;
+  inline-size:2.1rem;block-size:2.1rem;
+  padding:0;
+  justify-content:center;
+}
+.btn--mark svg{inline-size:16px;block-size:16px}
+
+/* ── the hover tip ──────────────────────────────────────────
+   For a control whose label had to come off. The chip is the same one the
+   editor draws over an editable field, which is deliberate: the site already
+   says "this is what that is" in exactly this shape.
+
+   It appears on :focus-visible as well as on hover, so a keyboard gets it —
+   and it is never the only place the label exists, because a tip a screen
+   reader cannot reach is not a label at all. */
+.tipped{position:relative}
+.tipped::after{
+  content:attr(data-tip);
+  position:absolute;z-index:20;
+  /* Aligned to the control's leading edge, not centred on it. Centred, a tip
+     on the first control in a bar hangs half of itself off the panel — and
+     the panel clips its own interior, so half the label simply vanished. */
+  inset-block-start:calc(100% + .45rem);inset-inline-start:0;
+  white-space:nowrap;pointer-events:none;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.08em;
+  padding:.25rem .5rem;border-radius:6px;
+  background:var(--navy);color:var(--gold);
+  border:2px solid var(--gold);
+  opacity:0;transition:opacity .14s var(--ease);
+}
+.tipped:hover::after,.tipped:focus-visible::after{opacity:1}
 
 /* read-aloud button. A <button>, so it needs the family and the pointer that
    the <a> rules above get for free. */
@@ -1079,19 +1124,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   background:#fff;
   box-shadow:0 14px 34px rgba(0,0,0,.55);
 }
-.page__tag{
-  position:absolute;top:.55rem;left:.55rem;
-  display:inline-flex;align-items:baseline;gap:.3rem;
-  font-size:.625rem;letter-spacing:.1em;
-  text-transform:uppercase;
-  padding:.3rem .7rem .34rem .55rem;
-  background:var(--navy);color:var(--gold);
-  clip-path:polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-  font-variant-numeric:tabular-nums;
-  rotate:-4deg;
-}
-.page__of{color:var(--ink-soft);font-weight:400}
-
 /* ── pinch to zoom ──────────────────────────────────────────
    A page is 1080px of ink and a phone shows it at about a third of that, so
    the lettering in a corner panel is not readable at the size the page
@@ -1504,13 +1536,31 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   padding:clamp(1rem,3vw,1.75rem);
 }
 
+/* A chapter reads as one thing: a cover, and beside it everything the shelf
+   has to say about it. It used to be a heading with a scrolling strip of every
+   page underneath, which made this a page list wearing chapter headings. */
 .chapter{
   position:relative;
+  display:flex;align-items:flex-start;
+  gap:clamp(.8rem,2vw,1.15rem);
   padding:clamp(.9rem,2vw,1.2rem);
   background:rgba(8,14,29,.5);
   border:3px solid var(--navy-line);
   border-radius:var(--r-sm);
 }
+.chapter__cover{
+  flex:0 0 auto;
+  display:block;line-height:0;
+  inline-size:clamp(64px,9vw,92px);
+  border:3px solid var(--navy-line);border-radius:3px;
+  overflow:hidden;background:var(--navy);
+}
+.chapter__cover img,
+.chapter__cover .thumb__blank{
+  inline-size:100%;block-size:auto;
+  aspect-ratio:2/3;object-fit:cover;
+}
+.chapter__body{flex:1;min-inline-size:0}
 .chapter__head{
   display:flex;align-items:flex-start;gap:.85rem;flex-wrap:wrap;
   margin-block-end:.9rem;
@@ -1539,30 +1589,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .chapter__none{margin:0;font-size:.875rem;color:var(--ink-soft)}
 
-.chapter__strip{
-  list-style:none;margin:0 0 .9rem;padding:.15rem .15rem .5rem;
-  display:flex;gap:.5rem;overflow-x:auto;
-  scrollbar-width:thin;scrollbar-color:var(--navy-line) transparent;
-}
-/* Without this they shrink to fit instead of scrolling, and ten pages of a
-   chapter become ten slivers. */
-.chapter__strip>li{flex:0 0 auto}
-.thumb{
-  position:relative;display:block;line-height:0;
-  border:3px solid var(--navy-line);border-radius:3px;
-  overflow:hidden;
-  transition:transform .16s var(--ease), border-color .16s;
-}
-.thumb img{inline-size:52px;block-size:78px;object-fit:cover}
-.thumb:hover,.thumb:focus-visible{transform:translateY(-3px);border-color:#fff}
-.thumb__n{
-  position:absolute;inset-block-end:0;inset-inline-start:0;
-  padding:.12rem .3rem .14rem;
-  font-family:var(--face);font-weight:700;
-  font-size:.5625rem;letter-spacing:.05em;line-height:1;
-  font-variant-numeric:tabular-nums;
-  background:var(--navy);color:var(--ink-soft);
-}
 .chapter__go{margin:0}
 .shelf__add{margin:0}
 
@@ -1741,11 +1767,15 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .dash>.slab + .slab{margin-top:0}
 
+  /* Quick access sits directly under the two top panels: it is the only row
+     that is navigation rather than the comic, and a visitor who did not come
+     to read should not have to pass the whole draft shelf to find it. The
+     rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
   .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
-  .dash__drafts{grid-column:1/8;  grid-row:2; margin-top:-1.15rem;margin-right:-.6rem}
-  .dash__status{grid-column:8/13; grid-row:2; margin-left:-.7rem;margin-top:-1.8rem}
-  .dash__quick {grid-column:1/13; grid-row:3; margin-top:-1rem}
+  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem}
+  .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
+  .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
   .crumb{display:flex}
 }
@@ -1900,10 +1930,8 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      keep pan-y, so nothing above 860px changes. */
   .view--read .page{touch-action:none}
 
-  /* The page number is already in the bar and again in the dock. A third copy
-     tipped over the artwork is noise, and it is the one that has nowhere
-     sensible to sit once the page is bound by width rather than height. */
-  .view--read .page__tag{display:none}
+  /* The page number is in the bar and again in the dock, and the dock's is
+     the one a thumb is already near. */
   .view--read .panel__count{display:none}
 
   /* ── the drawers ────────────────────────────────────────
@@ -2129,10 +2157,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .view--read[data-cinema="on"] .panel__bar::before{display:none}
 .view--read[data-cinema="on"] .panel__bar > :not(.panel__title):not(.panel__count){display:none}
 .view--read[data-cinema="on"] .panel__count{background:rgba(8,14,29,.75)}
-/* The page number is in the bar and again in the pill. A third copy tipped
-   over the top corner of the artwork is exactly the kind of furniture this
-   mode exists to clear. */
-.view--read[data-cinema="on"] .page__tag{display:none}
 .view--read[data-cinema="on"][data-bare="on"] .panel__bar{translate:0 -100%;opacity:0}
 
 /* The script hugs the page instead of being parked at the far edge of the
