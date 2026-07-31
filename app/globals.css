@@ -82,10 +82,6 @@
 
   --rail:        0px;       /* sidebar column; only real at ≥1024px */
   --tabh:        62px;      /* bottom bar height on phones */
-  /* The top strip's height, measured onto <html> by the shell — the phone's
-     hero subtracts it from the window. This value is only ever the first
-     paint's, and is close enough that the correction is not a jump. */
-  --sysbar-h:    92px;
   --gap:         clamp(.8rem,1.5vw,1.15rem);
 
   /* Shuttleblock, from the Adobe Fonts kit. All four widths are named so the
@@ -2024,21 +2020,23 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .readout{display:none}
 
   /* ── the phone's first screen ─────────────────────────────
-     One panel, the window less the top strip, and everything
-     under it a scroll away. The dashboard is a spread of six
-     panels stacked into one column here, which on a phone opens
-     as a wall of edges; giving the hero the whole screen makes
-     the first thing a visitor sees the comic rather than the
+     One panel, the FULL window, and everything under it a
+     scroll away. The dashboard is a spread of six panels
+     stacked into one column here, which on a phone opens as a
+     wall of edges; giving the hero the whole screen makes the
+     first thing a visitor sees the comic rather than the
      furniture around it.
 
-     --sysbar-h is measured onto <html> by the shell — see the
-     ResizeObserver there. min-block-size, not block-size: in
+     It can be the true 100dvh now, not the window less the top
+     strip: the strip is a floating chip over the artwork below
+     (see .sysbar in this block), not a row that reserves its
+     own space above it. min-block-size, not block-size: in
      landscape the copy is taller than what is left of the
      window, and a hard height would clip it rather than push
      the panel past the fold.
      ─────────────────────────────────────────────────────── */
   .dash__hot{
-    min-block-size:calc(100dvh - var(--sysbar-h) - env(safe-area-inset-bottom));
+    min-block-size:calc(100dvh - env(safe-area-inset-bottom));
   }
   .hero .ch__in{flex-direction:column}
   .hero{min-height:0}
@@ -2060,7 +2058,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     inline-size:100%;
     aspect-ratio:4/5;
     min-block-size:150px;
-    max-block-size:calc(100dvh - var(--sysbar-h) - 17rem);
+    max-block-size:calc(100dvh - 17rem);
   }
 
   /* The bar rides in on the first scroll, so the hero above is the whole of
@@ -2074,6 +2072,55 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     visibility:hidden;
     transition:translate .26s var(--ease), visibility 0s linear .26s;
   }
+
+  /* ── the header, off the strip and onto the glass ─────────
+     Home only. Every other route still wants its own header
+     reserving real height above the panel — /cast's own bar
+     (MENU · title · LISTEN · VOICE) sits right where the strip
+     used to end, and a header pulled out of flow there does not
+     free up space, it just parks on top of that bar instead.
+     The dashboard is the one route with nothing at that y-range
+     to land on: the hero fills the whole window under it.
+
+     So the strip stays exactly what it was everywhere else, and
+     only here does it become a chip floating on top of the hero
+     — which is the other half of what lets .dash__hot claim the
+     true 100dvh. `top`/`left` rather than an inset shorthand, so
+     each axis carries its own safe-area term: a notch eats into
+     one edge at a time, never both.
+
+     Everything that could still be in this row at ≤859px
+     (`.crumb`, the readout) is already `display:none` there, so
+     the wordmark is the strip's only remaining content and the
+     fixed box shrinks to wrap exactly it — no width or margin
+     left to override.
+
+     Its own backing plate is new: floating over a hand-drawn
+     page is floating over unpredictable ground, unlike the dark
+     ground it sat on in flow, and every other floating control
+     on this site — the burger, the tab bar, the DRAFTS badge —
+     already carries one for exactly that reason. */
+  .shell[data-section="home"] .sysbar{
+    position:fixed;z-index:63;
+    top:calc(.6rem + env(safe-area-inset-top));
+    left:calc(.6rem + env(safe-area-inset-left));
+    /* the base rule's own width and centring are what a strip needs and a
+       chip does not — without these two the fixed box keeps --shell's width
+       and stretches back out across the screen */
+    width:auto;margin:0;
+    padding:.5rem .7rem;
+    border:3px solid #fff;border-radius:var(--r-sm);
+    background:var(--navy-lift);
+    box-shadow:0 4px 0 var(--navy-line), 0 10px 22px rgba(0,0,0,.5);
+  }
+  /* Sized for a strip that ran most of the screen's width; the chip is
+     barely wider than the burger it mirrors, so the mark shrinks to fit it
+     rather than forcing the chip out wide to fit the mark. The shadow
+     filter goes too — that was for legibility over the ground it used to
+     sit on in flow, and the plate already buys that now. Home only, same
+     reason as the rule above: everywhere else the mark is still on the
+     strip it was always on. */
+  .shell[data-section="home"] .sysbar__home img{width:104px;filter:none}
 
   /* ── the burger, off the strip and onto the glass ──────────
      With the ribbon gone from the top strip, the burger is the

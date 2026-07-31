@@ -26,7 +26,6 @@ export function Shell({ site, counts, children }: {
 
   const [open, setOpen] = useState(false);
   const railRef = useRef<HTMLElement>(null);
-  const barRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
 
@@ -67,25 +66,6 @@ export function Shell({ site, counts, children }: {
 
   /* Any navigation closes the drawer. */
   useEffect(() => { setOpen(false); }, [segment]);
-
-  /* The phone's hero is exactly the window less the top strip, so the strip's
-     height has to be a number the CSS can subtract. It is measured rather than
-     written down: the padding is a clamp, the wordmark is a vw width, and the
-     row can wrap on a narrow screen — three ways for a hard-coded figure to be
-     wrong. --sysbar-h has a fallback in globals.css for the first paint. */
-  useEffect(() => {
-    const bar = barRef.current;
-    if (!bar) return;
-    const root = document.documentElement;
-    const ro = new ResizeObserver(() => {
-      root.style.setProperty('--sysbar-h', `${bar.getBoundingClientRect().height}px`);
-    });
-    ro.observe(bar);
-    return () => {
-      ro.disconnect();
-      root.style.removeProperty('--sysbar-h');
-    };
-  }, []);
 
   /* The phone's first screen is the hero and nothing else, so the tab bar
      starts off the bottom of the window and rides in on the first scroll —
@@ -148,7 +128,7 @@ export function Shell({ site, counts, children }: {
         </div>
       </nav>
 
-      <header className="sysbar" ref={barRef}>
+      <header className="sysbar">
         <button
           className="burger"
           id="burger"

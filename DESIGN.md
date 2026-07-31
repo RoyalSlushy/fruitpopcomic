@@ -261,12 +261,33 @@ else. Only which row each panel is in changed — every overlap is the one it ha
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
 
-**The phone's first screen is the hero.** Below 860px that panel is sized to
-`100dvh` less the top strip, so the dashboard opens as one full-bleed panel and
-everything under it is a scroll away. Stacked into a single column, six tilted
-panels otherwise arrive as a wall of edges; the panel that is the comic gets the
-screen instead. The panel's height is a `min-block-size` — in landscape the copy
-is taller than what is left of the window, and a hard height would clip it.
+**The phone's first screen is the hero.** Below 860px that panel is sized to the
+TRUE `100dvh`, so the dashboard opens as one full-bleed panel and everything
+under it is a scroll away. Stacked into a single column, six tilted panels
+otherwise arrive as a wall of edges; the panel that is the comic gets the screen
+instead. The panel's height is a `min-block-size` — in landscape the copy is
+taller than what is left of the window, and a hard height would clip it.
+
+**The header comes off the strip and onto the glass, home only.** Everywhere
+else the strip stays exactly what it always was: an in-flow row that reserves
+its own height, because every other route has something real to reserve it
+for — `/cast`'s own bar, `Wiki`'s, `About`'s, all sitting right where the strip
+used to end. Pull the header out of flow there and it does not free any space,
+it just lands on top of that bar. The dashboard is the one route with nothing
+at that y-range to land on — the hero fills the whole window under it — so it
+is the one route where the header can leave.
+
+There, at ≤859px, `.sysbar` becomes a fixed chip pinned `top`/`left` (each axis
+carrying its own `env(safe-area-inset-*)` term, since a notch eats into one
+edge at a time and never both), with the same solid backing every other
+floating control on the site already carries — the burger, the tab bar, the
+DRAFTS badge — because floating over a hand-drawn page is floating over
+unpredictable ground, unlike the dark ground the strip sat on in flow. It stays
+put through the whole scroll rather than riding off with the hero, the same way
+the burger stays reachable through its own window: a landmark, not part of the
+panel. The wordmark shrinks to fit the chip instead of the chip stretching to
+fit the strip-sized mark, and its drop-shadow filter goes with it — the plate
+already buys the legibility the shadow used to.
 
 **The picture is a 4:5 window and the caption box takes the remainder.** The
 other way round — the artwork growing into whatever the copy left — made its
@@ -278,15 +299,10 @@ It carries a cap, and the cap is what stops the ratio from fighting the
 full-screen hero above. Nothing here overflows and so nothing shrinks — the
 panel's height is a minimum, so a 4:5 window taller than the window simply grows
 the panel past the fold and takes the button with it. Reserving the copy's share
-(`100dvh − --sysbar-h − 17rem`) holds the ratio on every phone tall enough for
-both and gives way only where honouring it would have pushed the call to action
-off the screen. Measured: exact 4:5 at 390×844, 412×915, 430×932 and 360×780;
-it yields at 360×640, where the button stays above the fold instead.
-
-The strip's height is **measured**, not written down: it is a clamp on a `vw`
-wordmark that can wrap, so the shell puts its real height on `<html>` as
-`--sysbar-h` with a `ResizeObserver` and the CSS subtracts that. `globals.css`
-carries a fallback for the first paint.
+(`100dvh − 17rem`) holds the ratio on every phone tall enough for both and gives
+way only where honouring it would have pushed the call to action off the screen.
+Measured: exact 4:5 at 390×844, 412×915, 430×932 and 360×780; it yields at
+360×640, where the button stays above the fold instead.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its
