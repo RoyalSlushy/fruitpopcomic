@@ -80,19 +80,16 @@ the section's colour instead of its own.
 | `--ink-soft` | `#9FB3D9` | 8.73 on ground, 7.05 on `--navy-lift`. Tinted from the ground's own hue — never grey |
 
 **The one measured constraint:** white on bright magenta is **4.00**. That is AA
-for large text only — from 24px at a 400-weight face, or 18.66px at 700. Three
+for large text only — from 24px at a 400-weight face, or 18.66px at 700. Two
 clamps are set by that number and nothing else: the hero headline floors at
-`1.75rem`, and `.panel__title` and the hero standfirst both floor at `1.1875rem`
-(19px, bold), just past the large-text threshold. Everything smaller moves onto a
-deep-tone chip — the page counter, the status chips and the rank chips are all
-built that way.
+`1.75rem`, and `.panel__title` floors at `1.1875rem` (19px, bold), just past the
+large-text threshold. Everything smaller moves onto a deep-tone chip — the page
+counter, the status chips and the rank chips are all built that way.
 
-The standfirst is the one that had to be argued twice. It used to sit on a
-deep-tone plate at 14px, measuring 7.37; that plate is now a 4px rule and an
-indent, which is a lighter thing to put under a headline but takes the 7.37 with
-it. So the type carries the ratio instead — 19px at 700 is past the large-text
-threshold, where 4.00 is a pass. A plate is not the only way to buy contrast on
-the bright face; it is just the way that does not cost type size.
+There is no small type on the bright face at all now: the hero's standfirst is
+gone, and what is left up there is one headline and one button. That is the
+cheapest way to hold this constraint — not a plate under every line, but nothing
+small enough to need one.
 
 The halftone never makes a pair worse: every dot field is the deep tone screened
 over the bright one, or the bright tone over the dark ground, so the field under
@@ -111,7 +108,7 @@ Measured on the components this build added:
 | Card foot — white on `--cyan-dp` | 7.27 |
 | Status pending chip — `#FFE2B4` on tinted lift | 9.29 |
 | Status done chip — `#C7F4DA` on tinted lift | 9.16 |
-| Hero standfirst — white on `--magenta` at 19px/700 | 4.00 — AA at large text |
+| Hero headline on the phone's screened artwork — white on `--magenta` | 4.00 — AA at its size |
 
 ## Typography
 
@@ -206,8 +203,12 @@ still in `globals.css` (`view-transition-name` on `.rail`/`.tabbar`, the
 `::view-transition-*` rules), so restoring it is a small change once a stable API
 lands.
 
-What remains: a single diagonal light sweep across the hero on hover, and the tile
-press. `prefers-reduced-motion` disables the sweep.
+What remains: a single diagonal light sweep across the hero on hover, the tile
+press, and the backdrop's Ken Burns pan — five moves, assigned by which page is
+showing rather than by which layer is holding it, so the same layer never repeats
+one every other slide. `prefers-reduced-motion` disables the sweep and stops the
+backdrop dead; see **Layout** for why stopping it beats letting the global reduce
+rule flatten it.
 
 ## Layout
 
@@ -231,6 +232,7 @@ work, and all three are load-bearing:
 
 ```
 WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
+  the backdrop (full width, behind everything, bitten into top and bottom)
 QUICK ACCESS (full width)
 THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
 ```
@@ -256,16 +258,28 @@ wordmark that can wrap, so the shell puts its real height on `<html>` as
 `--sysbar-h` with a `ResizeObserver` and the CSS subtracts that. `globals.css`
 carries a fallback for the first paint.
 
-**Two things break that panel's frame.** On a phone the headline and the button
-are pulled back out of the hero body's padding and then `--bleed` further, so
-they run past the panel's inside edge and `.ch__in`'s `overflow` cuts them there.
-The white keyline is `.ch`'s own padding, outside `.ch__in`, so the cut lands on
-the *inside* of the frame and the frame itself stays unbroken — the type runs
-under it rather than over it, the way a press would print it. Nothing else on the
-panel does this: the device is only worth anything while it is the exception, and
-these are the two elements meant to stop a scroll. The button also carries the
-padding it lost, so it grows leftward and what the frame takes is the pill's cap,
-never a letter.
+**Two things climb out of the caption box.** On a phone the magenta field is a
+shallow band along the bottom of the panel, and the headline and the button both
+ride up out of its top edge onto the artwork. Nothing else does: the device is
+only worth anything while it is the exception, and these are the two elements
+meant to stop a scroll.
+
+It is done with a **translate, and that is not a preference.** The band is the
+flex item that gives its space to the picture — shorten it with a negative margin
+and `.hero__screen` simply grows into what it gave up, the seam follows the type
+down, and nothing ever crosses anything. A translate moves the paint and leaves
+the layout alone. The stack is justified to the band's *bottom*, so how far the
+button clears the edge is set by the band height and the button height and
+nothing else; the headline can run to three lines without moving it a pixel.
+
+Two things make that edge worth crossing. The band is the **deep tone** — the
+same plate every other tile puts under its name — while the field above it is the
+bright one, so there is a real tonal step to overhang; two fields of one colour
+would have left the button hanging over nothing. And white type on a pencil page
+is white on white, so the type does not go onto the artwork — **the artwork comes
+up to meet it.** The bright field is carried up the picture behind the headline
+and screened with deep-tone dots, which is the pairing the headline is already
+measured against, and it fades out before it reaches anything worth seeing.
 
 The headline itself is the panels' **plinth done in type** — two hard offsets in
 the deep tone rather than a blur, so the letters sit on the magenta field the way
@@ -281,7 +295,32 @@ a panel that is two-thirds of the shell, so `4.4vw` outgrew it between roughly
 `min(4.4vw, 15.5cqi)` now, with the hero body as the query container — the ratio
 at which this line exactly fills its measure is `16.1cqi` at every width, and the
 slack is there because the line is editable content. On a phone `4.4vw` is the
-smaller term, so none of this touches the break-out above.
+smaller term, so none of this touches the climb above.
+
+**The backdrop.** A band of the pages themselves runs under the top row, panning
+slowly — `Reel.tsx` for which page, `globals.css` for the move. It is the one
+thing on the dashboard that is *not* a panel: no keyline, no ribbon, no plinth,
+and a `z-index` under every slab around it, so both neighbours bite into it and
+it reads as ground showing through rather than as a sixth thing to look at. On a
+phone it lands directly under the fold, which is the first honest signal that the
+full-screen hero has anything below it.
+
+The pages are pencil on white paper, and a white strip laid across the navy
+ground would be the brightest thing on the page — which a backdrop must not be.
+So it is not dimmed, it is **printed**: `mix-blend-mode: multiply` lays the
+channel's ink over the paper, the paper takes the ink, and the pencil stays the
+darkest thing in the frame. A flat scrim washed both to the same grey.
+
+Three things keep a decorative animation from being a tax on a phone: **two
+layers rather than ten** (each slide is a full 1080px page, so the pair
+double-buffers and the dark one carries the next page with a whole interval to
+load it), it **only ticks while it is on screen**, and `prefers-reduced-motion`
+**stops** it rather than speeding it up — the global reduce rule flattens
+animation durations, which would leave a Ken Burns pan snapping between end
+states, so the tick never starts and the band is one still page. Each move runs
+longer than its slide is lit, starting while the layer is still dark and still
+running when it goes dark again, so a visitor only ever sees the middle of a
+move and never a start or a stop.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its

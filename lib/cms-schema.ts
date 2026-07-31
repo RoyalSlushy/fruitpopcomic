@@ -60,7 +60,6 @@ export const LABELS: Record<string, string> = {
   'home.ribbons.quick': 'Quick-access ribbon',
   'home.hero.badge': 'Hero badge',
   'home.hero.title': 'Hero headline',
-  'home.hero.sub': 'Hero standfirst',
   'home.hero.cta': 'Hero button',
   'home.startHere.seeAll': '"See all" link',
   'home.quick.*.label': 'Tile name',
