@@ -250,9 +250,23 @@ other by `-0.4 × --gap`.
 `100dvh` less the top strip, so the dashboard opens as one full-bleed panel and
 everything under it is a scroll away. Stacked into a single column, six tilted
 panels otherwise arrive as a wall of edges; the panel that is the comic gets the
-screen instead. The artwork takes whatever the copy leaves rather than a fixed
-band of it, and the height is a `min-block-size` — in landscape the copy is
-taller than what is left of the window, and a hard height would clip it.
+screen instead. The panel's height is a `min-block-size` — in landscape the copy
+is taller than what is left of the window, and a hard height would clip it.
+
+**The picture is a 4:5 window and the caption box takes the remainder.** The
+other way round — the artwork growing into whatever the copy left — made its
+shape a subtraction: a tall phone got a tall crop of the page, a short one got a
+letterbox of the same drawing, and neither was a decision anybody made. A page is
+composed for a frame, so the frame is the fixed thing.
+
+It carries a cap, and the cap is what stops the ratio from fighting the
+full-screen hero above. Nothing here overflows and so nothing shrinks — the
+panel's height is a minimum, so a 4:5 window taller than the window simply grows
+the panel past the fold and takes the button with it. Reserving the copy's share
+(`100dvh − --sysbar-h − 17rem`) holds the ratio on every phone tall enough for
+both and gives way only where honouring it would have pushed the call to action
+off the screen. Measured: exact 4:5 at 390×844, 412×915, 430×932 and 360×780;
+it yields at 360×640, where the button stays above the fold instead.
 
 The strip's height is **measured**, not written down: it is a clamp on a `vw`
 wordmark that can wrap, so the shell puts its real height on `<html>` as

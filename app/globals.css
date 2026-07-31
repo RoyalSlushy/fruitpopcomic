@@ -2042,11 +2042,26 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .hero .ch__in{flex-direction:column}
   .hero{min-height:0}
-  /* The picture takes whatever the copy leaves, rather than a fixed band of
-     it: the panel is now as tall as the window, and the artwork is the thing
-     that should grow into the difference. */
-  .hero__body{flex:0 0 auto}
-  .hero__screen{flex:1 1 auto;width:100%;min-block-size:clamp(180px,44vw,280px)}
+  /* The picture is a 4:5 window, and the caption box takes what is left. The
+     other way round — the picture growing into the difference — made its shape
+     a subtraction: a tall phone got a tall crop, a short one got a letterbox of
+     the same drawing, and neither was a decision anybody made. A page is
+     composed for a frame, so the frame is the fixed thing.
+
+     The cap is what stops the ratio from fighting the full-screen hero. The
+     panel's height is a MINIMUM, so nothing here overflows and nothing shrinks
+     — a 4:5 window taller than the window simply grows the panel past the fold
+     and takes the button with it. Reserving the copy's share means the ratio
+     holds on every phone tall enough to hold both, and gives way only where
+     honouring it would have pushed the call to action off the screen. */
+  .hero__body{flex:1 1 auto}
+  .hero__screen{
+    flex:0 0 auto;
+    inline-size:100%;
+    aspect-ratio:4/5;
+    min-block-size:150px;
+    max-block-size:calc(100dvh - var(--sysbar-h) - 17rem);
+  }
 
   /* The bar rides in on the first scroll, so the hero above is the whole of
      the first screen. Dashboard only: it is the one route guaranteed to be
