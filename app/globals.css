@@ -528,43 +528,47 @@ html[data-drawer="open"] .scrim{
 .dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
 
 /* ═══ THE BACKDROP ═══════════════════════════════════════
-   A band of the pages themselves, panning slowly, tucked in
-   behind the spread. It is the one thing on the dashboard
-   that is NOT a panel: no keyline, no ribbon, no plinth, and
-   a z-index under every slab around it, so both neighbours
-   bite into it and it reads as ground showing through rather
-   than as another thing to look at. If it read as a panel it
-   would be a sixth thing competing with five; as ground it is
-   the reason the five look like they are lying on something.
+   The hero's bottom section: the pages themselves, whole and
+   uncropped, drifting under the button that sends you to them.
+
+   A ROW of cells, not one picture, and that follows from the
+   frames being `contain`. A 2:3 page laid whole into a single
+   short wide band is a sliver in a sea of nothing; four of
+   them across is a contact sheet, and a contact sheet is what
+   the width of the caption box is good for.
 
    Everything about which page is showing lives in Reel.tsx —
-   this is where the pan lives, because a Ken Burns move is a
+   this is where the move lives, because a Ken Burns pan is a
    transform over time and nothing else.
    ═══════════════════════════════════════════════════════ */
 
-.dash__reel{
-  z-index:0;
-  block-size:clamp(7rem,25vw,11.5rem);
-  rotate:.62deg;
-  /* Both edges are eaten: the hero above and the panel below each sit on it.
-     It is a backdrop, so it is meant to be partly covered. */
-  margin-block:calc(var(--gap) * -1.15) calc(var(--gap) * -.6);
-}
 .reel{
-  position:relative;
-  block-size:100%;
+  position:relative;isolation:isolate;
+  display:flex;gap:var(--keyline);justify-content:center;
+  block-size:clamp(5rem,17vw,6.4rem);
+  margin-block-start:.15rem;
   overflow:hidden;
-  clip-path:var(--cut-band);
-  background:var(--navy-lift);
-  /* the ends dissolve into the ground rather than stopping at an edge, which
-     is what keeps it from reading as one more box on the page */
-  -webkit-mask-image:linear-gradient(to right,transparent,#000 9% 91%,transparent);
-  mask-image:linear-gradient(to right,transparent,#000 9% 91%,transparent);
+  /* the ends dissolve rather than stopping at an edge, so the band reads as
+     something behind the copy instead of one more box inside the box */
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 7% 93%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 7% 93%,transparent);
+}
+/* A cell is the shape of a page, not a share of the row. `contain` means the
+   page is drawn to fit its cell, so a cell that is not page-shaped is a page
+   marooned in a field of backing — 48px of drawing in a 152px box was what a
+   flex share gave. Shaped, they fill, and the row simply runs off both ends
+   into the mask, which is what a contact sheet does anyway. */
+.reel__cell{
+  position:relative;
+  flex:0 0 auto;
+  block-size:100%;aspect-ratio:2/3;
+  overflow:hidden;
 }
 .reel__frame{
   position:absolute;inset:0;
   inline-size:100%;block-size:100%;
-  object-fit:cover;object-position:50% 34%;
+  /* whole pages: nothing here is cropped to fit a band */
+  object-fit:contain;
   /* the pencil is soft graphite on warm paper; a little more contrast is what
      survives being printed over */
   filter:contrast(1.14) saturate(.92);
@@ -572,9 +576,9 @@ html[data-drawer="open"] .scrim{
   transition:opacity 1.4s linear;
 }
 .reel__frame[data-lit="on"]{opacity:1}
-/* Longer than the slide is on screen, deliberately: the move starts while the
-   layer is still dark and is still running when it goes dark again, so the
-   visitor only ever sees the middle of it and never a start or a stop. */
+/* Longer than the slide is lit, deliberately: the move starts while the layer
+   is still dark and is still running when it goes dark again, so the visitor
+   only ever sees the middle of it and never a start or a stop. */
 .reel__frame[data-kb]{animation-duration:13s;animation-timing-function:linear;animation-fill-mode:both}
 .reel__frame[data-kb="0"]{animation-name:kb-0}
 .reel__frame[data-kb="1"]{animation-name:kb-1}
@@ -582,34 +586,42 @@ html[data-drawer="open"] .scrim{
 .reel__frame[data-kb="3"]{animation-name:kb-3}
 .reel__frame[data-kb="4"]{animation-name:kb-4}
 
-/* push in from the left, drift up */
-@keyframes kb-0{from{transform:scale(1.08) translate(-2.5%,2%)}  to{transform:scale(1.24) translate(2%,-2.5%)}}
-/* pull back out of a close crop */
-@keyframes kb-1{from{transform:scale(1.28) translate(2%,-1.5%)}  to{transform:scale(1.06) translate(-1.5%,2%)}}
+/* Gentler than a Ken Burns over a cropped photograph, and for a reason: these
+   frames are `contain`, so the page is exactly in view at 1 and every step of
+   scale past it is a step back into cropping. These stay close enough to 1
+   that the page is still a whole page while it moves. */
+/* in from the left, drifting up */
+@keyframes kb-0{from{transform:scale(1) translate(-2%,1.5%)}    to{transform:scale(1.12) translate(1.5%,-2%)}}
+/* and back out again */
+@keyframes kb-1{from{transform:scale(1.13) translate(1.5%,-1%)} to{transform:scale(1) translate(-1%,1.5%)}}
 /* straight climb */
-@keyframes kb-2{from{transform:scale(1.14) translate(0,4%)}      to{transform:scale(1.26) translate(0,-3.5%)}}
+@keyframes kb-2{from{transform:scale(1.06) translate(0,3%)}     to{transform:scale(1.14) translate(0,-2.5%)}}
 /* across, right to left */
-@keyframes kb-3{from{transform:scale(1.2) translate(3.5%,1%)}    to{transform:scale(1.1) translate(-3.5%,-1%)}}
+@keyframes kb-3{from{transform:scale(1.1) translate(2.5%,.5%)}  to{transform:scale(1.02) translate(-2.5%,-.5%)}}
 /* the slow push, no pan */
-@keyframes kb-4{from{transform:scale(1.05)}                      to{transform:scale(1.28)}}
+@keyframes kb-4{from{transform:scale(1)}                        to{transform:scale(1.14)}}
 
-/* The pages are pencil on white paper, and a white strip laid across the navy
-   ground is the brightest thing on the page — which a backdrop must not be.
-   So it is not dimmed, it is PRINTED: multiply lays the channel's ink over the
-   paper, so the paper takes the ink and the pencil stays the darkest thing in
-   the frame. A flat scrim would have washed both to the same grey.
+/* The pages are pencil on white paper, and four white cells inside a magenta
+   caption box would be the brightest thing in the hero — which a backdrop must
+   not be. So they are not dimmed, they are PRINTED: multiply lays the channel's
+   ink over the paper, the paper takes the ink, and the pencil stays the darkest
+   thing in the frame. A flat scrim washed both to the same grey.
 
-   .reel already carries a clip-path, so it is a stacking context and the blend
-   cannot reach past it to the panels behind. */
+   .reel carries a mask, so it is a stacking context and the blend cannot reach
+   past it to the magenta field behind. */
 .reel__screen{
   position:absolute;inset:0;pointer-events:none;
   mix-blend-mode:multiply;
-  --ht-c:var(--navy);
-  --ht-s:8px;
-  --ht-r:30%;
+  /* Enough ink to sit under the copy, not so much that the pages stop being
+     pages — they are drawn `contain` precisely so a whole page is visible, and
+     a screen heavy enough to bury one would have wasted the letterboxing. */
+  opacity:.72;
+  --ht-c:var(--magenta-dp);
+  --ht-s:7px;
+  --ht-r:28%;
   background:
     var(--ht),
-    linear-gradient(172deg, var(--magenta-dp), var(--indigo) 52%, var(--navy-line));
+    linear-gradient(172deg, var(--magenta), var(--magenta-dp));
 }
 
 /* ── the inked panel ────────────────────────────────────────
@@ -798,6 +810,17 @@ html[data-drawer="open"] .scrim{
     2px 2px 0 var(--magenta-dp),
     4px 5px 0 var(--magenta-dp),
     6px 9px 14px rgba(10,4,20,.4);
+}
+/* No plate. The standfirst is an indent off a rule instead — but the plate was
+   never decoration: it was how 14px white cleared 4.00 on the bright face. Off
+   it, the type itself has to clear the large-text threshold, so this floors at
+   19px/700 exactly the way .panel__title does. */
+.hero__sub{
+  margin:0;
+  font-size:clamp(1.1875rem,3.1vw,1.375rem);line-height:1.32;font-weight:700;
+  color:#fff;
+  padding:.1rem 0 .15rem .8rem;
+  border-inline-start:4px solid #fff;
 }
 .hero .btn{align-self:flex-start;margin-top:.3rem}
 
@@ -1873,13 +1896,9 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
   .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
-  /* The backdrop runs the full width under the top row. It adds a band, not a
-     row of things to read, so quick access is still the first thing after the
-     two top panels. */
-  .dash__reel  {grid-column:1/13; grid-row:2; margin-block:-2.4rem -1.6rem}
-  .dash__quick {grid-column:1/13; grid-row:3; margin-top:-1rem}
-  .dash__drafts{grid-column:1/8;  grid-row:4; margin-top:-1.15rem;margin-right:-.6rem}
-  .dash__status{grid-column:8/13; grid-row:4; margin-left:-.7rem;margin-top:-1.8rem}
+  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem}
+  .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
+  .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
   .crumb{display:flex}
 }
@@ -2154,56 +2173,40 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      that should grow into the difference. */
   .hero__screen{flex:1 1 auto;width:100%;min-block-size:clamp(180px,44vw,280px)}
 
-  /* ── the assembly that rides out of the band ──────────────
-     The magenta field is a shallow band along the bottom of
-     the panel now, and the headline and the button both climb
-     out of its top edge onto the artwork. It is the loudest
-     thing the hero does, so it is the only thing that does it.
+  /* ── the caption box, and the headline that leaves it ─────
+     A solid field with a hard white edge along the top, which
+     is the same keyline every plate on this site draws. The
+     copy rides --rise above that edge, so the headline breaks
+     the line onto the artwork and everything under it keeps
+     the rhythm it had.
 
      By TRANSLATE, not by margin, and that is not a preference.
-     The band is the flex item that gives its space to the
+     The box is the flex item that gives its space to the
      picture: shorten it with a negative margin and .hero__screen
-     just grows into what it gave up, the seam follows the type
+     just grows into what it gave up, the edge follows the type
      down, and nothing ever crosses anything. A translate moves
-     the paint and leaves the layout alone.
+     the paint and leaves the layout alone — and the bottom
+     padding gives back exactly what the rise took, so the box
+     does not end up with a --rise-shaped hole under the reel.
 
-     The stack is justified to the band's BOTTOM, so how far the
-     button clears the edge is set by the band and the button
-     and nothing else — the headline can run to three lines
-     without moving it a pixel.
+     Only the headline clears the edge. It is first in the
+     stack, and with the standfirst and the backdrop under it
+     the button is in the middle of the box now — no amount of
+     rise puts a middle child over a top edge without dragging
+     the headline off the panel entirely.
      ─────────────────────────────────────────────────────── */
   .hero__body{
     flex:0 0 auto;
-    block-size:4.2rem;
-    padding-block:0 .9rem;
-    justify-content:flex-end;
-    /* The band is the DEEP tone — the same plate every other tile puts under
-       its name — and the field the headline sits on above it is the bright
-       one. That tonal step is the edge being crossed: two fields of one
-       colour would leave the button overhanging nothing visible. */
-    background:var(--plate);
+    --rise:.95rem;
+    padding-block:0 calc(var(--hero-pad) - var(--rise));
+    /* The keyline every plate on this site draws — plus a deep-tone line
+       outside it, which the others do not need. Theirs sit under a coloured
+       channel field; this one sits under white paper, and a white keyline on
+       white paper is not an edge at all. */
+    border-block-start:var(--keyline) solid #fff;
+    box-shadow:0 calc(var(--keyline) * -.7) 0 var(--magenta-dp);
   }
-  /* bright over dark here, the other way round from the flat magenta face */
-  .hero__body::before{--ht-c:var(--magenta)}
-  .hero__title,
-  .hero .btn{translate:0 -1.6rem}
-
-  /* White type on a pencil page is white on white, so the type does not go
-     over the artwork — the artwork comes up to meet it. The band's own field
-     is carried up the picture and screened with the deep tone, which is the
-     pairing the headline is already measured against (4.00, AA at its size),
-     and it fades out before it reaches anything worth seeing. */
-  .hero__screen::after{
-    content:"";position:absolute;inset:auto 0 0;
-    block-size:min(52%,15rem);
-    pointer-events:none;
-    --ht-c:var(--magenta-dp);
-    --ht-s:13px;
-    --ht-r:36%;
-    background:var(--ht),var(--magenta);
-    -webkit-mask-image:linear-gradient(to top,#000 0 42%,rgba(0,0,0,.74) 62%,transparent 100%);
-    mask-image:linear-gradient(to top,#000 0 42%,rgba(0,0,0,.74) 62%,transparent 100%);
-  }
+  .hero__body>*{translate:0 calc(var(--rise) * -1)}
 
   /* The bar rides in on the first scroll, so the hero above is the whole of
      the first screen. Dashboard only: it is the one route guaranteed to be

@@ -49,18 +49,16 @@ export default async function HomePage() {
               </span>
               <span className="hero__body">
                 <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
+                <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
                 <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
+                {/* The backdrop, in the caption box's own bottom section. Whole
+                    pages, uncropped, panning behind the copy that sends you to
+                    them — decorative only, and every one of them is a real card
+                    two panels down. */}
+                <Reel pages={pages.items.map((p) => mediaURL(p.thumb || p.image))} />
               </span>
             </span>
           </Link>
-        </div>
-
-        {/* The backdrop. Not a panel: it carries no content of its own, it sits
-            under every slab around it, and both neighbours bite into it — so it
-            reads as the spread's ground showing through rather than as another
-            thing to look at. */}
-        <div className="dash__reel">
-          <Reel pages={pages.items.map((p) => mediaURL(p.image))} />
         </div>
 
         {/* START HERE — the real drafts in order, no invented metrics */}

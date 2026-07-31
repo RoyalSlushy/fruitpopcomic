@@ -2,35 +2,40 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-/* The backdrop under the hero: the pages themselves, panning slowly behind the
- * spread. Decorative and nothing else — it is aria-hidden, it is not a link,
- * and every page it shows is already reachable as a real card two panels down.
- * A visitor who never sees it has missed nothing.
+/* The backdrop in the hero's bottom section: the pages themselves, whole and
+ * uncropped, drifting behind the copy that sends you to them. Decorative and
+ * nothing else — it is aria-hidden, it is not a link, and every page it shows
+ * is already a real card two panels down. A visitor who never sees it has
+ * missed nothing.
+ *
+ * A row of cells rather than one picture, because the frames are `contain`:
+ * a 2:3 page laid whole into one short wide band is a sliver in a sea of
+ * nothing. Several of them across is a contact sheet, which is a thing, and
+ * it is what the width is for.
  *
  * Three things keep a decorative animation from being a tax on the phone this
  * site is designed for:
  *
- *   - TWO layers, not ten. Each slide is a full 1080px page; holding all of
- *     them in the DOM would be several megabytes of decoration. The pair
- *     double-buffers instead — the dark one carries the next page, so it has a
- *     whole interval to load before it is ever shown.
- *   - it only runs while it is ON SCREEN. The band sits below the fold on a
- *     phone, so nothing here loads or ticks until the visitor scrolls to it,
- *     and it stops again when they scroll past.
+ *   - it runs on THUMBS. At cell width a 300px page is more than enough, and
+ *     the drafts shelf and the start-here rail have already fetched these
+ *     exact URLs, so the band usually costs nothing at all.
+ *   - it only ticks while it is ON SCREEN, and it stops when scrolled past.
  *   - `prefers-reduced-motion` stops the slideshow rather than speeding it up.
  *     The global reduce rule flattens animation durations, which would leave a
  *     Ken Burns pan snapping between end states — worse than not moving. So the
- *     tick never starts and the band is one still page.
+ *     tick never starts and the band is one still contact sheet.
  */
 
 /** ms a page holds before the crossfade to the next one begins */
 const HOLD = 6000;
-/** ms the crossfade takes; the outgoing slide keeps its src until it is over */
+/** ms the crossfade takes; the outgoing frame keeps its src until it is over */
 const FADE = 1400;
 /** how many Ken Burns moves there are — see the kb-* keyframes in globals.css */
 const MOVES = 5;
+/** cells to lay out; the row is page-shaped, so the surplus runs off the ends */
+const CELLS = 7;
 
-/** the pair of page indices the two layers hold, and which of the two is lit */
+/** the pair of page offsets the two layers hold, and which of the two is lit */
 type Reeling = { at: [number, number]; front: 0 | 1 };
 
 export function Reel({ pages }: { pages: string[] }) {
@@ -79,27 +84,39 @@ export function Reel({ pages }: { pages: string[] }) {
 
   if (!pages.length) return null;
 
+  /* Spread the cells across the run rather than starting them all at page one:
+     four copies of the same drawing is a bug, not a backdrop. */
+  const stride = Math.max(1, Math.round(pages.length / CELLS));
+
   return (
-    <div className="reel" ref={host} aria-hidden="true">
-      {at.map((page, slot) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={slot}
-          className="reel__frame"
-          data-lit={slot === front ? 'on' : 'off'}
-          /* The move changes with the page, not with the slot, so the same
-             layer does not repeat one pan every other slide. Changing the
-             attribute restarts the animation, and it restarts while the layer
-             is dark. */
-          data-kb={page % MOVES}
-          src={pages[page]}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          fetchPriority="low"
-        />
+    <span className="reel" ref={host} aria-hidden="true">
+      {Array.from({ length: CELLS }, (_, cell) => (
+        <span className="reel__cell" key={cell}>
+          {at.map((offset, slot) => {
+            const page = (offset + cell * stride) % pages.length;
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={slot}
+                className="reel__frame"
+                data-lit={slot === front ? 'on' : 'off'}
+                /* The move goes with the page rather than with the layer, so
+                   one cell never repeats a move every other slide, and no two
+                   cells are on the same move at the same time. Changing the
+                   attribute restarts the animation, and it restarts while the
+                   layer is dark. */
+                data-kb={page % MOVES}
+                src={pages[page]}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
+              />
+            );
+          })}
+        </span>
       ))}
       <span className="reel__screen" />
-    </div>
+    </span>
   );
 }
