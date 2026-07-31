@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 /* Bungee was caps-only and carried its weight in the drawing.
    Shuttleblock has to be told both. */
 .rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
-.ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
+.ribbon,.ch__name,.hero__title,.rank__n,.rank__label,
 .rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
 .btn,.empty h2,.prose h2,.prose h3{
   font-family:var(--face);
@@ -479,7 +479,6 @@ html[data-drawer="open"] .scrim{
   clip-path:polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
 }
 .ribbon>*{position:relative}
-.ribbon--wide{font-size:.9375rem;letter-spacing:.06em}
 
 /* ═══ DASHBOARD ══════════════════════════════════════════
    Laid out as a comic page, not a card grid. Three devices do
@@ -679,15 +678,6 @@ html[data-drawer="open"] .scrim{
   mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
 }
 .hero__body>*{position:relative;z-index:1}
-.hero__kicker{
-  font-size:.6875rem;letter-spacing:.14em;
-  text-transform:uppercase;line-height:1;
-  align-self:flex-start;
-  padding:.42rem .7rem .46rem;
-  background:var(--magenta-dp);color:#fff;
-  clip-path:polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
-  rotate:-1.6deg;
-}
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
    at 24px for a 400-weight face. The floor of this clamp is well above it. */
 .hero__title{
@@ -2262,7 +2252,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     padding:calc(1.4rem + var(--keyline)) calc(.75rem + var(--keyline)) calc(.85rem + var(--keyline));
   }
   .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
-  .ribbon--wide{font-size:.8125rem}
 
   .hero__body{padding:1.1rem}
   .quick{flex-direction:column}

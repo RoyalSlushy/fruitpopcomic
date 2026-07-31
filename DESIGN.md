@@ -139,7 +139,7 @@ when the dashboard went bolder. Prose is capped at 68ch.
 
   | Token | Shape | Where |
   |---|---|---|
-  | `--cut-rise` | top edge climbs left to right | `WHAT'S HOT`, `BUILD STATUS` |
+  | `--cut-rise` | top edge climbs left to right | the hero, `BUILD STATUS` |
   | `--cut-fall` | the same wedge mirrored | `THE DRAFTS` |
   | `--cut-nick` | leading corners trimmed off | `START HERE`, every inner view |
   | `--cut-band` | a long banner, both ends chevroned | `QUICK ACCESS` |
@@ -223,10 +223,20 @@ work, and all three are load-bearing:
    between rotated boxes read as a broken grid rather than a spread.
 
 ```
-WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
+THE HERO (1–9, no ribbon)  START HERE (9–13, dropped 1.1rem)
 QUICK ACCESS (full width)
-THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
+THE DRAFTS (1–8)           BUILD STATUS (8–13, raised 1.8rem)
 ```
+
+**The hero is the one panel with no caption box.** Four of the five carry a
+ribbon over their top-left corner, because four of them need saying what they
+are — a ranked list, a shelf, a set of links, a state table. The hero is a
+drawing from the comic with the comic's name on the page above it, and a label
+over the artwork was captioning a picture that captions itself. It is
+`slab--bare`, so the `padding-top` that exists only to hold an overhanging
+ribbon comes off with it and the artwork starts at the panel's own edge. The
+headline lost its eyebrow on the same argument: an uppercase kicker over an
+uppercase headline was two tracked lines saying one thing.
 
 Quick access sits directly under the two top panels because it is the only row
 that is navigation rather than the comic: a visitor who did not come to read
@@ -236,7 +246,7 @@ else. Only which row each panel is in changed — every overlap is the one it ha
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
 
-**The phone's first screen is the hero.** Below 860px `WHAT'S HOT` is sized to
+**The phone's first screen is the hero.** Below 860px that panel is sized to
 `100dvh` less the top strip, so the dashboard opens as one full-bleed panel and
 everything under it is a scroll away. Stacked into a single column, six tilted
 panels otherwise arrive as a wall of edges; the panel that is the comic gets the
