@@ -130,6 +130,14 @@ body{
   padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
 }
 
+/* The reader is exactly one window tall at every size — full screen on a
+   phone, and a viewport-tall column on a desktop now that the top strip and
+   the footer are gone for that route. Nothing behind it may scroll: on a
+   phone that scrolled the page out from under the swipe, and on a desktop a
+   scrollbar for a page that has nowhere to go is a page that is a few pixels
+   too tall. `data-reading` is set by the Reader while it is mounted. */
+html[data-reading]{overflow:hidden}
+
 img{max-width:100%;height:auto;display:block}
 button{font:inherit;color:inherit}
 
@@ -153,7 +161,7 @@ button{font:inherit;color:inherit}
 .rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
 .ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
 .rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
-.btn,.page__tag,.empty h2,.prose h2,.prose h3{
+.btn,.empty h2,.prose h2,.prose h3{
   font-family:var(--face);
   font-weight:700;
   text-transform:uppercase;
@@ -938,6 +946,15 @@ html[data-drawer="open"] .scrim{
   margin:0;font-weight:700;
   font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;letter-spacing:.01em;
   margin-inline-end:auto;
+  display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
+}
+/* The chapter's number, beside the creator's name for it. Smaller and quieter:
+   it is the shelf's index into the running order, not part of the title. */
+.panel__of{
+  font-size:.6875rem;letter-spacing:.08em;
+  color:var(--ch-ink,#fff);opacity:.72;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
 }
 /* counter rides in a deep-tone chip: reads as HUD instrumentation, and
    keeps small text off the bright plate where it would sit at 4:1 */
@@ -963,6 +980,42 @@ a.btn:hover{transform:translateY(-2px)}
 a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .btn--solid{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 .ch:hover .btn--solid{transform:translateY(-2px)}
+/* A button that is only its mark: square, so the pill does not read as a word
+   with the word missing. It always carries the word somewhere else — an
+   aria-label, and the tip below. */
+.btn--mark{
+  flex:0 0 auto;
+  inline-size:2.1rem;block-size:2.1rem;
+  padding:0;
+  justify-content:center;
+}
+.btn--mark svg{inline-size:16px;block-size:16px}
+
+/* ── the hover tip ──────────────────────────────────────────
+   For a control whose label had to come off. The chip is the same one the
+   editor draws over an editable field, which is deliberate: the site already
+   says "this is what that is" in exactly this shape.
+
+   It appears on :focus-visible as well as on hover, so a keyboard gets it —
+   and it is never the only place the label exists, because a tip a screen
+   reader cannot reach is not a label at all. */
+.tipped{position:relative}
+.tipped::after{
+  content:attr(data-tip);
+  position:absolute;z-index:20;
+  /* Aligned to the control's leading edge, not centred on it. Centred, a tip
+     on the first control in a bar hangs half of itself off the panel — and
+     the panel clips its own interior, so half the label simply vanished. */
+  inset-block-start:calc(100% + .45rem);inset-inline-start:0;
+  white-space:nowrap;pointer-events:none;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.08em;
+  padding:.25rem .5rem;border-radius:6px;
+  background:var(--navy);color:var(--gold);
+  border:2px solid var(--gold);
+  opacity:0;transition:opacity .14s var(--ease);
+}
+.tipped:hover::after,.tipped:focus-visible::after{opacity:1}
 
 /* read-aloud button. A <button>, so it needs the family and the pointer that
    the <a> rules above get for free. */
@@ -1071,18 +1124,42 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   background:#fff;
   box-shadow:0 14px 34px rgba(0,0,0,.55);
 }
-.page__tag{
-  position:absolute;top:.55rem;left:.55rem;
-  display:inline-flex;align-items:baseline;gap:.3rem;
-  font-size:.625rem;letter-spacing:.1em;
-  text-transform:uppercase;
-  padding:.3rem .7rem .34rem .55rem;
-  background:var(--navy);color:var(--gold);
-  clip-path:polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-  font-variant-numeric:tabular-nums;
-  rotate:-4deg;
+/* ── pinch to zoom ──────────────────────────────────────────
+   A page is 1080px of ink and a phone shows it at about a third of that, so
+   the lettering in a corner panel is not readable at the size the page
+   arrives. Two fingers scale it; ctrl-wheel (which is what a trackpad pinch
+   sends) does the same on a desktop.
+
+   Reader.tsx writes `translate` and `scale` straight onto the artwork and
+   never through React, for the reason the swipe does not either. Everything
+   here is the frame around that: what the transform is measured from, what
+   clips it, and who owns the touch while it is up. */
+.page img,.sheet{transform-origin:center center}
+
+/* Zoomed, the page is bigger than the box it sits in, so the box has to clip
+   it — otherwise it spills over the timeline, the dock and the top bar, which
+   is the one state where the chrome would sit inside the artwork instead of
+   stopping at its border. Positioned for the pill below; nothing else in here
+   is absolute against it. */
+.reader{position:relative}
+.view--read[data-zoom="on"] .reader{
+  overflow:hidden;
+  /* While the page is bigger than its frame every drag belongs to it: a
+     one-finger drag pans, and there is nothing else it could sensibly mean. */
+  touch-action:none;
 }
-.page__of{color:var(--ink-soft);font-weight:400}
+
+/* The way back to life size for anyone who did not arrive here with two
+   fingers — a mouse, a trackpad, a keyboard (Escape does the same). */
+.zoomout{
+  position:absolute;inset-block-start:.55rem;inset-inline-end:.55rem;z-index:4;
+  padding:.35rem .7rem;cursor:pointer;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.08em;
+  background:var(--navy);color:var(--gold);
+  border:2px solid var(--gold);border-radius:999px;
+}
+.zoomout:hover{background:var(--gold);color:var(--navy)}
 
 /* ── the flips ──────────────────────────────────────────── */
 
@@ -1127,16 +1204,17 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   transition:inline-size .3s var(--ease);
 }
 
+/* Closed until asked for. It used to open on hover over the stage, which meant
+   a hundred pixels of thumbnails under every page for as long as the pointer
+   was anywhere near the artwork — and the page is the product, so the page
+   gets that height back. The `Pages` control opens it, at both sizes, from the
+   same attribute. */
 .timeline__clip{
   block-size:0;overflow:hidden;
   transition:block-size .28s var(--ease);
 }
-.stage:hover .timeline__clip,
-.stage:focus-within .timeline__clip{block-size:var(--film-h)}
-@media (hover:none){
-  .flip{opacity:1}
-  .timeline__clip{block-size:var(--film-h)}
-}
+.view--read[data-drawer="pages"] .timeline__clip{block-size:var(--film-h)}
+@media (hover:none){.flip{opacity:1}}
 
 .filmstrip{
   padding:.7rem clamp(1rem,3vw,1.75rem);
@@ -1168,11 +1246,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .filmstrip button[aria-current="true"] .film__n{background:var(--gold);color:var(--navy)}
 
-/* ── the phone's controls ───────────────────────────────── */
-
-/* display:none above 860px, so exactly one set of reader controls is ever in
-   the accessibility tree — the same rule the rail and the tab bar follow. */
-.rdock{display:none}
+/* ── the reader's controls ──────────────────────────────────
+   Two sets, one at a time. `.rdock` is the phone's and `.rtools` is the
+   desktop's, and each is `display:none` where the other one lives — the same
+   rule the rail and the tab bar already follow, so exactly one set of reader
+   controls is ever in the accessibility tree. */
+.rdock,.rtools{display:none}
 
 /* ── the standing note, folded into the heading ─────────── */
 
@@ -1419,8 +1498,15 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    the artwork. Below that the script stacks under the page rather than
    disappearing: it is the only text version of the page there is, and hiding
    it on a phone would take the comic away from exactly the readers who most
-   need it as text. */
-@container read (min-width:900px){
+   need it as text.
+
+   820px, down from 900. The number was set when the page had a fixed height
+   and the panel could scroll, so a narrow row cost the artwork width it could
+   not get back. It is bound by HEIGHT now — the reader is one window tall —
+   so a stacked column is the expensive layout: it takes the page's height,
+   which is the whole budget, to save width the page was not using. At a
+   1024px window that swap is a page half again as large. */
+@container read (min-width:820px){
   .spread{flex-direction:row;align-items:stretch}
   .script{
     flex:0 0 clamp(290px,32%,420px);
@@ -1433,7 +1519,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      is three sentences, not a transcript, so it does not get a transcript's
      share of the width. */
   .script--empty{flex-basis:clamp(240px,24%,320px)}
-  .reader{block-size:clamp(380px, calc(100dvh - 19rem), 920px)}
+  /* No height here any more. The desktop reader is a viewport-tall flex
+     column now, so the page takes whatever the bar and the controls leave
+     rather than a figure worked out from how much chrome used to be above
+     and below it. */
 }
 
 /* ═══ THE SHELF ═══════════════════════════════════════════
@@ -1447,13 +1536,31 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   padding:clamp(1rem,3vw,1.75rem);
 }
 
+/* A chapter reads as one thing: a cover, and beside it everything the shelf
+   has to say about it. It used to be a heading with a scrolling strip of every
+   page underneath, which made this a page list wearing chapter headings. */
 .chapter{
   position:relative;
+  display:flex;align-items:flex-start;
+  gap:clamp(.8rem,2vw,1.15rem);
   padding:clamp(.9rem,2vw,1.2rem);
   background:rgba(8,14,29,.5);
   border:3px solid var(--navy-line);
   border-radius:var(--r-sm);
 }
+.chapter__cover{
+  flex:0 0 auto;
+  display:block;line-height:0;
+  inline-size:clamp(64px,9vw,92px);
+  border:3px solid var(--navy-line);border-radius:3px;
+  overflow:hidden;background:var(--navy);
+}
+.chapter__cover img,
+.chapter__cover .thumb__blank{
+  inline-size:100%;block-size:auto;
+  aspect-ratio:2/3;object-fit:cover;
+}
+.chapter__body{flex:1;min-inline-size:0}
 .chapter__head{
   display:flex;align-items:flex-start;gap:.85rem;flex-wrap:wrap;
   margin-block-end:.9rem;
@@ -1482,30 +1589,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .chapter__none{margin:0;font-size:.875rem;color:var(--ink-soft)}
 
-.chapter__strip{
-  list-style:none;margin:0 0 .9rem;padding:.15rem .15rem .5rem;
-  display:flex;gap:.5rem;overflow-x:auto;
-  scrollbar-width:thin;scrollbar-color:var(--navy-line) transparent;
-}
-/* Without this they shrink to fit instead of scrolling, and ten pages of a
-   chapter become ten slivers. */
-.chapter__strip>li{flex:0 0 auto}
-.thumb{
-  position:relative;display:block;line-height:0;
-  border:3px solid var(--navy-line);border-radius:3px;
-  overflow:hidden;
-  transition:transform .16s var(--ease), border-color .16s;
-}
-.thumb img{inline-size:52px;block-size:78px;object-fit:cover}
-.thumb:hover,.thumb:focus-visible{transform:translateY(-3px);border-color:#fff}
-.thumb__n{
-  position:absolute;inset-block-end:0;inset-inline-start:0;
-  padding:.12rem .3rem .14rem;
-  font-family:var(--face);font-weight:700;
-  font-size:.5625rem;letter-spacing:.05em;line-height:1;
-  font-variant-numeric:tabular-nums;
-  background:var(--navy);color:var(--ink-soft);
-}
 .chapter__go{margin:0}
 .shelf__add{margin:0}
 
@@ -1684,11 +1767,15 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .dash>.slab + .slab{margin-top:0}
 
+  /* Quick access sits directly under the two top panels: it is the only row
+     that is navigation rather than the comic, and a visitor who did not come
+     to read should not have to pass the whole draft shelf to find it. The
+     rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
   .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
-  .dash__drafts{grid-column:1/8;  grid-row:2; margin-top:-1.15rem;margin-right:-.6rem}
-  .dash__status{grid-column:8/13; grid-row:2; margin-left:-.7rem;margin-top:-1.8rem}
-  .dash__quick {grid-column:1/13; grid-row:3; margin-top:-1rem}
+  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem}
+  .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
+  .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
   .crumb{display:flex}
 }
@@ -1754,8 +1841,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    ═══════════════════════════════════════════════════════ */
 
 @media (max-width:859px){
-  html[data-reading]{overflow:hidden}
-
   .view--read{
     position:fixed;inset:0;z-index:80;
     inline-size:auto;margin:0;padding:0;
@@ -1817,9 +1902,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      fixed-position descendant. With it on, the drawers inside .stage were
      positioned against .stage rather than the viewport and their z-index was
      clamped inside it, so the scrim — a sibling of .stage — covered them and
-     swallowed every tap. Nothing needs the query here: it only ever matches
-     at a container width of 900px, which cannot happen below an 860px
-     viewport, so turning containment off costs nothing. */
+     swallowed every tap. Nothing needs the query here: turning containment
+     off means there is no `read` container at all below 860px, so the
+     side-by-side rules cannot match however wide the box gets — which is what
+     lets that switch sit at 820px without reaching into the phone. */
   .view--read .stage{
     container-type:normal;
     position:static;
@@ -1836,10 +1922,16 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .view--read .page img{max-block-size:100%}
   .view--read .page img,.view--read .sheet{box-shadow:none}
 
-  /* The page number is already in the bar and again in the dock. A third copy
-     tipped over the artwork is noise, and it is the one that has nowhere
-     sensible to sit once the page is bound by width rather than height. */
-  .view--read .page__tag{display:none}
+  /* The artwork itself takes the whole gesture here, and only here. `pan-y`
+     on .reader exists so a vertical drag can still scroll the page under a
+     panel — but this reader IS the viewport, `html[data-reading]` has already
+     stopped the document scrolling, and there is nothing left for the browser
+     to do with a second finger except swallow the pinch. The flip gutters
+     keep pan-y, so nothing above 860px changes. */
+  .view--read .page{touch-action:none}
+
+  /* The page number is in the bar and again in the dock, and the dock's is
+     the one a thumb is already near. */
   .view--read .panel__count{display:none}
 
   /* ── the drawers ────────────────────────────────────────
@@ -1938,6 +2030,178 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .hero{min-height:0}
   .hero__screen{flex:0 0 clamp(180px,44vw,280px);width:100%}
 }
+
+/* ═══ THE DESKTOP READER ══════════════════════════════════
+   The page is the product, so on a desktop it now gets the
+   whole window rather than a panel in a page that scrolls.
+   Everything that used to be above and below it is either
+   gone for this route or behind a control:
+
+     · the top strip and the footer are `display:none` while
+       `data-reading` is set, which is /read/[n] and nothing
+       else — a breadcrumb and three counters are not worth
+       160px of the page
+     · the filmstrip opens from `Pages` instead of on hover
+     · what is left is a bar, the page, and three controls
+
+   Everything is a flex column from the view down to the
+   artwork, so the page is not sized by a figure worked out
+   from how much chrome there used to be — it takes what is
+   left, at any window height.
+   ═══════════════════════════════════════════════════════ */
+
+@media (min-width:860px){
+  html[data-reading] .sysbar,
+  html[data-reading] .foot{display:none}
+
+  /* Exactly the window, less the tab bar where there still is one (below
+     1024px, where --tabh is 62px rather than 0). */
+  .view--read{
+    block-size:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;
+    padding-block:.55rem;
+  }
+  .view--read>.slab{flex:1;min-block-size:0}
+  .view--read .panel{flex:1;min-block-size:0}
+  .view--read .panel__in{display:flex;flex-direction:column}
+  .view--read .stage{flex:1;min-block-size:0;display:flex;flex-direction:column}
+  .view--read .spread{flex:1;min-block-size:0}
+  .view--read .reader{flex:1;min-block-size:0;block-size:auto}
+  /* Between 860px and the width where the script earns a column of its own it
+     stacks UNDER the page, and there is no longer a scrollbar for it to run
+     into — the view is exactly one window tall. So it takes a share and
+     scrolls inside it, rather than pushing the page down to whatever is left.
+     Overridden back to the row's full height below, where it is a column. */
+  .view--read .script{overflow-y:auto;max-block-size:38%}
+
+  .rtools{
+    display:flex;align-items:center;gap:.5rem;
+    flex:0 0 auto;
+    position:relative;z-index:6;
+    padding:.5rem .7rem;
+    background:var(--navy-lift);
+    border-block-start:3px solid #fff;
+    transition:translate .24s var(--ease), opacity .24s var(--ease);
+  }
+  .rtool{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.42rem .75rem;border-radius:999px;cursor:pointer;
+    background:var(--navy);color:#fff;
+    border:3px solid #fff;
+    font-family:var(--face);font-weight:700;text-transform:uppercase;
+    font-size:.625rem;letter-spacing:.06em;
+  }
+  .rtool svg{inline-size:13px;block-size:13px}
+  .rtool:hover{border-color:var(--gold);color:var(--gold)}
+  .rtool.is-on{background:var(--gold);color:var(--navy);border-color:#fff}
+  .rtool.is-on:hover{color:var(--navy)}
+  /* Pushed to the far end, so the two page controls stay together and the
+     mode control sits on its own. */
+  .rtools .rtool:last-child{margin-inline-start:auto}
+}
+
+/* Beside the page rather than under it, the column's height is the row's and
+   not a share of anything. Same query as the layout switch itself, and after
+   the block above so it is the one that lands. */
+@container read (min-width:820px){
+  .view--read .script{max-block-size:none}
+}
+
+/* ═══ CINEMATIC ═══════════════════════════════════════════
+   The page, the script beside it, and nothing else. Real full
+   screen rather than a big div: the browser's own chrome is
+   part of what stands between a reader and the page, and only
+   the Fullscreen API can take that. The attribute carries the
+   styling either way, so a browser that refuses gets the mode
+   inside the window it already had.
+
+   The panel's own construction comes off here for the same
+   reason it comes off on a phone — a rotated, clipped,
+   drop-shadowed slab has nothing to cast a shadow onto when
+   it is the whole screen, and its cut corners would be
+   notches out of the artwork's field.
+   ═══════════════════════════════════════════════════════ */
+
+.view--read[data-cinema="on"]{
+  position:fixed;inset:0;z-index:95;
+  inline-size:auto;block-size:auto;margin:0;padding:0;
+  display:flex;flex-direction:column;
+  background:var(--navy);
+}
+.view--read[data-cinema="on"]>.slab{
+  filter:none;rotate:none;position:static;isolation:auto;
+  flex:1;min-block-size:0;padding:0;
+}
+.view--read[data-cinema="on"]>.slab::before{display:none}
+.view--read[data-cinema="on"] .panel{
+  --cut:none;clip-path:none;
+  position:static;padding:0;background:none;
+  flex:1;min-block-size:0;
+}
+.view--read[data-cinema="on"] .panel__in{
+  clip-path:none;background:var(--navy);
+  display:flex;flex-direction:column;
+}
+
+/* The heading stays — it is the page's only <h1>, and a mode is no reason to
+   take a landmark out of the accessibility tree. Everything else in the bar
+   is chrome, so the bar keeps the title and the count, loses its plate, and
+   retracts with the rest of the chrome on a tap. */
+.view--read[data-cinema="on"] .panel__bar{
+  position:absolute;inset-inline:0;inset-block-start:0;z-index:7;
+  padding:.5rem .9rem;
+  border-block-end:0;
+  background:linear-gradient(rgba(8,14,29,.92), rgba(8,14,29,0));
+  transition:translate .24s var(--ease), opacity .24s var(--ease);
+}
+.view--read[data-cinema="on"] .panel__bar::before{display:none}
+.view--read[data-cinema="on"] .panel__bar > :not(.panel__title):not(.panel__count){display:none}
+.view--read[data-cinema="on"] .panel__count{background:rgba(8,14,29,.75)}
+.view--read[data-cinema="on"][data-bare="on"] .panel__bar{translate:0 -100%;opacity:0}
+
+/* The script hugs the page instead of being parked at the far edge of the
+   window. The two become one centred group: the reader stops filling the row
+   and shrink-wraps its page, and the column sits against it. */
+.view--read[data-cinema="on"] .spread{justify-content:center}
+.view--read[data-cinema="on"] .reader{flex:0 1 auto;min-inline-size:0}
+.view--read[data-cinema="on"] .script{
+  flex:0 1 min(38ch,32vw);
+  border:0;
+  background:rgba(8,14,29,.6);
+  padding-block:clamp(2.6rem,6vh,4rem);
+}
+/* Three sentences explaining that there is no script yet is exactly the kind
+   of thing this mode is for getting rid of. */
+.view--read[data-cinema="on"] .script--empty{display:none}
+
+/* The strip is still reachable, as a band above the controls rather than a
+   drawer the page has to shrink for — in here the page shrinking is the one
+   thing nothing is allowed to do. */
+.view--read[data-cinema="on"] .timeline{display:none}
+.view--read[data-cinema="on"][data-drawer="pages"] .timeline{
+  display:block;
+  position:absolute;inset-inline:0;inset-block-end:4.6rem;z-index:6;
+  background:rgba(8,14,29,.94);
+  border-block:3px solid #fff;
+}
+.view--read[data-cinema="on"] .timeline__rail{display:none}
+
+/* The controls become a pill floating over the page, and go with the rest of
+   the chrome on a tap. */
+.view--read[data-cinema="on"] .rtools{
+  position:absolute;inset-block-end:1rem;inset-inline-start:50%;
+  translate:-50% 0;
+  inline-size:max-content;max-inline-size:calc(100% - 2rem);
+  z-index:8;
+  padding:.45rem .55rem;
+  border:3px solid #fff;border-radius:999px;
+  background:rgba(8,14,29,.9);
+  box-shadow:0 10px 26px rgba(0,0,0,.55);
+}
+/* Three buttons in a row here, not two and a gap: the pill is the width of
+   what is in it. */
+.view--read[data-cinema="on"] .rtools .rtool:last-child{margin-inline-start:0}
+.view--read[data-cinema="on"][data-bare="on"] .rtools{translate:-50% 160%;opacity:0}
 
 @media (max-width:620px){
   /* the cuts scale down with the keyline — a 20px nick on a 320px panel

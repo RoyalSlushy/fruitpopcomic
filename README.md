@@ -143,7 +143,13 @@ docs/cms.md           how the CMS works and how to edit
 Click the **gear in the footer** — or go to `/#cms`, which still works — sign in,
 and the page becomes editable in place. Click any text to edit it; Enter commits,
 Escape cancels. Lists get add / move / delete controls. Save writes only the
-sections you actually changed.
+sections you actually changed. Clicking away from the sign-in box closes the
+editor again, and **Done** signs out and closes it.
+
+In the reader, **tap the page** to get its image, its thumbnail and its script
+in one sheet — the only route to the drawing itself, and the one that works on a
+phone, where there is no hover for the CMS to hide behind. The reader has no
+footer and so no gear: sign in from any other page, or use `/read/1#cms`.
 
 Full detail — including how the merge behaves when you change content in code
 after editing it in the CMS — is in [`docs/cms.md`](docs/cms.md).

@@ -224,9 +224,14 @@ work, and all three are load-bearing:
 
 ```
 WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
-THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
 QUICK ACCESS (full width)
+THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
 ```
+
+Quick access sits directly under the two top panels because it is the only row
+that is navigation rather than the comic: a visitor who did not come to read
+should not have to pass the whole draft shelf to find the way to everything
+else. Only which row each panel is in changed — every overlap is the one it had.
 
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
@@ -252,18 +257,50 @@ There is one chapter, and its title says what the pages actually are. The drafts
 carry timestamp filenames, no numbers and no grouping — the real chapter breaks
 are not known, and inventing them would be inventing the story's shape.
 
-**Reader.** The page is the product, so the page gets the room. The image fills
-its parent's height and gives that up rather than distort when the box is
-narrower than a 2:3 page, which is only ever a phone — there the reader wraps the
-page instead of padding dead navy around it.
+**And it lists chapters, not pages.** Each entry used to unroll into a scrolling
+strip of every page it holds, which made the chapter list a page list wearing
+chapter headings — ten thumbnails to skim before the next title, and the trade
+gets worse with every chapter the comic gains. An entry is now a cover, a name,
+a line about it, a count and one destination. Choosing a particular page is the
+reader's own `Pages` control, which is where you already are when you want one.
 
-Three controls are revealed rather than parked on screen:
+The cover is not a link and not in the tab order. The entry has exactly one
+destination and it is the button beside it; a second link to the same place is
+noise in a tab sequence and nothing at all to a screen reader.
+
+**Reader.** The page is the product, so the page gets the room — the whole
+window of it. On a desktop the reader is a viewport-tall flex column from the
+view down to the artwork, and everything that used to sit above and below it is
+either gone for this route or behind a control:
+
+- **The top strip and the footer are `display:none` while `data-reading` is
+  set**, which is `/read/[n]` and nothing else. A breadcrumb and three counters
+  are not worth 160px of the page, and the rail is still there to navigate with.
+- **The filmstrip is behind a `Pages` button** rather than opening on hover.
+  Parked under the artwork it cost every page a hundred pixels of height, all
+  day, to show ten thumbnails of the pages you are not reading.
+- **The page number is not tipped over the artwork.** It was a corner flag on
+  the drawing that said what the bar already said two feet away, and the bar's
+  copy is the one that is never in the way.
+- What is left is a bar, the page, and three controls.
+
+The bar itself is down to the chapter and the count. `Chapters` is a back mark
+rather than a word, because the room it was taking is the title's; it keeps the
+label as an `aria-label` and as a tip on hover and on focus, so the only thing
+lost is the width. Beside the title is **`(Chapter NN)`** — the title is the
+creator's words and may carry no number at all, while this one is the running
+order's and always does.
+
+Nothing in that column is sized by a figure. The page takes what the bar and the
+controls leave, at any window height, rather than a `calc()` worked out from how
+much chrome there used to be.
+
+Two controls are revealed rather than parked on screen:
 
 | Control | At rest | Revealed by |
 |---|---|---|
 | The standing note | an `ⓘ` in the heading | hover, focus, or click on the mark |
 | The page flips | nothing | hover or focus anywhere in `.stage` |
-| The timeline | a 7px progress rail | hover or focus anywhere in `.stage` |
 
 Each obeys the same three rules, and they are not optional:
 
@@ -274,6 +311,16 @@ Each obeys the same three rules, and they are not optional:
 3. It is permanently visible under `@media (hover: none)`. A control that exists
    only under a mouse pointer is a control half the visitors do not have.
 
+The reader's own controls follow the same rule as the rail and the tab bar:
+`.rtools` is the desktop's set and `.rdock` is the phone's, each `display:none`
+where the other one lives, so exactly one set is ever in the accessibility tree.
+
+| Control | Does |
+|---|---|
+| `Pages` | opens the filmstrip, in flow, the page shrinking to make room |
+| `Zoom` / `Fit page` | steps to 2× and back, for the pointer that cannot pinch |
+| `Cinema` | below |
+
 The flips are anchored to `.plate`, which shrink-wraps the page, so they sit
 against its edges rather than stranded at the sides of a column a portrait page
 never fills. They stay outside the page border — the chrome stops there, and
@@ -283,8 +330,41 @@ out reads as the end of the comic.
 
 Whether there is room for the script column beside the page is a question about
 the panel, not about the viewport — the rail takes 238px off one and not the
-other — so it is a **container query** (`@container read (min-width: 900px)`)
+other — so it is a **container query** (`@container read (min-width: 820px)`)
 and not a media query.
+
+That number came down from 900 when the reader became viewport-tall. It was set
+when the page had a fixed height and the panel could scroll, so a narrow row
+cost the artwork width it could not get back. The page is bound by **height**
+now, which makes the stacked column the expensive layout: it spends the page's
+height, which is the whole budget, to save width the page was not using. At a
+1024px window the swap is a page half again as large.
+
+**Cinematic mode** is the same reader with everything else taken away: real
+full screen through the Fullscreen API, because the browser's own chrome is part
+of what stands between a reader and the page and only that API can take it. A
+browser that refuses — every iPhone, where there is no element full screen —
+still gets the mode inside the window it already had, because the attribute
+carries the styling and the API call is separate.
+
+What changes in it:
+
+- The panel's construction comes off, exactly as it does on a phone and for the
+  same reason: a rotated, clipped, drop-shadowed slab has nothing to cast a
+  shadow onto when it is the whole screen, and its cut corners would be notches
+  out of the artwork.
+- **The script hugs the page.** The reader box stops filling the row and
+  shrink-wraps its page, so the two become one centred group instead of a page
+  in the middle and a column stranded at the window's edge. An empty script is
+  not shown at all — three sentences explaining that there is no transcript yet
+  is exactly what this mode is for getting rid of.
+- The bar keeps the `<h1>` and the counter and loses everything else; a mode is
+  no reason to take a landmark out of the accessibility tree. It and the control
+  pill retract together on a tap, and the tap works on the bare field either
+  side of the page as well as on the page itself.
+- The filmstrip becomes a band floating above the controls rather than a drawer
+  the page shrinks for. In here, the page shrinking is the one thing nothing is
+  allowed to do.
 
 **The phone's reader.** Below 860px the reader stops being a panel on a page and
 becomes the whole screen. Same markup: the drawers **are** the timeline and the
@@ -296,10 +376,11 @@ reader controls is ever in the accessibility tree.
 
 | | Desktop | Phone |
 |---|---|---|
-| Page timeline | strip under the page, on hover | `Pages` drawer, a grid |
+| Page timeline | `Pages`, a strip in flow | `Pages` drawer, a grid |
 | Script | column beside the page | `Script` drawer |
 | Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
-| Chrome | always | retracts on a tap on the page |
+| Chrome | always, or `Cinema` | retracts on a tap on the page |
+| Zoom | `Zoom`, ctrl-wheel (a trackpad pinch) | **pinch**, then one finger pans |
 
 **The drawers open in flow, and the page shrinks to make room.** They were
 overlays first — absolutely positioned sheets sliding up over the page, dimming
@@ -332,6 +413,30 @@ refuses at a chapter's edges: it still moves a little, which is what says there
 is nothing there. Two details make it work at all — `draggable={false}` and
 `-webkit-user-drag:none`, because Chromium starts a native image drag on
 pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+**Pinch to zoom, because a page is 1080px of ink and a phone shows it at about
+a third of that.** The lettering in a corner panel is not readable at the size
+the page arrives, and "open the image in a new tab" is not a reader. Two fingers
+scale the artwork up to 4×; one finger then pans it instead of turning the page,
+because turning while zoomed is turning to a part of the next page nobody chose.
+It is written straight to the node, like the swipe and for the same reason —
+React learns only whether we are zoomed at all, which flips twice a gesture
+rather than sixty times a second.
+
+Four things keep it honest. The page is **reined in at its own edges**, so it
+cannot be dragged out into empty navy and lost. It is **clipped to the reader**
+while zoomed, so the artwork never spills over the chrome — the border rule
+holds in both directions. **Turning the page resets it**, because a zoom belongs
+to the page it was made on, and the `<img>` is the same node across a turn. And
+there is always a **way back out that is not a gesture**: Escape, or a `Fit page`
+pill, for the trackpad and the mouse and the keyboard.
+
+The one place the gesture is taken from the browser is `ctrl`-wheel, which is
+what a trackpad pinch sends and also how a browser is asked to zoom the whole
+document. On a phone the artwork takes `touch-action: none` — but only inside
+the full-screen reader, where `html[data-reading]` has already stopped the
+document scrolling and there is nothing for a second finger to mean. The flip
+gutters keep `pan-y`, and nothing above 860px changes.
 
 The page/cast/status readout is desktop furniture and is `display:none` on a
 phone: three numbers between the visitor and the comic, and the same counts are
@@ -406,6 +511,25 @@ These are design decisions, not copy suggestions.
   strip. Those thumbnails could not be clicked at all. The bar now folds down
   to a pill, and the shell reserves room below the page so the strip can be
   scrolled clear of it.
+- **The editor is dismissible.** Both of its exits used to lead back to a
+  password box: pressing Done dropped to the sign-in bar, and clicking off that
+  bar did nothing at all, so a gear pressed by accident left a password field
+  parked over the site until the page was reloaded. Now a press outside the
+  sign-in box, Escape, its `✕`, and Done all do the same thing — the editor
+  leaves the page, and the marker cookie that would reload it goes with it.
+  Only the sign-in box is dismissible that way; an editing session holds
+  unsaved work, and is closed by Done and by nothing else.
+- **Both of the site's editing affordances are hover-shaped** — a chip naming
+  the field, a Replace button over an image — so on a phone neither of them
+  exists. In the reader the same gesture that retracts the chrome raises a page
+  sheet instead: the page image, the thumbnail and the script, for the page you
+  are looking at. It closes on a tap outside it or Escape, and it is the same
+  surface with a mouse, because a desktop copy and a phone copy drift apart.
+
+  It also filled a hole that had nothing to do with phones. The reader's page
+  image was a plain `<img>` — the drawing itself, the one thing a comic CMS has
+  to be able to replace, was reachable from nowhere, and a script page could
+  never be given the art that would finish it.
 - **A page can exist before it is drawn.** A page with no image is a *script
   page*: it holds its place in the running order and shows its script on a
   paper-coloured sheet at the same 2:3 as every real page, so the shape of a

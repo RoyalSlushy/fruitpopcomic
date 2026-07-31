@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCms } from '../../lib/cms-context.tsx';
 import type { Sections } from '../../lib/cms.ts';
@@ -15,10 +15,12 @@ const MARKER = 'fp-cms-admin-chunk';   // grepped for by scripts/assert-visitor-
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
-export default function AdminRoot({ autoFocus = false }: {
+export default function AdminRoot({ autoFocus = false, onClose }: {
   /** true only when a deliberate click opened this, so landing on a page with
       a stale session never yanks focus into a password box. */
   autoFocus?: boolean;
+  /** Take the editor off the page entirely. See AdminGate. */
+  onClose: () => void;
 }) {
   const router = useRouter();
   const cms = useCms();
@@ -73,10 +75,16 @@ export default function AdminRoot({ autoFocus = false }: {
     await start();
   };
 
+  /* Done means done. Signing out used to drop back to the sign-in box, which
+     is the one thing someone who just left the editor is not asking for — it
+     left a password field over the site until the page was reloaded. The
+     server has cleared both cookies by then, so there is nothing to come back
+     to anyway. */
   const signOut = async () => {
     await fetch('/api/cms/logout', { method: 'POST' });
     exitEditMode();
     setAuthed(false);
+    onClose();
   };
 
   const save = async () => {
@@ -113,11 +121,37 @@ export default function AdminRoot({ autoFocus = false }: {
     }
   };
 
+  /* The sign-in box is dismissible, and only the sign-in box is: an editing
+     session holds unsaved work, so it is closed by Done and by nothing else.
+     The gate holds nothing. It is a bar over the site that anyone can raise
+     from the footer gear, so putting it away has to be as cheap as opening it
+     — a press anywhere outside it, or Escape.
+
+     pointerdown rather than click, for the reason the reader's drawers give:
+     it cannot race the compatibility mouse events a touch screen synthesises
+     after a tap. The press that opened this one has already been dispatched by
+     the time the listener exists, so it cannot close itself on the way up. */
+  const gate = useRef<HTMLDivElement>(null);
+  const dismissable = authed === false;
+  useEffect(() => {
+    if (!dismissable) return;
+    const onDown = (e: PointerEvent) => {
+      if (!gate.current?.contains(e.target as Node)) onClose();
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [dismissable, onClose]);
+
   if (authed === null) return null;
 
   if (!authed) {
     return (
-      <div className="cms-bar cms-bar--gate" data-marker={MARKER}>
+      <div className="cms-bar cms-bar--gate" data-marker={MARKER} ref={gate}>
         <form className="cms-login" onSubmit={signIn}>
           <label className="cms-login__label" htmlFor="cms-pw">Editor password</label>
           <input
@@ -131,6 +165,17 @@ export default function AdminRoot({ autoFocus = false }: {
           />
           <button className="btn btn--solid" type="submit">Sign in</button>
           {message && <span className="cms-bar__msg cms-bar__msg--bad" role="alert">{message}</span>}
+          {/* Clicking away does the same thing. This is the visible half of
+              it: a way out that does not have to be guessed at, and the only
+              one a keyboard reaches without knowing Escape closes this. */}
+          <button
+            className="cms-bar__fold"
+            type="button"
+            onClick={onClose}
+            aria-label="Close the editor"
+          >
+            ✕
+          </button>
         </form>
       </div>
     );

@@ -74,6 +74,25 @@ const PATHS: Record<string, React.ReactNode> = {
       <rect x="36" y="36" width="19" height="19" rx="3" />
     </>
   ),
+  /* A loupe. Drawn plain rather than with a plus in it: the control it labels
+     says "Zoom" or "Fit page" depending on where the page already is, and a
+     glyph that had to flip between + and − would say it a second time. */
+  zoom: (
+    <>
+      <circle cx="28" cy="28" r="16" />
+      <path d="M40 40 54 54" />
+    </>
+  ),
+  /* Four corners pulling away from each other — the frame a page opens into
+     in cinematic mode, and the standard mark for going full screen. */
+  cinema: (
+    <>
+      <path d="M10 23V10h13" />
+      <path d="M41 10h13v13" />
+      <path d="M54 41v13H41" />
+      <path d="M23 54H10V41" />
+    </>
+  ),
   close: <path d="M18 18 46 46M46 18 18 46" />,
   info: (
     <>
