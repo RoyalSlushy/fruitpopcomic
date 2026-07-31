@@ -236,6 +236,29 @@ else. Only which row each panel is in changed — every overlap is the one it ha
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
 
+**The phone's first screen is the hero.** Below 860px `WHAT'S HOT` is sized to
+`100dvh` less the top strip, so the dashboard opens as one full-bleed panel and
+everything under it is a scroll away. Stacked into a single column, six tilted
+panels otherwise arrive as a wall of edges; the panel that is the comic gets the
+screen instead. The artwork takes whatever the copy leaves rather than a fixed
+band of it, and the height is a `min-block-size` — in landscape the copy is
+taller than what is left of the window, and a hard height would clip it.
+
+The strip's height is **measured**, not written down: it is a clamp on a `vw`
+wordmark that can wrap, so the shell puts its real height on `<html>` as
+`--sysbar-h` with a `ResizeObserver` and the CSS subtracts that. `globals.css`
+carries a fallback for the first paint.
+
+The **tab bar retracts** while that first screen is showing and rides back in on
+the first scroll — the hero is the whole of the window, so nothing sits over its
+bottom edge. The shell writes `data-scrolled` on `<html>`; the retract is scoped
+to the dashboard at phone widths, because it is the one route guaranteed to be
+taller than the window and a bar that needs a scroll to appear on a page that has
+none is navigation nobody can reach. It hides by `visibility` on a stepped
+transition, the way the drawer does, so it leaves the tab order rather than
+lurking off-screen in it — and a `<noscript>` rule pins it open, since without
+script nothing sets the attribute and the drawer's button does not open either.
+
 A single repeating-conic speed-line burst sits behind the spread, thrown from
 behind the hero and masked to an ellipse. It is the page's one authored flourish;
 everything else is halftone, which is texture rather than event.

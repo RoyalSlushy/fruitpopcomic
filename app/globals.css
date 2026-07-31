@@ -82,6 +82,10 @@
 
   --rail:        0px;       /* sidebar column; only real at ≥1024px */
   --tabh:        62px;      /* bottom bar height on phones */
+  /* The top strip's height, measured onto <html> by the shell — the phone's
+     hero subtracts it from the window. This value is only ever the first
+     paint's, and is close enough that the correction is not a jump. */
+  --sysbar-h:    92px;
   --gap:         clamp(.8rem,1.5vw,1.15rem);
 
   /* Shuttleblock, from the Adobe Fonts kit. All four widths are named so the
@@ -332,6 +336,9 @@ html[data-drawer="open"] .scrim{
   background:var(--navy-lift);
   border-top:3px solid #fff;
   box-shadow:0 -10px 26px rgba(0,0,0,.5);
+  /* stepped the same way the drawer's is, so the bar is visible for the whole
+     slide in and leaves the tab order only once it has finished sliding out */
+  transition:translate .26s var(--ease), visibility 0s;
 }
 .tab{
   flex:1;min-width:0;
@@ -2026,9 +2033,42 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      the pixels rather than lingering in it. */
   .readout{display:none}
 
+  /* ── the phone's first screen ─────────────────────────────
+     One panel, the window less the top strip, and everything
+     under it a scroll away. The dashboard is a spread of six
+     panels stacked into one column here, which on a phone opens
+     as a wall of edges; giving the hero the whole screen makes
+     the first thing a visitor sees the comic rather than the
+     furniture around it.
+
+     --sysbar-h is measured onto <html> by the shell — see the
+     ResizeObserver there. min-block-size, not block-size: in
+     landscape the copy is taller than what is left of the
+     window, and a hard height would clip it rather than push
+     the panel past the fold.
+     ─────────────────────────────────────────────────────── */
+  .dash__hot{
+    min-block-size:calc(100dvh - var(--sysbar-h) - env(safe-area-inset-bottom));
+  }
   .hero .ch__in{flex-direction:column}
   .hero{min-height:0}
-  .hero__screen{flex:0 0 clamp(180px,44vw,280px);width:100%}
+  /* The picture takes whatever the copy leaves, rather than a fixed band of
+     it: the panel is now as tall as the window, and the artwork is the thing
+     that should grow into the difference. */
+  .hero__body{flex:0 0 auto}
+  .hero__screen{flex:1 1 auto;width:100%;min-block-size:clamp(180px,44vw,280px)}
+
+  /* The bar rides in on the first scroll, so the hero above is the whole of
+     the first screen. Dashboard only: it is the one route guaranteed to be
+     taller than the window, and a bar that needs a scroll to appear on a page
+     that has none is navigation a visitor cannot reach. `data-scrolled` is
+     set by the shell; the <noscript> rule beside the markup pins the bar open
+     where nothing sets it. */
+  html:not([data-scrolled="on"]) .shell[data-section="home"] .tabbar{
+    translate:0 calc(100% + 14px);
+    visibility:hidden;
+    transition:translate .26s var(--ease), visibility 0s linear .26s;
+  }
 }
 
 /* ═══ THE DESKTOP READER ══════════════════════════════════
