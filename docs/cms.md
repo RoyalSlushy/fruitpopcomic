@@ -29,6 +29,13 @@ The gear ships to every visitor, which is deliberate and costs nothing: opening
 the editor shell without the password gets you a sign-in box and a 401 on every
 write. Nothing guards the door except the password — see the security note below.
 
+**Opening it by accident costs nothing either.** Click anywhere outside the
+sign-in box — or press Escape, or its `✕` — and the editor leaves the page,
+marker cookie and all. **Done** does the same after a session: it signs out and
+closes, rather than dropping back to a password field nobody asked for. Only the
+sign-in box is dismissible by clicking away; an editing session holds unsaved
+work, so it closes on Done and on nothing else.
+
 | | |
 |---|---|
 | Click any text | edit it in place |
@@ -40,6 +47,25 @@ write. Nothing guards the door except the password — see the security note bel
 | `↑ ↓ ×` | reorder or delete a list item |
 | **+ Add** | append one, built from the schema template |
 | **Save** | writes only the sections that actually differ |
+
+## Editing a comic page
+
+In the reader, **tap or click the page itself**. That raises a sheet holding
+everything about the page you are looking at:
+
+| | |
+|---|---|
+| **Page image** | the drawing. Uploading one onto a page that has none is what turns a script page into a drawn page |
+| **Thumbnail** | what the strip shows; empty falls back to the page image |
+| **Script** | one beat per line, `NAME: line` for dialogue |
+
+Tap the page again, tap outside the sheet, or press Escape to put it away.
+Nothing is written until **Save** on the editor bar, the same as everywhere else.
+
+This is the only route to the page image, on any device — everywhere else the
+CMS reveals itself on hover, and a phone has no hover. The gesture is the same
+one that hides the reader's chrome for a visitor; in edit mode it raises this
+instead.
 
 Deleting a list item is permanent in the sense that matters: the stored array's
 length wins, so the code default will **not** bring it back. Reverting

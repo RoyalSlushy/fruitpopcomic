@@ -300,6 +300,7 @@ reader controls is ever in the accessibility tree.
 | Script | column beside the page | `Script` drawer |
 | Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
 | Chrome | always | retracts on a tap on the page |
+| Zoom | ctrl-wheel (a trackpad pinch) | **pinch**, then one finger pans |
 
 **The drawers open in flow, and the page shrinks to make room.** They were
 overlays first — absolutely positioned sheets sliding up over the page, dimming
@@ -332,6 +333,30 @@ refuses at a chapter's edges: it still moves a little, which is what says there
 is nothing there. Two details make it work at all — `draggable={false}` and
 `-webkit-user-drag:none`, because Chromium starts a native image drag on
 pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+**Pinch to zoom, because a page is 1080px of ink and a phone shows it at about
+a third of that.** The lettering in a corner panel is not readable at the size
+the page arrives, and "open the image in a new tab" is not a reader. Two fingers
+scale the artwork up to 4×; one finger then pans it instead of turning the page,
+because turning while zoomed is turning to a part of the next page nobody chose.
+It is written straight to the node, like the swipe and for the same reason —
+React learns only whether we are zoomed at all, which flips twice a gesture
+rather than sixty times a second.
+
+Four things keep it honest. The page is **reined in at its own edges**, so it
+cannot be dragged out into empty navy and lost. It is **clipped to the reader**
+while zoomed, so the artwork never spills over the chrome — the border rule
+holds in both directions. **Turning the page resets it**, because a zoom belongs
+to the page it was made on, and the `<img>` is the same node across a turn. And
+there is always a **way back out that is not a gesture**: Escape, or a `Fit page`
+pill, for the trackpad and the mouse and the keyboard.
+
+The one place the gesture is taken from the browser is `ctrl`-wheel, which is
+what a trackpad pinch sends and also how a browser is asked to zoom the whole
+document. On a phone the artwork takes `touch-action: none` — but only inside
+the full-screen reader, where `html[data-reading]` has already stopped the
+document scrolling and there is nothing for a second finger to mean. The flip
+gutters keep `pan-y`, and nothing above 860px changes.
 
 The page/cast/status readout is desktop furniture and is `display:none` on a
 phone: three numbers between the visitor and the comic, and the same counts are
@@ -406,6 +431,25 @@ These are design decisions, not copy suggestions.
   strip. Those thumbnails could not be clicked at all. The bar now folds down
   to a pill, and the shell reserves room below the page so the strip can be
   scrolled clear of it.
+- **The editor is dismissible.** Both of its exits used to lead back to a
+  password box: pressing Done dropped to the sign-in bar, and clicking off that
+  bar did nothing at all, so a gear pressed by accident left a password field
+  parked over the site until the page was reloaded. Now a press outside the
+  sign-in box, Escape, its `✕`, and Done all do the same thing — the editor
+  leaves the page, and the marker cookie that would reload it goes with it.
+  Only the sign-in box is dismissible that way; an editing session holds
+  unsaved work, and is closed by Done and by nothing else.
+- **Both of the site's editing affordances are hover-shaped** — a chip naming
+  the field, a Replace button over an image — so on a phone neither of them
+  exists. In the reader the same gesture that retracts the chrome raises a page
+  sheet instead: the page image, the thumbnail and the script, for the page you
+  are looking at. It closes on a tap outside it or Escape, and it is the same
+  surface with a mouse, because a desktop copy and a phone copy drift apart.
+
+  It also filled a hole that had nothing to do with phones. The reader's page
+  image was a plain `<img>` — the drawing itself, the one thing a comic CMS has
+  to be able to replace, was reachable from nowhere, and a script page could
+  never be given the art that would finish it.
 - **A page can exist before it is drawn.** A page with no image is a *script
   page*: it holds its place in the running order and shows its script on a
   paper-coloured sheet at the same 2:3 as every real page, so the shape of a

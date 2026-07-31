@@ -8,7 +8,8 @@ import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
 import { ListDrag } from '../cms/ListDrag.tsx';
-import { useCmsValue } from '../../lib/cms-context.tsx';
+import { PageTools } from '../cms/PageTools.tsx';
+import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
 import { scriptLines } from '../../lib/script.ts';
 import { mediaURL, pad } from '../../lib/media.ts';
@@ -36,6 +37,13 @@ function describe(page: ComicPage | undefined, n: number, total: number): string
 
 /** How far a drag has to travel before it counts as a page turn. */
 const swipeThreshold = (w: number) => Math.min(90, Math.max(44, w * 0.18));
+
+/* How far in a pinch can go. Four is roughly the point where a 1080px page
+   stops holding up on a phone screen; below 1.02 the gesture has effectively
+   ended and the page snaps back rather than sitting a hair off true. */
+const MAX_ZOOM = 4;
+const ZOOM_FLOOR = 1.02;
+const clampZoom = (s: number) => Math.min(MAX_ZOOM, Math.max(1, s));
 
 /* The reader.
  *
@@ -66,13 +74,21 @@ export function Reader({
   const chs = useCmsValue('pages.chapters', chapters);
   const pages = useCmsValue('pages.items', items);
 
+  const editing = useEditMode();
+
   const [idx, setIdx] = useState(start);
   const [drawer, setDrawer] = useState<null | 'pages' | 'script'>(null);
   const [bare, setBare] = useState(false);          // chrome hidden (immersive)
+  const [tools, setTools] = useState(false);        // the editor's page sheet
+  const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
 
   const strip = useRef<HTMLElement>(null);
   const reader = useRef<HTMLDivElement>(null);
   const plate = useRef<HTMLDivElement>(null);
+  /* Whichever of the two things a page can be: the artwork, or the sheet a
+     page that is written but not drawn gets. Only one is ever mounted, and
+     zoom transforms whichever it is. */
+  const media = useRef<HTMLElement | null>(null);
 
   /* The swipe offset is written straight to the node and never held in state.
      A setState per pointermove re-renders this whole component — the script
@@ -93,6 +109,82 @@ export function Reader({
     el.style.translate = `${px}px`;
   }, []);
 
+  /* ── zoom ───────────────────────────────────────────────────
+     A comic page is 1080px of ink and the phone shows it at about a third of
+     that, so the lettering in a corner panel is not readable at the size the
+     page arrives. Pinch is the answer everyone already knows.
+
+     It is written to the node for the same reason the swipe is: a setState per
+     pointermove re-renders the script column and every thumbnail in the strip
+     sixty times a second, and that is exactly what a pinch cannot afford.
+     React learns one thing — whether we are zoomed at all — because the CSS
+     needs to know, and that flips twice a gesture rather than sixty times.
+
+     `translate` then `scale` as separate properties, which compose in that
+     order: a point p sits at centre + offset + scale·p. Every line below is
+     that one equation rearranged. */
+  const zoom = useRef({ s: 1, x: 0, y: 0 });
+
+  const paint = useCallback((ease = false) => {
+    const el = media.current;
+    if (!el) return;
+    const { s, x, y } = zoom.current;
+    el.style.transition = ease ? 'translate .2s var(--ease), scale .2s var(--ease)' : 'none';
+    el.style.translate = s === 1 && !x && !y ? '' : `${x}px ${y}px`;
+    el.style.scale = s === 1 ? '' : String(s);
+    el.style.willChange = s > 1 ? 'translate, scale' : '';
+  }, []);
+
+  /* The page may be dragged until its edge reaches the frame's, and no
+     further: past that it is being pushed into empty navy, and letting go of
+     it there is how a reader loses the page entirely. */
+  const rein = useCallback(() => {
+    const el = media.current;
+    const box = reader.current;
+    if (!el || !box) return;
+    const z = zoom.current;
+    const mx = Math.max(0, (el.offsetWidth * z.s - box.clientWidth) / 2);
+    const my = Math.max(0, (el.offsetHeight * z.s - box.clientHeight) / 2);
+    z.x = Math.min(mx, Math.max(-mx, z.x));
+    z.y = Math.min(my, Math.max(-my, z.y));
+  }, []);
+
+  /* Scale to `target`, keeping whatever sits under (fx, fy) under it still,
+     and carry the focal point itself by (dx, dy) — which is how two fingers
+     pan and zoom in the same move. */
+  const zoomTo = useCallback((target: number, fx: number, fy: number, dx = 0, dy = 0) => {
+    const el = media.current;
+    if (!el) return;
+    const z = zoom.current;
+    const s = clampZoom(target);
+    const k = s / z.s;
+    const r = el.getBoundingClientRect();
+    /* The untransformed centre: the rect is already scaled about it, so the
+       offset comes back off to find where the page would sit at rest. */
+    const cx = (r.left + r.right) / 2 - z.x;
+    const cy = (r.top + r.bottom) / 2 - z.y;
+    z.s = s;
+    z.x = k * z.x + dx + (fx - cx) * (1 - k);
+    z.y = k * z.y + dy + (fy - cy) * (1 - k);
+    rein();
+    paint();
+    setZoomed(s > ZOOM_FLOOR);
+  }, [paint, rein]);
+
+  const unzoom = useCallback((ease = true) => {
+    zoom.current = { s: 1, x: 0, y: 0 };
+    paint(ease);
+    setZoomed(false);
+  }, [paint]);
+
+  /* Stable: the sheet holds a document listener that depends on it. */
+  const closeTools = useCallback(() => setTools(false), []);
+
+  /* Leaving edit mode with the sheet open would strand a piece of state
+     nobody can see — PageTools renders nothing for a visitor — and the next
+     tap would be spent dismissing something that is not there. */
+  useEffect(() => { if (!editing) setTools(false); }, [editing]);
+
   useEffect(() => { setIdx(start); }, [start]);
 
   /* Clamp rather than trust: a page can be deleted under the editor. */
@@ -107,8 +199,13 @@ export function Reader({
     const i = Math.max(0, Math.min(pages.length - 1, flat));
     setIdx(i);
     slide(null);
+    /* Zoom belongs to the page you were on. It is cleared here rather than in
+       an effect on the index because the <img> is the same node either way —
+       React swaps the src, not the element — so a transform left on it would
+       land the next page already three times life size and off centre. */
+    unzoom(false);
     history.replaceState(null, '', `/read/${i + 1}`);
-  }, [pages.length, slide]);
+  }, [pages.length, slide, unzoom]);
 
   /* Relative moves walk the CHAPTER, not the whole comic. */
   const step = useCallback((delta: number) => {
@@ -126,6 +223,7 @@ export function Reader({
       if (t?.isContentEditable) return;              // never steal keys mid-edit
       if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
       if (e.key === 'Escape' && drawer) { setDrawer(null); return; }
+      if (e.key === 'Escape' && zoom.current.s > 1) { unzoom(); return; }
       if (e.key === 'ArrowLeft') step(-1);
       if (e.key === 'ArrowRight') step(1);
       if (e.key === 'Home') { e.preventDefault(); if (sibs[0]) go(sibs[0].index); }
@@ -137,7 +235,24 @@ export function Reader({
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
-  }, [step, go, sibs, drawer]);
+  }, [step, go, sibs, drawer, unzoom]);
+
+  /* A trackpad pinch reaches the page as a wheel event with ctrlKey set, which
+     is also how a browser is asked to zoom the whole document — so this is the
+     one gesture that has to be taken from the browser rather than merely
+     handled. React registers its own wheel listener passively and a passive
+     listener may not preventDefault, hence the native one. */
+  useEffect(() => {
+    const box = reader.current;
+    if (!box) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      zoomTo(zoom.current.s * Math.exp(-e.deltaY / 180), e.clientX, e.clientY);
+    };
+    box.addEventListener('wheel', onWheel, { passive: false });
+    return () => box.removeEventListener('wheel', onWheel);
+  }, [zoomTo]);
 
   /* Keep the current page centred in the strip — but ONLY while the strip is
      a horizontal rail with somewhere to scroll. In the phone's drawer it is a
@@ -185,18 +300,74 @@ export function Reader({
      10px, so a turn cannot start halfway through a scroll. */
   const drag = useRef({ x: 0, y: 0, t: 0, axis: null as null | 'x' | 'y', on: false });
 
+  /* Every finger currently on the page, by id. Two of them is a pinch and one
+     of them on a zoomed page is a pan; neither is ever a page turn. */
+  const pts = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d: number; x: number; y: number } | null>(null);
+  /* Raised by any pinch or pan and lowered when the last finger leaves, so the
+     release that ends one is never also read as a tap. */
+  const moved = useRef(false);
+
+  /** Span and midpoint of the first two live pointers, or null under two. */
+  const pair = () => {
+    const [a, b] = [...pts.current.values()];
+    if (!a || !b) return null;
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+
   const onDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    /* A drawer is open: this press is dismissing it, not starting a gesture,
-       and it must not also flip the chrome away. */
-    if (drawer) return;
+    if (pts.current.size === 0) moved.current = false;
+    pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     /* Capture, so a drag that wanders off the page still reports its moves and
        its release here instead of being silently dropped mid-turn. */
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+
+    /* A second finger is a pinch, whatever the first one was doing. Half a
+       swipe snaps back rather than turning the page under the zoom. */
+    if (pts.current.size === 2) {
+      drag.current.on = false;
+      slide(null);
+      pinch.current = pair();
+      return;
+    }
+    /* A drawer or the editor's sheet is open: this press is dismissing it, not
+       starting a gesture, and it must not also flip the chrome away. */
+    if (drawer || tools) return;
     drag.current = { x: e.clientX, y: e.clientY, t: Date.now(), axis: null, on: true };
   };
 
   const onMove = (e: React.PointerEvent) => {
+    const prev = pts.current.get(e.pointerId);
+    if (prev) pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    /* Two fingers: the span sets the scale and the midpoint carries the page,
+       so a pinch that drifts across the screen zooms and pans in one move. */
+    if (pts.current.size >= 2) {
+      const was = pinch.current;
+      const now = pair();
+      if (!now) return;
+      pinch.current = now;
+      if (was && was.d > 0) {
+        moved.current = true;
+        zoomTo(zoom.current.s * (now.d / was.d), was.x, was.y, now.x - was.x, now.y - was.y);
+      }
+      return;
+    }
+
+    /* Zoomed in, one finger moves the page around inside its frame instead of
+       turning it. Turning while zoomed would be turning to a part of the next
+       page nobody chose. */
+    if (zoom.current.s > 1) {
+      if (!prev) return;
+      moved.current = true;
+      zoom.current.x += e.clientX - prev.x;
+      zoom.current.y += e.clientY - prev.y;
+      rein();
+      paint();
+      return;
+    }
+
     const d = drag.current;
     if (!d.on) return;
     const ax = e.clientX - d.x;
@@ -213,9 +384,18 @@ export function Reader({
   };
 
   const onUp = (e: React.PointerEvent) => {
+    pts.current.delete(e.pointerId);
+    if (pinch.current && pts.current.size < 2) {
+      pinch.current = null;
+      /* A pinch that came back to about life size is a pinch that was undone;
+         it settles on true rather than a hair off it. */
+      if (zoom.current.s <= ZOOM_FLOOR) unzoom();
+    }
+
     const d = drag.current;
     if (!d.on) return;
     d.on = false;
+    if (moved.current) return;         // a pan or a pinch: not a turn, not a tap
     const ax = e.clientX - d.x;
     const ay = e.clientY - d.y;
 
@@ -229,7 +409,11 @@ export function Reader({
     }
     /* A tap: no axis was ever decided and it did not linger. */
     if (!d.axis && Math.abs(ax) < 8 && Math.abs(ay) < 8 && Date.now() - d.t < 400) {
-      setBare((v) => !v);
+      /* The same tap, read against who is doing it. A reader wants the chrome
+         out of the way; an editor wants the page's image and its script, and
+         on a phone there is no hover for either of them to hide behind. */
+      if (editing) setTools(true);
+      else setBare((v) => !v);
     }
   };
 
@@ -246,6 +430,7 @@ export function Reader({
       className="view view--panel view--read"
       data-drawer={drawer ?? 'none'}
       data-bare={bare ? 'on' : 'off'}
+      data-zoom={zoomed ? 'on' : 'off'}
     >
       <div
         className="slab slab--bare"
@@ -276,7 +461,12 @@ export function Reader({
                   onPointerDown={onDown}
                   onPointerMove={onMove}
                   onPointerUp={onUp}
-                  onPointerCancel={() => { drag.current.on = false; slide(null); }}
+                  onPointerCancel={(e) => {
+                    pts.current.delete(e.pointerId);
+                    if (pts.current.size < 2) pinch.current = null;
+                    drag.current.on = false;
+                    slide(null);
+                  }}
                 >
                   <div className="plate" ref={plate}>
                     <button
@@ -290,6 +480,7 @@ export function Reader({
                       {page && !isScriptPage(page) && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
+                          ref={(el) => { media.current = el; }}
                           src={mediaURL(page.image)} alt={description}
                           width={1080} height={1620}
                           /* Chromium starts a native image drag on pointerdown,
@@ -304,7 +495,7 @@ export function Reader({
                           in the running order — the chapter can be built before
                           it is drawn. */}
                       {page && isScriptPage(page) && (
-                        <div className="sheet">
+                        <div className="sheet" ref={(el) => { media.current = el; }}>
                           <p className="sheet__tag">Not drawn yet</p>
                           {lines.length > 0 ? (
                             <ol className="sheet__lines">
@@ -337,6 +528,22 @@ export function Reader({
                       <Chevron />
                     </button>
                   </div>
+
+                  {/* The way back out of a zoom, for everyone who did not get
+                      in with two fingers and cannot get out with them either —
+                      a mouse, a keyboard, a trackpad that zoomed on ctrl-wheel.
+                      It stops the press it receives, or the reader underneath
+                      would read the same tap as "hide the chrome". */}
+                  {zoomed && (
+                    <button
+                      className="zoomout"
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => unzoom()}
+                    >
+                      Fit page
+                    </button>
+                  )}
                 </div>
 
                 {/* A drawn page's script sits beside it. A script PAGE is
@@ -442,6 +649,22 @@ export function Reader({
                 </button>
               )}
             </div>
+
+            {/* The editor's sheet, raised by a tap on the page. Renders nothing
+                for a visitor — the tap toggles the chrome for them and this
+                component is not in their bundle. Keyed by the page, so paging
+                with it open re-reads the page it is now over. */}
+            {tools && page && (
+              <PageTools
+                key={page.id}
+                index={at}
+                page={human}
+                image={page.image}
+                thumb={page.thumb}
+                script={page.script}
+                onClose={closeTools}
+              />
+            )}
 
             {/* Paging never moves focus — that would yank a keyboard visitor
                 off the arrow they are holding — so the change is announced

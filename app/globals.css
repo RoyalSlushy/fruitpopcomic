@@ -1084,6 +1084,43 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .page__of{color:var(--ink-soft);font-weight:400}
 
+/* ── pinch to zoom ──────────────────────────────────────────
+   A page is 1080px of ink and a phone shows it at about a third of that, so
+   the lettering in a corner panel is not readable at the size the page
+   arrives. Two fingers scale it; ctrl-wheel (which is what a trackpad pinch
+   sends) does the same on a desktop.
+
+   Reader.tsx writes `translate` and `scale` straight onto the artwork and
+   never through React, for the reason the swipe does not either. Everything
+   here is the frame around that: what the transform is measured from, what
+   clips it, and who owns the touch while it is up. */
+.page img,.sheet{transform-origin:center center}
+
+/* Zoomed, the page is bigger than the box it sits in, so the box has to clip
+   it — otherwise it spills over the timeline, the dock and the top bar, which
+   is the one state where the chrome would sit inside the artwork instead of
+   stopping at its border. Positioned for the pill below; nothing else in here
+   is absolute against it. */
+.reader{position:relative}
+.view--read[data-zoom="on"] .reader{
+  overflow:hidden;
+  /* While the page is bigger than its frame every drag belongs to it: a
+     one-finger drag pans, and there is nothing else it could sensibly mean. */
+  touch-action:none;
+}
+
+/* The way back to life size for anyone who did not arrive here with two
+   fingers — a mouse, a trackpad, a keyboard (Escape does the same). */
+.zoomout{
+  position:absolute;inset-block-start:.55rem;inset-inline-end:.55rem;z-index:4;
+  padding:.35rem .7rem;cursor:pointer;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.08em;
+  background:var(--navy);color:var(--gold);
+  border:2px solid var(--gold);border-radius:999px;
+}
+.zoomout:hover{background:var(--gold);color:var(--navy)}
+
 /* ── the flips ──────────────────────────────────────────── */
 
 .flip{
@@ -1835,6 +1872,14 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      tab bar — so the page takes the room it is actually given. */
   .view--read .page img{max-block-size:100%}
   .view--read .page img,.view--read .sheet{box-shadow:none}
+
+  /* The artwork itself takes the whole gesture here, and only here. `pan-y`
+     on .reader exists so a vertical drag can still scroll the page under a
+     panel — but this reader IS the viewport, `html[data-reading]` has already
+     stopped the document scrolling, and there is nothing left for the browser
+     to do with a second finger except swallow the pinch. The flip gutters
+     keep pan-y, so nothing above 860px changes. */
+  .view--read .page{touch-action:none}
 
   /* The page number is already in the bar and again in the dock. A third copy
      tipped over the artwork is noise, and it is the one that has nowhere

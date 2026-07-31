@@ -291,3 +291,134 @@
   gap: 0;
 }
 .cms-bar.is-slim > :not(.cms-bar__fold) { display: none }
+
+/* ── the reader's page sheet ────────────────────────────────
+   Raised by a tap on the page in edit mode. See PageToolsImpl: it is
+   portalled to <body>, so it has no ancestor here to be clipped by, contained
+   by, or hit-tested against — which is the whole reason it is not a drawer.
+
+   It sits above the phone's reader, which is fixed at z-index 80. */
+.pgt {
+  position: fixed;
+  z-index: 92;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  max-block-size: 82dvh;
+  overflow-y: auto;
+  padding: .7rem .8rem calc(.8rem + env(safe-area-inset-bottom));
+  background: var(--navy-lift);
+  border-block-start: var(--keyline) solid #fff;
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, .5);
+}
+
+/* On a desktop it is a card in a corner rather than a band across a 1600px
+   screen — the page it is editing is in the middle, and should stay looked at
+   while it is edited. */
+@media (min-width: 860px) {
+  .pgt {
+    inset-inline: auto 1rem;
+    inset-block-end: 6.5rem;
+    inline-size: min(24rem, calc(100vw - 2rem));
+    border: var(--keyline) solid #fff;
+    border-radius: 10px;
+  }
+}
+
+.pgt__bar { display: flex; align-items: center; gap: .5rem }
+.pgt__tag {
+  flex: 1;
+  font-family: var(--face);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .625rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+}
+.pgt__x {
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: var(--navy);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, .55);
+  border-radius: 999px;
+  font-size: .75rem;
+  line-height: 1;
+}
+
+.pgt__row { display: flex; align-items: center; gap: .6rem }
+.pgt__shot {
+  flex: 0 0 auto;
+  inline-size: 44px;
+  block-size: 66px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--navy);
+  border: 2px solid var(--navy-line);
+  border-radius: 3px;
+}
+.pgt__shot img { inline-size: 100%; block-size: 100%; object-fit: cover }
+.pgt__blank { color: var(--ink-soft); font-size: .875rem }
+
+.pgt__col { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: .15rem }
+.pgt__col b,
+.pgt__script b {
+  font-family: var(--face);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .5625rem;
+  letter-spacing: .08em;
+  color: #fff;
+}
+/* An object key is long and worth reading to the end of, so it wraps rather
+   than being cut off at a width nobody chose. */
+.pgt__meta {
+  font-size: .6875rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.pgt__btn {
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-family: var(--face);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .5625rem;
+  letter-spacing: .06em;
+  padding: .45rem .7rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy);
+  border: 2px solid #fff;
+}
+.pgt__btn:disabled { opacity: .45; cursor: not-allowed }
+
+.pgt__script { display: flex; flex-direction: column; gap: .25rem }
+/* A real textarea, not the contenteditable the rest of the CMS uses: this is
+   the phone's editor, and a form control is what gets a proper keyboard, an
+   undo stack, and a selection that does not fight the reader's own gestures.
+   16px, because anything smaller makes iOS zoom the whole page on focus. */
+.pgt__text {
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #DCE6FA;
+  background: var(--navy);
+  border: 2px dashed var(--navy-line);
+  border-radius: 4px;
+  padding: .5rem .6rem;
+  resize: vertical;
+}
+.pgt__text:focus { outline: none; border-color: var(--gold); border-style: solid }
+
+.pgt__err { margin: 0; font-size: .6875rem; color: #FFC7E4 }
+.pgt__note { margin: 0; font-size: .625rem; color: var(--ink-soft) }
