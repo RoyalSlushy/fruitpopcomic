@@ -249,11 +249,16 @@
    Editor-only, so a visitor's footer keeps its own spacing. */
 .shell { padding-block-end: 8rem }
 
-/* The phone's reader is full screen and does not scroll, so there is nothing
-   to scroll clear — the bar moves instead, up above the dock it would
-   otherwise cover. */
+/* The reader is one window tall and does not scroll, at either size, so there
+   is nothing to scroll clear of the bar — the reservation would only add a
+   page's worth of nothing under a view that already fits exactly. The bar
+   moves instead, up above the controls it would otherwise cover. */
+body:has(.view--read) .shell { padding-block-end: 0 }
 @media (max-width: 859px) {
   body:has(.view--read) .cms-bar { bottom: 5.25rem }
+}
+@media (min-width: 860px) {
+  body:has(.view--read) .cms-bar { bottom: 5rem }
 }
 
 /* Folded, the bar is just its own handle — enough to get it back, and small

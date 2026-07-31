@@ -67,6 +67,17 @@ CMS reveals itself on hover, and a phone has no hover. The gesture is the same
 one that hides the reader's chrome for a visitor; in edit mode it raises this
 instead.
 
+Two things about the reader are worth knowing before you go looking for them:
+
+- **The footer is not there**, so neither is the gear. The reader is one window
+  tall at every size now, and the top strip and the footer are hidden for that
+  route. Sign in from any other page — the marker cookie carries the editor
+  across — or use `/read/1#cms`, which still works.
+- **Cinematic mode is real full screen**, and an element outside the full-screen
+  one is not rendered by the browser at all. The page sheet follows you in; the
+  editor's save bar does not, because it belongs to the document rather than to
+  the reader. Leave cinematic mode to save.
+
 Deleting a list item is permanent in the sense that matters: the stored array's
 length wins, so the code default will **not** bring it back. Reverting
 `content/*.ts` won't restore it either — the only way back is deleting the

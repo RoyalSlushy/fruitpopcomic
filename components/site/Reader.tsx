@@ -81,7 +81,9 @@ export function Reader({
   const [bare, setBare] = useState(false);          // chrome hidden (immersive)
   const [tools, setTools] = useState(false);        // the editor's page sheet
   const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
+  const [cinema, setCinema] = useState(false);      // the page, and nothing else
 
+  const view = useRef<HTMLElement>(null);
   const strip = useRef<HTMLElement>(null);
   const reader = useRef<HTMLDivElement>(null);
   const plate = useRef<HTMLDivElement>(null);
@@ -177,6 +179,57 @@ export function Reader({
     setZoomed(false);
   }, [paint]);
 
+  /* One press, two directions: fit the page if it is zoomed, otherwise double
+     it about the middle of the frame. The continuous control is the pinch and
+     ctrl-wheel; this is the mouse's version of it, and a mouse wants a step
+     rather than a slider. */
+  const zoomStep = useCallback(() => {
+    const box = reader.current;
+    if (!box) return;
+    if (zoom.current.s > 1) { unzoom(); return; }
+    const r = box.getBoundingClientRect();
+    zoomTo(2, r.left + r.width / 2, r.top + r.height / 2);
+  }, [unzoom, zoomTo]);
+
+  /* ── cinematic ──────────────────────────────────────────────
+     Real full screen, not a big div: the browser's own chrome is part of what
+     is between the reader and the page, and only the Fullscreen API can take
+     it. The attribute does the styling either way, so a browser that refuses
+     the request — or has no element full screen at all, which is every iPhone
+     — still gets the mode, just inside the window it already had. */
+  const toggleCinema = useCallback(() => {
+    const el = view.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => setCinema(false));
+      return;
+    }
+    /* Optimistic: the class goes on now, and the listener below corrects it
+       if the request lands. Waiting on the promise would mean a mode that
+       does not exist for browsers that refuse. */
+    setCinema(true);
+    el.requestFullscreen?.().catch(() => {});
+  }, []);
+
+  /* The browser owns the exit as much as the button does — Escape and F11 both
+     leave full screen without asking us. */
+  useEffect(() => {
+    const sync = () => {
+      if (!document.fullscreenElement) setCinema(false);
+      else if (document.fullscreenElement === view.current) setCinema(true);
+    };
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, []);
+
+  /* Leaving full screen restores the chrome; entering it should not inherit a
+     retracted one. And the editor's sheet is portalled into whichever root is
+     showing, so it cannot survive the root changing under it. */
+  useEffect(() => {
+    setBare(false);
+    setTools(false);
+  }, [cinema]);
+
   /* Stable: the sheet holds a document listener that depends on it. */
   const closeTools = useCallback(() => setTools(false), []);
 
@@ -224,6 +277,12 @@ export function Reader({
       if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
       if (e.key === 'Escape' && drawer) { setDrawer(null); return; }
       if (e.key === 'Escape' && zoom.current.s > 1) { unzoom(); return; }
+      /* Only the fallback needs this: real full screen has already left by
+         the time a keydown reaches us, and setCinema followed. */
+      if (e.key === 'Escape' && cinema && !document.fullscreenElement) {
+        setCinema(false);
+        return;
+      }
       if (e.key === 'ArrowLeft') step(-1);
       if (e.key === 'ArrowRight') step(1);
       if (e.key === 'Home') { e.preventDefault(); if (sibs[0]) go(sibs[0].index); }
@@ -235,7 +294,7 @@ export function Reader({
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
-  }, [step, go, sibs, drawer, unzoom]);
+  }, [step, go, sibs, drawer, unzoom, cinema]);
 
   /* A trackpad pinch reaches the page as a wheel event with ctrlKey set, which
      is also how a browser is asked to zoom the whole document — so this is the
@@ -278,7 +337,7 @@ export function Reader({
     if (!drawer) return;
     const onDown = (e: PointerEvent) => {
       const t = e.target as HTMLElement | null;
-      if (t?.closest('.timeline, .script, .rdock')) return;
+      if (t?.closest('.timeline, .script, .rdock, .rtools')) return;
       setDrawer(null);
     };
     document.addEventListener('pointerdown', onDown);
@@ -408,13 +467,15 @@ export function Reader({
       return;
     }
     /* A tap: no axis was ever decided and it did not linger. */
-    if (!d.axis && Math.abs(ax) < 8 && Math.abs(ay) < 8 && Date.now() - d.t < 400) {
-      /* The same tap, read against who is doing it. A reader wants the chrome
-         out of the way; an editor wants the page's image and its script, and
-         on a phone there is no hover for either of them to hide behind. */
-      if (editing) setTools(true);
-      else setBare((v) => !v);
-    }
+    if (!d.axis && Math.abs(ax) < 8 && Math.abs(ay) < 8 && Date.now() - d.t < 400) tap();
+  };
+
+  /* The same tap, read against who is doing it. A reader wants the chrome out
+     of the way; an editor wants the page's image and its script, and on a
+     phone there is no hover for either of them to hide behind. */
+  const tap = () => {
+    if (editing) setTools(true);
+    else setBare((v) => !v);
   };
 
   const total = sibs.length;
@@ -428,9 +489,11 @@ export function Reader({
   return (
     <section
       className="view view--panel view--read"
+      ref={view}
       data-drawer={drawer ?? 'none'}
       data-bare={bare ? 'on' : 'off'}
       data-zoom={zoomed ? 'on' : 'off'}
+      data-cinema={cinema ? 'on' : 'off'}
     >
       <div
         className="slab slab--bare"
@@ -454,7 +517,16 @@ export function Reader({
             </div>
 
             <div className="stage">
-              <div className="spread">
+              {/* Cinematic mode is the reason this has a handler at all. The
+                  reader box shrink-wraps its page there so the script can sit
+                  against it, which leaves bare field either side — and a tap
+                  on the field is as much "put the chrome away" as a tap on the
+                  page is. Only the field: a tap on the page, the script or the
+                  flips has a target of its own and never reaches this. */}
+              <div
+                className="spread"
+                onClick={(e) => { if (e.target === e.currentTarget) tap(); }}
+              >
                 <div
                   className="reader"
                   ref={reader}
@@ -619,6 +691,53 @@ export function Reader({
               </div>
             </div>
 
+
+            {/* The desktop's controls, and below 860px `display:none` — the
+                dock underneath is the same three jobs in the phone's hands,
+                so exactly one set is ever in the accessibility tree.
+
+                The filmstrip lives behind the first of them now. Parked under
+                the artwork it cost the page a hundred pixels of height on
+                every page, to show ten thumbnails of pages you are not
+                reading; a button costs nothing until it is pressed.
+
+                In cinematic mode this row is the only chrome left, and it
+                floats over the page rather than sitting under it. */}
+            <div className="rtools">
+              <button
+                type="button"
+                className={`rtool${drawer === 'pages' ? ' is-on' : ''}`}
+                aria-expanded={drawer === 'pages'}
+                onClick={() => setDrawer((d) => (d === 'pages' ? null : 'pages'))}
+              >
+                <Glyph name="grid" width={5} />
+                Pages
+              </button>
+
+              <button
+                type="button"
+                className={`rtool${zoomed ? ' is-on' : ''}`}
+                aria-pressed={zoomed}
+                onClick={zoomStep}
+              >
+                <Glyph name="zoom" width={5} />
+                {zoomed ? 'Fit page' : 'Zoom'}
+              </button>
+
+              {/* No page counter here. The bar above carries it, and on a
+                  desktop the bar is never the thing that went away — the
+                  phone's dock needs its own only because the bar's is
+                  display:none there. */}
+              <button
+                type="button"
+                className={`rtool${cinema ? ' is-on' : ''}`}
+                aria-pressed={cinema}
+                onClick={toggleCinema}
+              >
+                <Glyph name="cinema" width={5} />
+                {cinema ? 'Exit' : 'Cinema'}
+              </button>
+            </div>
 
             {/* The phone's controls. display:none above 860px, so exactly one
                 set of controls is ever in the accessibility tree. */}

@@ -212,6 +212,9 @@ export default function PageToolsImpl({
         }}
       />
     </div>,
-    document.body,
+    /* An element outside the full-screen one is not rendered at all, so in
+       cinematic mode <body> is the one place this must not go. The Reader
+       closes the sheet whenever that root changes under it. */
+    document.fullscreenElement ?? document.body,
   );
 }

@@ -148,7 +148,8 @@ editor again, and **Done** signs out and closes it.
 
 In the reader, **tap the page** to get its image, its thumbnail and its script
 in one sheet — the only route to the drawing itself, and the one that works on a
-phone, where there is no hover for the CMS to hide behind.
+phone, where there is no hover for the CMS to hide behind. The reader has no
+footer and so no gear: sign in from any other page, or use `/read/1#cms`.
 
 Full detail — including how the merge behaves when you change content in code
 after editing it in the CMS — is in [`docs/cms.md`](docs/cms.md).
