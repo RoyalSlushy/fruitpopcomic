@@ -64,6 +64,31 @@ The path of least resistance if you have no server. Free CPU tier is 2 vCPU and
    `KOKORO_TOKEN` with a long random value.
 4. The URL is `https://<you>-<space>.hf.space`.
 
+#### With no terminal and no git
+
+Step 2 is the only one that needs either, and Hugging Face has a file editor —
+so a browser IDE with no git (bolt.new, StackBlitz, CodeSandbox: WebContainer
+has no git binary) can still do this.
+
+In the new Space, open **Files** → **+ Add file** → **Create a new file**, and
+make four files by pasting the contents of this directory in:
+
+| Name it exactly | Paste from |
+|---|---|
+| `Dockerfile` | `services/kokoro/Dockerfile` |
+| `main.py` | `services/kokoro/main.py` |
+| `requirements.txt` | `services/kokoro/requirements.txt` |
+| `README.md` | this file — the frontmatter at the top is the Space's config |
+
+Commit each one. The Space rebuilds on the last commit; watch **Logs** for
+`[kokoro] model ready`.
+
+**A browser IDE cannot host the engine itself**, only create the Space that
+does. WebContainer — what bolt.new and StackBlitz run — executes JavaScript and
+WebAssembly only: its Python is the standard library with no `pip`, it cannot
+run a native binary, and `onnxruntime` is a native binary. The Next.js half of
+this repo runs there fine; this half never will.
+
 **Set the token.** A Space is world-reachable, and an unauthenticated one is a
 free text-to-speech API with your name on it.
 
