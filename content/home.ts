@@ -13,7 +13,7 @@ export type QuickTile = {
 
 export type HomeContent = {
   ribbons: { hot: string; start: string; drafts: string; status: string; quick: string };
-  hero: { badge: string; kicker: string; title: string; sub: string; cta: string };
+  hero: { badge: string; title: string; sub: string; cta: string };
   startHere: { seeAll: string; count: number };
   quick: QuickTile[];
 };
@@ -28,7 +28,6 @@ export const home: HomeContent = {
   },
   hero: {
     badge:  'Drafts',
-    kicker: 'Page one',
     title:  'Start at the beginning',
     sub:    'Ten rough pages, in the order they were drawn. Arrows, filmstrip, or the keyboard.',
     cta:    'Read now →',

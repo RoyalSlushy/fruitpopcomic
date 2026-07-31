@@ -193,7 +193,7 @@ describe('merge — the load-bearing behaviour', () => {
   test('deeply nested partial overrides', () => {
     const out = mergeSection('home', { hero: { title: 'New headline' } });
     assert.equal(out.hero.title, 'New headline');
-    assert.equal(out.hero.kicker, DEFAULTS.home.hero.kicker, 'siblings survive');
+    assert.equal(out.hero.badge, DEFAULTS.home.hero.badge, 'siblings survive');
     assert.equal(out.ribbons.hot, DEFAULTS.home.ribbons.hot, 'other branches survive');
     assert.deepEqual(out.quick, DEFAULTS.home.quick);
   });

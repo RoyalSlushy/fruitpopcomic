@@ -47,7 +47,6 @@ export default async function HomePage() {
                 <span className="ch__scan" aria-hidden="true" />
               </span>
               <span className="hero__body">
-                <EditableText as="span" className="hero__kicker" path="home.hero.kicker" value={home.hero.kicker} />
                 <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
                 <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
                 <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />

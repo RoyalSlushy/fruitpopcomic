@@ -80,12 +80,19 @@ the section's colour instead of its own.
 | `--ink-soft` | `#9FB3D9` | 8.73 on ground, 7.05 on `--navy-lift`. Tinted from the ground's own hue — never grey |
 
 **The one measured constraint:** white on bright magenta is **4.00**. That is AA
-for large text only — from 24px at a 400-weight face, or 18.66px at 700. Two
+for large text only — from 24px at a 400-weight face, or 18.66px at 700. Three
 clamps are set by that number and nothing else: the hero headline floors at
-`1.75rem`, and `.panel__title` floors at `1.1875rem` (19px, bold), just past the
-large-text threshold. Everything smaller moves onto a deep-tone chip — the page
-counter, the hero's subtitle readout, the status chips and the rank chips are all
+`1.75rem`, and `.panel__title` and the hero standfirst both floor at `1.1875rem`
+(19px, bold), just past the large-text threshold. Everything smaller moves onto a
+deep-tone chip — the page counter, the status chips and the rank chips are all
 built that way.
+
+The standfirst is the one that had to be argued twice. It used to sit on a
+deep-tone plate at 14px, measuring 7.37; that plate is now a 4px rule and an
+indent, which is a lighter thing to put under a headline but takes the 7.37 with
+it. So the type carries the ratio instead — 19px at 700 is past the large-text
+threshold, where 4.00 is a pass. A plate is not the only way to buy contrast on
+the bright face; it is just the way that does not cost type size.
 
 The halftone never makes a pair worse: every dot field is the deep tone screened
 over the bright one, or the bright tone over the dark ground, so the field under
@@ -104,7 +111,7 @@ Measured on the components this build added:
 | Card foot — white on `--cyan-dp` | 7.27 |
 | Status pending chip — `#FFE2B4` on tinted lift | 9.29 |
 | Status done chip — `#C7F4DA` on tinted lift | 9.16 |
-| Hero subtitle readout — white on `--magenta-dp` | 7.37 |
+| Hero standfirst — white on `--magenta` at 19px/700 | 4.00 — AA at large text |
 
 ## Typography
 
@@ -248,6 +255,33 @@ The strip's height is **measured**, not written down: it is a clamp on a `vw`
 wordmark that can wrap, so the shell puts its real height on `<html>` as
 `--sysbar-h` with a `ResizeObserver` and the CSS subtracts that. `globals.css`
 carries a fallback for the first paint.
+
+**Two things break that panel's frame.** On a phone the headline and the button
+are pulled back out of the hero body's padding and then `--bleed` further, so
+they run past the panel's inside edge and `.ch__in`'s `overflow` cuts them there.
+The white keyline is `.ch`'s own padding, outside `.ch__in`, so the cut lands on
+the *inside* of the frame and the frame itself stays unbroken — the type runs
+under it rather than over it, the way a press would print it. Nothing else on the
+panel does this: the device is only worth anything while it is the exception, and
+these are the two elements meant to stop a scroll. The button also carries the
+padding it lost, so it grows leftward and what the frame takes is the pill's cap,
+never a letter.
+
+The headline itself is the panels' **plinth done in type** — two hard offsets in
+the deep tone rather than a blur, so the letters sit on the magenta field the way
+a tile sits on its plinth, with one soft shadow under them for the drop. The deep
+tone darkens every edge the glyph meets, so the depth is worth a little contrast
+rather than costing any. There is no eyebrow over it any more: an uppercase
+kicker above an uppercase headline was two tracked lines saying one thing, and
+the headline is the one that matters.
+
+**The headline is sized against its column, not the window.** That column is half
+a panel that is two-thirds of the shell, so `4.4vw` outgrew it between roughly
+1000 and 1400px and the frame took the last letter of `BEGINNING` off. It is
+`min(4.4vw, 15.5cqi)` now, with the hero body as the query container — the ratio
+at which this line exactly fills its measure is `16.1cqi` at every width, and the
+slack is there because the line is editable content. On a phone `4.4vw` is the
+smaller term, so none of this touches the break-out above.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its

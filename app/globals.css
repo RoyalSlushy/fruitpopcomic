@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 /* Bungee was caps-only and carried its weight in the drawing.
    Shuttleblock has to be told both. */
 .rail__item,.rail__promo h2,.tab,.crumb__step,.crumb__title,.readout dt,
-.ribbon,.ch__name,.hero__kicker,.hero__title,.rank__n,.rank__label,
+.ribbon,.ch__name,.hero__title,.rank__n,.rank__label,
 .rank__all,.card__n,.badge,.ch__badge,.status__label,.panel__title,
 .btn,.empty h2,.prose h2,.prose h3{
   font-family:var(--face);
@@ -659,11 +659,17 @@ html[data-drawer="open"] .scrim{
 }
 
 .hero__body{
+  /* Named, because two children break back out of it — see --bleed below. */
+  --hero-pad:clamp(1.1rem,2.6vw,1.9rem);
+  --bleed:0px;
+  /* so the headline can be sized against THIS column rather than the window;
+     see the min() in .hero__title */
+  container-type:inline-size;
   position:relative;
   flex:1 1 50%;min-width:0;
   display:flex;flex-direction:column;justify-content:center;
   gap:.7rem;
-  padding:clamp(1.1rem,2.6vw,1.9rem);
+  padding:var(--hero-pad);
   background:var(--magenta);
 }
 /* The loudest halftone on the site: 12px dots in the deep tone, thrown
@@ -679,32 +685,43 @@ html[data-drawer="open"] .scrim{
   mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
 }
 .hero__body>*{position:relative;z-index:1}
-.hero__kicker{
-  font-size:.6875rem;letter-spacing:.14em;
-  text-transform:uppercase;line-height:1;
-  align-self:flex-start;
-  padding:.42rem .7rem .46rem;
-  background:var(--magenta-dp);color:#fff;
-  clip-path:polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
-  rotate:-1.6deg;
-}
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
    at 24px for a 400-weight face. The floor of this clamp is well above it. */
+/* Sized against the window AND against the column it is actually set in,
+   whichever is smaller. On a desktop that column is half a panel that is
+   two-thirds of the shell, so 4.4vw outgrew it between about 1000 and 1400px
+   and .ch__in's overflow took the last letter of BEGINNING off. The ratio at
+   which this headline exactly fills its measure is 16.1cqi at every width;
+   15.5 is that with the slack to survive a slightly longer word, since the
+   line is editable content. The clamp floor still wins outright — it is the
+   contrast floor below, not a taste — and on a phone 4.4vw is the smaller
+   term anyway, so the break-out down there is untouched by any of this. */
 .hero__title{
   margin:0;font-weight:700;
-  font-size:clamp(1.75rem,4.4vw,3.15rem);line-height:.96;
+  font-size:clamp(1.75rem,min(4.4vw,15.5cqi),3.15rem);line-height:.96;
   letter-spacing:-.02em;
   text-wrap:balance;
   color:#fff;
+  /* The panels' plinth, done in type. Two hard offsets in the deep tone
+     rather than a blur — the letters sit ON the magenta field the way a tile
+     sits on its plinth — and one soft shadow under them for the drop. The
+     deep tone also darkens every edge the glyph meets, so the depth is worth
+     a little contrast rather than costing any. */
+  text-shadow:
+    2px 2px 0 var(--magenta-dp),
+    4px 5px 0 var(--magenta-dp),
+    6px 9px 14px rgba(10,4,20,.4);
 }
-/* the subtitle is small, so it moves off the bright face onto a deep-tone
-   readout — the same rule the page counter follows. 4.00 → 7.37. */
+/* No plate. The standfirst is an indent off a rule instead — but the plate was
+   never decoration: it was how small white type cleared 4.00 on the bright
+   face. Off it, the type itself has to clear the large-text threshold, so this
+   floors at 19px/700 exactly the way .panel__title does. */
 .hero__sub{
-  margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
+  margin:0;
+  font-size:clamp(1.1875rem,3.1vw,1.375rem);line-height:1.32;font-weight:700;
   color:#fff;
-  padding:.55rem .8rem;
-  background:var(--magenta-dp);
-  clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  padding:.1rem 0 .15rem .8rem;
+  border-inline-start:4px solid #fff;
 }
 .hero .btn{align-self:flex-start;margin-top:.3rem}
 
@@ -2055,8 +2072,32 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   /* The picture takes whatever the copy leaves, rather than a fixed band of
      it: the panel is now as tall as the window, and the artwork is the thing
      that should grow into the difference. */
-  .hero__body{flex:0 0 auto}
+  .hero__body{flex:0 0 auto;--bleed:.35rem}
   .hero__screen{flex:1 1 auto;width:100%;min-block-size:clamp(180px,44vw,280px)}
+
+  /* ── the two that break the frame ─────────────────────────
+     The headline and the button are pulled back out of the
+     body's padding and then --bleed further, so they run past
+     the panel's inside edge and .ch__in's overflow cuts them
+     there. Nothing else on the panel does this: the device is
+     only worth anything while it is the exception, and it is
+     the two elements that are meant to stop a scroll.
+
+     The white keyline is .ch's own padding, outside .ch__in,
+     so the cut lands on the inside of the frame and the frame
+     itself stays unbroken — the type runs under it rather than
+     over it, which is the way a press would print it.
+     ─────────────────────────────────────────────────────── */
+  .hero__title{
+    margin-inline:calc((var(--hero-pad) + var(--bleed)) * -1);
+  }
+  /* The button keeps its label where the padding had it and grows leftward
+     instead, so what the frame takes is the pill's cap and never a letter. */
+  .hero .btn{
+    margin-inline-start:calc((var(--hero-pad) + var(--bleed) + .55rem) * -1);
+    padding-inline-start:calc(.85rem + var(--hero-pad) + var(--bleed) + .55rem);
+    border-start-start-radius:0;border-end-start-radius:0;
+  }
 
   /* The bar rides in on the first scroll, so the hero above is the whole of
      the first screen. Dashboard only: it is the one route guaranteed to be
@@ -2264,7 +2305,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
   .ribbon--wide{font-size:.8125rem}
 
-  .hero__body{padding:1.1rem}
+  .hero__body{--hero-pad:1.1rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
   .quick__rail{gap:.55rem}
