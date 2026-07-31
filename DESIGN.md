@@ -5,10 +5,21 @@ Recorded from the built site, not written ahead of it. Values here are what
 
 ## Direction
 
-**System Dashboard.** The site is a handheld console dashboard — a persistent
-channel rail down the side, and the home screen is an instrument panel rather
-than a menu you leave. Chosen by roll after two re-rolls and a "go screen-native"
-steer; seed key `e61a73a4`.
+**Comic Spread.** The site is a handheld console dashboard drawn as a comic page
+— a persistent channel rail down the side, and a home screen of inked panels cut
+off-square, tilted, and overlapping at the gutters over a ben-day halftone
+ground. The shell direction was chosen by roll after two re-rolls and a
+"go screen-native" steer (seed key `e61a73a4`); the panel language replaced a
+card grid at the creator's direction, keeping the palette and the face and
+changing only structure, weight, and texture.
+
+The change was convergent with the pinned brief rather than a departure from it.
+[`docs/aesthetic-references.md`](docs/aesthetic-references.md) already read two
+rules off the board that the card grid was quietly opting out of: **"nothing is
+square to the grid — tilt is the board's default, not an accent"**, and
+**"texture under the chrome — none of these sit on flat colour."** Halftone is
+named there explicitly, behind the Monkey Ball tiles. This build finally puts
+both up.
 
 The governing rule, derived from the assets in
 [`docs/art-analysis.md`](docs/art-analysis.md): **the chrome is loud, the artwork
@@ -56,7 +67,10 @@ label, the name plate, the plinth shadow, and any small text.
 
 The router writes the active section onto `<html data-section>`, so `--ch` and
 `--ch-dp` follow the route with no per-element JS. Dashboard panels set theirs
-inline, one hue each, so all five brand colours appear on one screen.
+inline on the **`.slab` wrapper**, one hue each, so all five brand colours appear
+on one screen. The wrapper rather than the panel, because the wrapper is what
+paints the plinth now — a hue set on the panel inside would leave every plinth
+the section's colour instead of its own.
 
 ### Ink
 
@@ -66,10 +80,18 @@ inline, one hue each, so all five brand colours appear on one screen.
 | `--ink-soft` | `#9FB3D9` | 8.73 on ground, 7.05 on `--navy-lift`. Tinted from the ground's own hue — never grey |
 
 **The one measured constraint:** white on bright magenta is **4.00**. That is AA
-for large text only, and WCAG counts "large" from 24px at a 400-weight face. So
-the hero headline's clamp floors at exactly `1.5rem`, and everything smaller moves
-onto a deep-tone chip — the page counter, the hero's subtitle readout, the status
-chips and the rank chips are all built that way.
+for large text only — from 24px at a 400-weight face, or 18.66px at 700. Two
+clamps are set by that number and nothing else: the hero headline floors at
+`1.75rem`, and `.panel__title` floors at `1.1875rem` (19px, bold), just past the
+large-text threshold. Everything smaller moves onto a deep-tone chip — the page
+counter, the hero's subtitle readout, the status chips and the rank chips are all
+built that way.
+
+The halftone never makes a pair worse: every dot field is the deep tone screened
+over the bright one, or the bright tone over the dark ground, so the field under
+any text is between the two measured values rather than outside them. The inner
+views' header band is the tightest case — navy on gold dotted with `--gold-dp`
+measures **5.46**, against 10.05 for the flat plate.
 
 Measured on the components this build added:
 
@@ -106,26 +128,64 @@ Adobe serves it only to domains registered in the web project, so an unregistere
 host gets a 403 and falls through to `ui-sans-serif, system-ui`. The fallback was
 checked; caps, weight and layout all survive it, but it is not the design.
 
-Display maxes at `clamp(1.5rem, 3.1vw, 2.15rem)`. Prose is capped at 68ch.
+Display maxes at `clamp(1.75rem, 4.4vw, 3.15rem)` — the hero headline, raised
+when the dashboard went bolder. Prose is capped at 68ch.
 
 ## Form
 
-- **Keyline:** 4px white border with a deep-tone inline. This is the wordmark's own
-  treatment — white cut-line outside, deep-magenta inline — applied to every tile,
-  panel, ribbon, button and nav control.
-- **Elevation:** hard offset plinth in the channel's deep tone, plus a soft blurred
-  shadow. `0 7px 0 var(--ch-dp), 0 16px 30px rgba(0,0,0,.5)`. The plinth is the
-  toy-plastic reading; the blur carries real depth.
-- **Ribbon:** dashboard panels are labelled by a tab that overhangs the panel's top
-  edge, rotated `-1.4deg` for the board's sticker logic. It sits on a `.slab`
-  wrapper rather than inside the panel, because the panel keeps `overflow:hidden`.
+- **Cut, not rounded.** Every framed surface is clipped to a `--cut` polygon. The
+  default is an honest rectangle; the dashboard overrides it per panel from four
+  named shapes, so no two neighbours share an edge angle:
+
+  | Token | Shape | Where |
+  |---|---|---|
+  | `--cut-rise` | top edge climbs left to right | `WHAT'S HOT`, `BUILD STATUS` |
+  | `--cut-fall` | the same wedge mirrored | `THE DRAFTS` |
+  | `--cut-nick` | leading corners trimmed off | `START HERE`, every inner view |
+  | `--cut-band` | a long banner, both ends chevroned | `QUICK ACCESS` |
+
+  The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
+  trim.
+- **Keyline:** 5px white, and it is **not a border**. A `clip-path` clips a border
+  square at the cut corners, so the keyline is the element's own white background
+  showing through its padding, with the interior painted inset by exactly that
+  much and clipped to the same shape. `.pane` does this with a `::before`;
+  `.ch` and `.panel` need a real interior element (`.ch__in`, `.panel__in`)
+  because they stack children with different fills. This is still the wordmark's
+  own treatment — white cut-line outside, deep tone inside.
+- **Elevation:** `clip-path` clips shadows with everything else, so elevation
+  cannot be a `box-shadow` on a cut panel. The plinth is a **second copy of the
+  same cut shape** in the channel's deep tone, painted by the `.slab` wrapper and
+  translated down 10px; one `drop-shadow` filter on the same wrapper traces the
+  clipped silhouette for the soft depth underneath. The mini quick-access tiles
+  are the exception — too small for a corner cut to survive, so they stay
+  square-cornered and keep a real `box-shadow` plinth.
+- **Halftone.** `--ht` is a substitution mixin: it is inherited unresolved, so
+  `--ht-c` (dot colour), `--ht-r` (dot radius) and `--ht-s` (cell pitch) can be
+  re-set on any element and `background:var(--ht)` picks them up there. Two offset
+  dot grids make the staggered screen a press actually lays down. Every field is
+  masked so the dots decay rather than tiling flat: 20px magenta and 15px cyan on
+  the ground, 14px in the hero's magenta face, 9px of the bright channel tone
+  inside each panel, 9px of the deep tone across each inner view's header band.
+- **Ribbon:** dashboard panels are labelled by a caption box overhanging the
+  panel's top-left corner — where a letterer would put it — rotated `-2.4deg`,
+  chevroned on its trailing edge, and drawing its own keyline the same way the
+  panels draw theirs. It sits on the `.slab` wrapper rather than inside the panel.
   The five inner views do **not** carry one — their `.panel__bar` is already the
   header, and a second label would only repeat the section name.
-- **Radius:** `22px` on tiles and panels, `12px` on inner elements, pills on small
-  controls. Chunkier than a conventional UI floor, per the committed world.
-- **Press:** hover lifts 5px and grows the plinth; active drops 4px and collapses it
-  to 3px in 60ms. Tiles read as physically pressable. The hero and the quick-access
-  tiles are the same `.ch` component, so the press physics are identical sitewide.
+- **Radius:** effectively gone. `0` on panels and tiles, `3–4px` on inner
+  elements, pills still on small controls. The old `22px` toy-plastic radius was
+  the card grid's; a comic panel has corners.
+- **Press:** hover lifts the face 7px while `.slab:has(>.ch:hover)` drives the
+  plinth to 17px; active drops the face 4px and collapses the plinth to 3px in
+  60ms. The face moves by `transform` and the plinth by `translate` — two
+  properties on two elements, so neither fights the other. The hero and the
+  quick-access tiles are the same `.ch` component, so the press physics are
+  identical sitewide.
+- **Tilt:** every dashboard panel is rotated a fraction of a degree, no two the
+  same, between `-1.1deg` and `+1.7deg`. The draft cards carry a four-step
+  rotation cycle so the rhythm never resolves into a pattern the eye can lock
+  onto, and the quick tiles alternate `±1.5deg`.
 
 ## Motion
 
@@ -151,13 +211,131 @@ stays the scroll container — a second scroll container would break the starfie
 which sizes itself from `document.body.scrollHeight`. Between 1024 and 1219px the
 rail narrows to `78px` of glyphs and shows the monogram instead of the wordmark.
 
-**Dashboard.** One column below 860px; above it, `1fr` plus a `268–324px` rail:
+**Dashboard.** Laid out as a comic page, not a card grid. Three devices do the
+work, and all three are load-bearing:
+
+1. Twelve columns, but the two content rows **do not split them at the same
+   place** — 8/4 over 7/5, stepping to 7/5 over 6/6 once the narrow rail appears.
+   A shared vertical gutter is what makes a grid read as a grid.
+2. Every panel tilted, no two the same, and no two cut to the same edge angle.
+3. Negative margins pull the panels into each other so their keylines butt and
+   overlap the way inked panels do. The tilt needs that overlap — square gaps
+   between rotated boxes read as a broken grid rather than a spread.
 
 ```
-WHAT'S HOT    START HERE
-THE DRAFTS    BUILD STATUS
-QUICK ACCESS  (full width)
+WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
+THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
+QUICK ACCESS (full width)
 ```
+
+One column below 860px, where the panels keep their tilt and still bite into each
+other by `-0.4 × --gap`.
+
+A single repeating-conic speed-line burst sits behind the spread, thrown from
+behind the hero and masked to an ellipse. It is the page's one authored flourish;
+everything else is halftone, which is texture rather than event.
+
+**The shelf.** `/read` opens the chapter list, not page one. "Start reading"
+and "go back to where I was" are different intentions and page one only ever
+served the first. The reader itself stays at `/read/[n]`, indexed into the flat
+running order, so no existing link moved.
+
+Chapters are a **view over that flat array**, not a second nested structure that
+could disagree with it. The array stays the single running order — it is what
+`/read/[n]` indexes, what reordering moves things within, and what the merge
+matches by id across an edit — and each page names its chapter. One rule falls
+out of that and is worth stating: a page whose chapter names one that does not
+exist still appears, under `Unsorted`. A reading surface that silently hides a
+page is worse than one that admits it does not know where the page goes.
+
+There is one chapter, and its title says what the pages actually are. The drafts
+carry timestamp filenames, no numbers and no grouping — the real chapter breaks
+are not known, and inventing them would be inventing the story's shape.
+
+**Reader.** The page is the product, so the page gets the room. The image fills
+its parent's height and gives that up rather than distort when the box is
+narrower than a 2:3 page, which is only ever a phone — there the reader wraps the
+page instead of padding dead navy around it.
+
+Three controls are revealed rather than parked on screen:
+
+| Control | At rest | Revealed by |
+|---|---|---|
+| The standing note | an `ⓘ` in the heading | hover, focus, or click on the mark |
+| The page flips | nothing | hover or focus anywhere in `.stage` |
+| The timeline | a 7px progress rail | hover or focus anywhere in `.stage` |
+
+Each obeys the same three rules, and they are not optional:
+
+1. It also appears on `:focus-within`, so a keyboard reaches it.
+2. It is never the **only** route to the thing. The note is on
+   `aria-describedby`; paging is on the arrow keys plus Home and End; the strip
+   is duplicated by the counter and by the progress rail.
+3. It is permanently visible under `@media (hover: none)`. A control that exists
+   only under a mouse pointer is a control half the visitors do not have.
+
+The flips are anchored to `.plate`, which shrink-wraps the page, so they sit
+against its edges rather than stranded at the sides of a column a portrait page
+never fills. They stay outside the page border — the chrome stops there, and
+that rule does not get an exception for being convenient. At the ends they dim
+rather than vanish: a handle that disappears reads as a glitch, one that greys
+out reads as the end of the comic.
+
+Whether there is room for the script column beside the page is a question about
+the panel, not about the viewport — the rail takes 238px off one and not the
+other — so it is a **container query** (`@container read (min-width: 900px)`)
+and not a media query.
+
+**The phone's reader.** Below 860px the reader stops being a panel on a page and
+becomes the whole screen. Same markup: the drawers **are** the timeline and the
+script column, repositioned as bottom sheets, so there is one filmstrip and one
+transcript rather than a desktop copy and a phone copy that drift apart. Only
+the dock and the scrim are phone-only, and both are `display:none` above 860px —
+the same rule the rail and the tab bar already follow, so exactly one set of
+reader controls is ever in the accessibility tree.
+
+| | Desktop | Phone |
+|---|---|---|
+| Page timeline | strip under the page, on hover | `Pages` drawer, a grid |
+| Script | column beside the page | `Script` drawer |
+| Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
+| Chrome | always | retracts on a tap on the page |
+
+**The drawers open in flow, and the page shrinks to make room.** They were
+overlays first — absolutely positioned sheets sliding up over the page, dimming
+it behind a scrim — and every one of that design's problems was the same
+problem: a positioned, animated overlay nested this deep is hit-tested against
+a composited layer that does not reliably agree with layout. The scrim ate the
+taps meant for the drawer; with the scrim gone, taps fell through to the page
+image, which then took pointer capture for the swipe and swallowed the click.
+
+In flow there is no stacking context to lose, no transform to go stale and
+nothing underneath to fall through to. It is also the better behaviour: an open
+drawer never covers the page you are reading, so no scrim is needed either.
+
+Their height is a **fixed share of the viewport, not a measurement of their own
+content**. Opening one shrinks the page above it, which re-lays out a
+1080 × 1620 image; with the height content-driven that settled a frame late, and
+the first tap after opening landed a row out.
+
+One thing has to give for the drawers to work at all: `.slab` carries a
+`drop-shadow` filter, and **a filter makes an element the containing block for
+every fixed-position descendant**, which would pin the sheets inside the panel
+instead of to the viewport. The full-screen reader has nothing to cast a shadow
+onto, so the filter comes off there.
+
+Swipe is one gesture with three outcomes — a horizontal drag turns the page, a
+vertical one is left to the scroller (`touch-action: pan-y`), and a tap that went
+nowhere toggles the chrome. The axis is decided once, on the first 10px, so a
+turn cannot start halfway through a scroll, and the page resists rather than
+refuses at a chapter's edges: it still moves a little, which is what says there
+is nothing there. Two details make it work at all — `draggable={false}` and
+`-webkit-user-drag:none`, because Chromium starts a native image drag on
+pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+The page/cast/status readout is desktop furniture and is `display:none` on a
+phone: three numbers between the visitor and the comic, and the same counts are
+on the dashboard anyway.
 
 Shell is `min(1240px, 100% - 2.5rem)`, tightening to `min(1180px, 100% - 3rem)`
 once the rail appears. At ≤620px the radius and keyline step down to 18px/3px.
@@ -190,6 +368,65 @@ These are design decisions, not copy suggestions.
   mission list, this puts the five things that are and aren't done. It is the site's
   thesis rendered as instrumentation rather than an apology in a paragraph.
 - **The empty wiki ships empty**, with an empty state that says so.
+- **Pages are reordered by dragging them.** Press and hold a page in the
+  filmstrip, drag it between two others, let go. It is editor-only, and the
+  drag code is in the async admin chunk with the rest of the CMS — a visitor's
+  markup gains nothing, not even an attribute.
+
+  Four things had to be true for it to feel like picking something up, and each
+  one is a bug that was there first:
+
+  - **Hold, not grab.** A tap on a thumbnail already means "go to that page",
+    so the lift waits 320ms and any real movement before then cancels it —
+    that is a scroll, not a lift.
+  - **Capture on the list.** Once lifted the pointer is captured by the list,
+    so the thumbnail's own handlers stop firing. Without it, letting go over a
+    different page would also navigate to it.
+  - **Scrolling gives way.** `touch-action:none` on the thumbnail is not
+    enough: the gesture still belongs to whichever ancestor scrolls, and the
+    moment the drag moved, that ancestor claimed it and the browser answered
+    with `pointercancel`. Every scroll container above the list gives its
+    `touch-action` up for the duration and gets it back on drop.
+  - **No click afterwards.** A drag ends in a pointerup and the browser follows
+    that with a click. Swallowed once, or every drop would navigate.
+
+  The drop target is the **gap**, not the item, so the indicator is drawn on
+  the near edge of the page you are next to rather than around it — an outline
+  around a page reads as "replace this one". The arithmetic is in
+  `lib/reorder.ts`, separated out and tested because dragging thinks in gaps
+  while `moveItem` thinks in indices, and the item is spliced out before it is
+  put back.
+
+  **Dragging is never the only way.** The ↑ ↓ buttons stay exactly where they
+  were; a drag has no keyboard equivalent, and inventing one out of the arrow
+  keys would collide with the reader's own paging.
+
+  One thing this exposed rather than caused: the editor's save bar is fixed to
+  the bottom centre of the viewport, which is where the reader keeps its page
+  strip. Those thumbnails could not be clicked at all. The bar now folds down
+  to a pill, and the shell reserves room below the page so the strip can be
+  scrolled clear of it.
+- **A page can exist before it is drawn.** A page with no image is a *script
+  page*: it holds its place in the running order and shows its script on a
+  paper-coloured sheet at the same 2:3 as every real page, so the shape of a
+  chapter can be laid out before the art exists. It is rendered as a page rather
+  than as a gap because that is what it is. A page added in the editor starts
+  as one, since the template ships a blank image — and a script page does not
+  also get the script column beside it, because it already is the script.
+- **The script column ships empty too, and that is the point.** Every page now
+  carries a `script` field, one beat per line, rendered beside the artwork as
+  attributed dialogue. It is blank on all ten pages and must stay blank until
+  the creator writes one out. The lettering is drawn into the drawing; there is
+  nothing to extract, so anything in that column that the creator did not type
+  would be invented dialogue — which is invented story, and the one rule this
+  project does not bend. The empty state says why rather than apologising, and
+  it is narrower than a populated column, because three sentences do not earn a
+  transcript's share of the width.
+
+  What the field buys once it is filled: the page becomes selectable,
+  searchable, translatable and reachable by a screen reader, none of which an
+  image is. Read-aloud gets something worth reading — before this the only
+  spoken thing was a one-sentence description of a page nobody can read.
 
 ## Accessibility
 
@@ -206,7 +443,57 @@ These are design decisions, not copy suggestions.
 - `BUILD STATUS` is a list with an `aria-hidden` glyph and the state in text. It is
   deliberately **not** checkboxes — they would be controls that do nothing.
 - Comic-page alt text names the lettering limitation rather than pretending
-  otherwise.
+  otherwise. Where a script exists it stops apologising and points at the
+  column instead, because the page is genuinely readable then.
+
+Added with the reader rebuild:
+
+- **Hover-revealed content meets WCAG 1.4.13 on all three counts.** The standing
+  note is *dismissible* (Escape closes it), *hoverable* (a `::before` bridges
+  the 9px gap so the pointer can reach the panel without it vanishing) and
+  *persistent* (it stays until the pointer leaves, focus leaves, or Escape).
+  Escape needs a `data-dismissed` flag to beat the CSS as well as the state:
+  dismissing returns focus to the mark, the mark is inside the tip, and
+  `:focus-within` would otherwise light it straight back up.
+- **Paging never moves focus** — that would yank a keyboard visitor off the
+  arrow they are holding — so the change is announced through a polite live
+  region instead of being silent.
+- `Home` and `End` jump to the first and last page. Arrow keys are ignored
+  inside a field or a `contenteditable`, so they never fight the editor.
+- The spoken line carries `aria-current`, and a second live region names it, so
+  following along works by eye and by screen reader both.
+- One speech queue for the whole page (`lib/tts.ts`). `speechSynthesis` is a
+  single global device, so two components each holding their own `speaking`
+  state would leave the loser's button stuck reading "Stop" for audio that had
+  already been cancelled. `owner` is what makes the other one render idle
+  without being told.
+- **The voice is chosen, not accepted.** Read-aloud is only as good as the voice
+  it is handed, and the one a browser hands you by default is usually the oldest
+  synth installed. Every current platform ships something genuinely good —
+  Microsoft's Natural set on Edge, Siri and the Premium downloads on Apple,
+  Google's on Android — in the same `getVoices()` list as decades of legacy
+  formant synths and the macOS novelty voices. `lib/voices.ts` sorts that list
+  so the best thing the visitor already owns comes first, and the picker beside
+  every read-aloud button offers it, with speed and pitch and a preview.
+
+  Three details are load-bearing:
+
+  - **Language outranks every quality signal**, by a margin nothing else can
+    close. A superb German voice reading English is worse than any English one.
+  - **The recommended group is a relative cut, not a score threshold.** A
+    threshold high enough to mean "neural" leaves the group empty on any device
+    whose best voices are named plainly — which is Android and Chrome OS, where
+    Google's are the whole story. So: the neural ones if any exist, otherwise
+    the best three in the right language. It is never empty when a usable voice
+    exists.
+  - **Preview is not a nicety.** A list of voice names tells you nothing about
+    what any of them sound like, so choosing without hearing is guessing.
+
+  The choice is persisted, applies to both callers, and changing it mid-sentence
+  restarts from the line being read rather than from the top. `getVoices()` is
+  empty on its first call in every Chromium browser, so the list is also taken
+  from the `voiceschanged` event — without that the picker is permanently empty
+  for most visitors.
 
 ## Content
 
@@ -222,6 +509,17 @@ Two design consequences worth recording:
   comic that goes blank when a database is down has failed at the one thing it
   exists to do. This is now verified on every build: the production build runs with
   the database unreachable and still prerenders all 18 pages.
+- **A save is visible without reloading.** `revalidateTag(tag, 'max')` is
+  stale-while-revalidate by design, and Next deliberately does not mark the path
+  revalidated in that mode — its own comment says "so that server actions don't
+  pull their own writes". The editor is precisely the caller that must pull its
+  own write, so on its own that left them looking at the old copy until they
+  reloaded by hand. `updateTag()` is the read-your-own-writes answer but throws
+  outside a Server Action, and the save is a Route Handler, so the immediate
+  half of the job is `revalidatePath('/', 'layout')` — scoped to the layout
+  because the rail, the footer and the derived counters render from the same
+  sections on every route. The tag call stays: it is what keeps everyone else's
+  caches honest.
 - **The honesty rules are now enforced by shape, not by discipline.** There is no
   field anywhere in the CMS for a release date, a view count, or a follower
   number, because there is no column for one. The cast counter sums figures that
@@ -264,12 +562,23 @@ that lazy-loads its implementation, and the build fails if that stops being true
 - Routing is hash-based (`#/read`, `#/read/4`), so page URLs are linkable but not
   server-rendered. Fine for GitHub Pages; revisit if search indexing of individual
   pages matters.
-- Dialogue is lettered into the artwork and cannot be read as text. Alt text
-  describes each page's position and states the limitation rather than pretending
-  otherwise.
+- Dialogue is lettered into the artwork and cannot be read as text. There is now
+  a route out of this — the per-page `script` field — but it is a route, not a
+  fix: every page is still blank, and each one has to be typed out by hand
+  before that page becomes readable. Until then the alt text describes the
+  page's position and states the limitation rather than pretending otherwise.
 - The Adobe Fonts kit is a third-party dependency on a domain-locked resource, and
   it is now the site's single largest availability risk: an unregistered domain
   degrades every surface at once. Self-hosting is not permitted by the licence.
+- Read-aloud quality is bounded by what the visitor's device happens to have
+  installed. The picker gets the best of those to the top, which is a large
+  improvement over the default and costs nothing, but it cannot conjure a good
+  voice onto a device with none. A hosted neural voice would remove that
+  variance and make every visitor hear the same thing; it would also mean an API
+  key, a per-character bill, and a third-party runtime dependency on the read
+  path. It slots into one function — `say()` in `lib/tts.ts` — if that trade is
+  ever worth making. It has not been abstracted ahead of time, because there is
+  no second engine to abstract over yet.
 - The Supabase project is shared with an unrelated site. The comic's tables live
   in their own `fruitpop` schema and writes are gated on an explicit editor
   allowlist rather than on `authenticated`, because auth is shared. A dedicated

@@ -24,6 +24,11 @@ export default function AdminRoot({ autoFocus = false }: {
   const cms = useCms();
   const { editMode, enterEditMode, exitEditMode, changedSections, payload, commitSaved, discard } = cms;
 
+  /* The bar is fixed to the bottom of the viewport, which is exactly where the
+     reader keeps its page strip — those thumbnails could not be reached at
+     all. Rather than pick a different corner for it to be in the way of, it
+     folds down to a pill. */
+  const [slim, setSlim] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -139,7 +144,17 @@ export default function AdminRoot({ autoFocus = false }: {
         Press F2 or click to edit this text. Enter commits, Escape cancels.
       </span>
 
-      <div className="cms-bar" data-marker={MARKER}>
+      <div className={`cms-bar${slim ? ' is-slim' : ''}`} data-marker={MARKER}>
+        <button
+          className="cms-bar__fold"
+          type="button"
+          aria-expanded={!slim}
+          aria-label={slim ? 'Show the editor bar' : 'Fold the editor bar out of the way'}
+          onClick={() => setSlim((v) => !v)}
+        >
+          {slim ? '▴' : '▾'}
+          {slim && dirtyCount > 0 && <span className="cms-bar__dot" aria-hidden="true" />}
+        </button>
         <span className="cms-bar__tag">Editing</span>
         <span className="cms-bar__count">
           {dirtyCount === 0 ? 'No changes' : `${dirtyCount} section${dirtyCount === 1 ? '' : 's'} changed`}

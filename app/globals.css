@@ -1,10 +1,16 @@
 /* ═══════════════════════════════════════════════════════════
-   Fruit Pop Comic — System Dashboard
+   Fruit Pop Comic — Comic Spread
    Palette sampled from the wordmark's flat vector fills.
 
    Shell: a persistent channel rail on desktop, a bottom tab bar
    and a drawer on phones. The moodboard pinned both — reference 1
    has a glyph-labelled bottom bar, reference 5 a five-slot one.
+
+   The home screen is laid out as a comic page rather than a card
+   grid: inked panels, cut off-square, tilted, overlapping at the
+   gutters, on a ben-day halftone ground. The board's own reading —
+   "nothing is square to the grid", "texture under the chrome" —
+   applied at page scale.
    ═══════════════════════════════════════════════════════════ */
 
 :root{
@@ -28,9 +34,51 @@
   --ink:         #FFFFFF;
   --ink-soft:    #9FB3D9;   /* tinted from the ground's hue, never grey */
 
-  --keyline:     4px;
-  --r:           22px;      /* toy-plastic radius, per the committed world */
-  --r-sm:        12px;
+  --keyline:     5px;
+  --r:           0px;       /* panels are cut, not rounded — see --cut */
+  --r-sm:        4px;
+
+  /* ── halftone ────────────────────────────────────────────
+     Two offset dot grids make the staggered ben-day screen a
+     press actually lays down. --ht is a substitution mixin:
+     it is inherited unresolved, so the four knobs below can be
+     re-set on any element and `background:var(--ht)` picks them
+     up there. One line per use instead of six.
+
+     --ht-c dot colour · --ht-r dot radius · --ht-s cell pitch
+     ────────────────────────────────────────────────────── */
+  --ht-c:        rgba(0,0,0,.5);
+  --ht-r:        30%;
+  --ht-s:        8px;
+  --ht:
+    radial-gradient(circle at 50% 50%,
+      var(--ht-c) var(--ht-r), transparent calc(var(--ht-r) + 6%))
+      0 0 / var(--ht-s) var(--ht-s),
+    radial-gradient(circle at 50% 50%,
+      var(--ht-c) var(--ht-r), transparent calc(var(--ht-r) + 6%))
+      calc(var(--ht-s) / 2) calc(var(--ht-s) / 2) / var(--ht-s) var(--ht-s);
+
+  /* ── panel cuts ──────────────────────────────────────────
+     Every framed surface is clipped to --cut, and its white
+     keyline is padding showing through from underneath. The
+     default is an honest rectangle; the dashboard overrides it
+     per panel so no two share an edge angle.
+
+     clip-path clips shadows too, so elevation cannot be a
+     box-shadow any more — the plinth is a second copy of the
+     same shape, offset down, painted by the .slab wrapper.
+     ────────────────────────────────────────────────────── */
+  --cut:      polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  /* corners nicked, top-left and bottom-right — the trimmed panel */
+  --cut-nick: polygon(0 20px, 20px 0, 100% 0,
+                      100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  /* the angled gutter: top edge climbs left to right */
+  --cut-rise: polygon(0 15px, 100% 0, 100% calc(100% - 13px), 0 100%);
+  /* the same wedge mirrored, so neighbours never run parallel */
+  --cut-fall: polygon(0 0, 100% 14px, 100% 100%, 0 calc(100% - 12px));
+  /* a long banner, both ends chevroned inward */
+  --cut-band: polygon(0 11px, 26px 0, 100% 0,
+                      100% calc(100% - 11px), calc(100% - 26px) 100%, 0 100%);
 
   --rail:        0px;       /* sidebar column; only real at ≥1024px */
   --tabh:        62px;      /* bottom bar height on phones */
@@ -144,6 +192,28 @@ main:focus,section:focus{outline:none}
     radial-gradient(58% 42% at 50% 68%, rgba(44,194,229,.17), transparent 70%),
     radial-gradient(46% 34% at 78% 12%, rgba(237,35,144,.13), transparent 72%);
 }
+/* The ground's own halftone. Coarse dots — 22px pitch, so they read as
+   printed screen rather than as noise — decaying out of the top-right
+   corner the magenta wash already occupies. */
+.nebula::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:rgba(237,35,144,.78);
+  --ht-s:20px;
+  --ht-r:17%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
+  mask-image:radial-gradient(72% 58% at 88% 0%, #000, transparent 72%);
+}
+/* and a second, finer field rising off the bottom-left in cyan */
+.nebula::after{
+  content:"";position:absolute;inset:0;
+  --ht-c:rgba(44,194,229,.6);
+  --ht-s:15px;
+  --ht-r:17%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
+  mask-image:radial-gradient(64% 48% at 4% 100%, #000, transparent 70%);
+}
 
 /* ── shared horizontal rails ────────────────────────────── */
 
@@ -208,7 +278,7 @@ html[data-drawer="open"] .scrim{
   position:relative;
   padding:.6rem .8rem;
   border:3px solid var(--navy-line);
-  border-radius:14px;
+  border-radius:4px;
   background:var(--f);
   color:var(--ink-soft);
   text-decoration:none;
@@ -286,7 +356,7 @@ html[data-drawer="open"] .scrim{
   flex:0 0 auto;
   width:44px;height:44px;
   display:grid;place-items:center;
-  border:3px solid #fff;border-radius:12px;
+  border:3px solid #fff;border-radius:4px;
   background:var(--navy-lift);cursor:pointer;
   box-shadow:0 4px 0 var(--navy-line);
 }
@@ -300,7 +370,7 @@ html[data-drawer="open"] .scrim{
 }
 .crumb__step{
   font-size:.9375rem;line-height:1;
-  padding:.42rem .6rem;border-radius:10px;
+  padding:.42rem .6rem;border-radius:3px;
   background:var(--ch-dp);color:#fff;
   border:3px solid #fff;
   font-variant-numeric:tabular-nums;
@@ -332,72 +402,185 @@ html[data-drawer="open"] .scrim{
 .readout__flag{color:var(--gold)!important;font-size:.9375rem!important}
 
 /* ═══ SLAB + RIBBON ══════════════════════════════════════
-   The panel keeps overflow:hidden, so the overhanging tab
-   label lives on a wrapper instead of inside it.
-   Ribbon face is the DEEP tone: white on a bright channel
+   .slab is what makes a cut panel possible. Its child is
+   clipped to --cut, and clip-path clips shadows with it, so
+   the slab carries the elevation the panel can no longer hold:
+   ::before is a second copy of the same cut shape in the deep
+   tone, shifted down — a real plinth rather than a shadow —
+   and one drop-shadow filter traces the clipped silhouette for
+   the soft depth underneath.
+
+   The ribbon is the comic's caption box: it overhangs the
+   panel's top-left corner where a letterer would put it.
+   Its face is the DEEP tone — white on a bright channel
    measures 4.00 and would fail at label size.
    ═══════════════════════════════════════════════════════ */
 
-.slab{position:relative;padding-top:1.15rem;display:flex;flex-direction:column}
+.slab{
+  position:relative;z-index:1;isolation:isolate;
+  padding-top:1.35rem;
+  display:flex;flex-direction:column;
+  filter:drop-shadow(0 16px 20px rgba(0,0,0,.55));
+}
 /* the panel fills its grid row, so neighbouring slabs line up bottom-to-bottom */
-.slab>.pane,.slab>.ch{flex:1}
+.slab>.pane,.slab>.ch,.slab>.panel{flex:1}
+
+.slab::before{
+  content:"";position:absolute;z-index:-1;
+  left:0;right:0;top:1.35rem;bottom:0;
+  background:var(--ch-dp,var(--navy-line));
+  clip-path:var(--cut);
+  translate:0 10px;
+  transition:translate .22s var(--ease);
+}
+/* Press physics, kept from the tile: hovering drives the plinth taller,
+   pressing collapses it in 60ms while the face drops onto it. The face
+   moves by transform, the plinth by translate — two separate properties
+   on two elements, so neither fights the other. */
+.slab:has(>.ch:hover)::before,
+.slab:has(>.ch:focus-visible)::before{translate:0 17px}
+.slab:has(>.ch:active)::before{translate:0 3px;transition-duration:.06s}
+
+/* No ribbon: the inner views' .panel__bar is already the header. */
+.slab--bare{padding-top:0}
+.slab--bare::before{top:0}
 
 .ribbon{
-  position:absolute;top:0;left:1.35rem;z-index:3;
+  position:absolute;top:0;left:1.5rem;z-index:3;
   display:inline-flex;align-items:center;gap:.45rem;
-  padding:.42rem .95rem .48rem;
-  border:3px solid #fff;
-  border-radius:10px 10px 4px 4px;
-  background:var(--ch-dp);color:#fff;
-  font-size:.75rem;letter-spacing:.07em;line-height:1;
+  padding:.5rem 1.05rem .55rem;
+  border:0;
+  background:#fff;color:#fff;
+  clip-path:polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  font-size:.8125rem;letter-spacing:.08em;line-height:1;
   text-transform:uppercase;
-  box-shadow:0 4px 0 rgba(0,0,0,.45);
-  rotate:-1.4deg;
+  rotate:-2.4deg;
 }
-.ribbon--wide{font-size:.8125rem}
+/* the caption box's own keyline, drawn the same way the panels draw theirs:
+   white shape underneath, deep tone inset on top */
+.ribbon::before{
+  content:"";position:absolute;inset:3px;z-index:-1;
+  background:var(--ch-dp);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.ribbon>*{position:relative}
+.ribbon--wide{font-size:.9375rem;letter-spacing:.06em}
 
-/* ═══ DASHBOARD ══════════════════════════════════════════ */
+/* ═══ DASHBOARD ══════════════════════════════════════════
+   Laid out as a comic page, not a card grid. Three devices do
+   the work, and all three are load-bearing:
 
-.view--home{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
+   1. The two content rows split the twelve columns differently
+      (8/4 over 7/5), so the vertical gutter never runs straight
+      down the page. A shared gutter is what makes a grid read
+      as a grid.
+   2. Every panel is tilted a fraction of a degree, no two the
+      same, and no two cut to the same edge angle.
+   3. Negative margins pull the panels into each other so their
+      keylines butt and overlap the way inked panels do. The
+      tilt needs that overlap — square gaps between rotated
+      boxes read as a broken grid rather than a spread.
+   ═══════════════════════════════════════════════════════ */
+
+.view--home{
+  position:relative;
+  width:var(--shell);margin-inline:auto;padding-bottom:3rem;
+}
+/* One speed-line burst behind the whole spread, thrown from behind the
+   hero. The page's single authored flourish — everything else on the
+   dashboard is halftone, which is texture rather than event. */
+.view--home::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:-5% 0 auto;height:80%;
+  background:repeating-conic-gradient(from -18deg at 26% 34%,
+    rgba(255,255,255,.075) 0 1.6deg, transparent 1.6deg 7deg);
+  -webkit-mask-image:radial-gradient(46% 52% at 26% 34%, transparent 8%, #000 44%, transparent 82%);
+  mask-image:radial-gradient(46% 52% at 26% 34%, transparent 8%, #000 44%, transparent 82%);
+}
 
 .dash{
   display:grid;gap:var(--gap);
   grid-template-columns:minmax(0,1fr);
 }
 
+/* Single column: the tilt alternates and the panels still bite into
+   each other, so a phone gets the spread rather than a stack of cards. */
+.dash__hot   {rotate:-.85deg;z-index:2;--cut:var(--cut-rise)}
+.dash__start {rotate:1.45deg;z-index:3;--cut:var(--cut-nick)}
+.dash__drafts{rotate:-1.1deg;z-index:2;--cut:var(--cut-fall)}
+.dash__status{rotate:1.70deg;z-index:3;--cut:var(--cut-rise)}
+.dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
+.dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
+
+/* ── the inked panel ────────────────────────────────────────
+   The white keyline is not a border: a border would be clipped
+   square at the cut corners. The panel's own background IS the
+   keyline, padding holds it open, and ::before paints the
+   interior inset by exactly that much, clipped to the same
+   shape. ::after lays the channel's halftone over the interior.
+   Both sit at z-index 0; content is lifted to 1.
+   ───────────────────────────────────────────────────────── */
+
 .pane{
   position:relative;
   display:flex;flex-direction:column;
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
-  background:var(--navy-lift);
-  box-shadow:0 7px 0 var(--ch-dp), 0 18px 34px rgba(0,0,0,.5);
-  padding:1.55rem .95rem 1rem;
+  clip-path:var(--cut);
+  background:#fff;
+  padding:calc(1.55rem + var(--keyline)) calc(.95rem + var(--keyline)) calc(1rem + var(--keyline));
   min-height:0;
 }
+.pane::before{
+  content:"";position:absolute;inset:var(--keyline);z-index:0;
+  clip-path:var(--cut);
+  background:var(--navy-lift);
+}
+.pane::after{
+  content:"";position:absolute;inset:var(--keyline);z-index:0;
+  clip-path:var(--cut);
+  pointer-events:none;
+  --ht-c:var(--ch,var(--cyan));
+  --ht-s:9px;
+  --ht-r:27%;
+  background:var(--ht);
+  opacity:.3;
+  -webkit-mask-image:linear-gradient(202deg, #000 0%, transparent 72%);
+  mask-image:linear-gradient(202deg, #000 0%, transparent 72%);
+}
+.pane>*{position:relative;z-index:1}
 
-/* ── channel tile: the atom the hero and quick tiles ride on ─ */
+/* ── channel tile: the atom the hero and quick tiles ride on ─
+   Same construction as .pane — the outer element is the white
+   keyline and the clip, .ch__in is the interior. A tile has two
+   stacked children with different fills, so the interior has to
+   be a real element rather than a pseudo: it is what carries the
+   cut through to the inside edge of the keyline.
+   ───────────────────────────────────────────────────────── */
 
 .ch{
   --plate:var(--ch-dp);
   position:relative;display:flex;flex-direction:column;
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
-  background:var(--ch);
+  clip-path:var(--cut);
+  background:#fff;
+  padding:var(--keyline);
   text-decoration:none;color:var(--ch-ink);
-  overflow:hidden;isolation:isolate;
-  box-shadow:0 7px 0 var(--ch-dp), 0 16px 30px rgba(0,0,0,.5);
-  transition:transform .22s var(--ease), box-shadow .22s var(--ease);
+  isolation:isolate;
+  transition:transform .22s var(--ease);
 }
-.ch:hover,.ch:focus-visible{
-  transform:translateY(-5px);
-  box-shadow:0 12px 0 var(--ch-dp), 0 26px 44px rgba(0,0,0,.55);
+.ch__in{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+  clip-path:var(--cut);
+  background:var(--ch);
+  overflow:hidden;
 }
-.ch:active{
-  transform:translateY(4px);
-  box-shadow:0 3px 0 var(--ch-dp), 0 8px 16px rgba(0,0,0,.5);
-  transition-duration:.06s;
-}
+.ch:hover,.ch:focus-visible{transform:translateY(-7px)}
+.ch:active{transform:translateY(4px);transition-duration:.06s}
+/* A clip-path clips the focus outline away with everything else, so the
+   keyline IS the focus ring: the white cut-line goes gold. It traces the
+   panel's real shape, which a rectangular outline never did. The mini tiles
+   are not clipped and keep a border, so theirs recolours instead. */
+.ch:focus-visible{outline:none;background:var(--gold)}
+.ch--mini:focus-visible{background:var(--ch);border-color:var(--gold)}
 
 .ch__screen{
   position:relative;flex:1;min-height:0;
@@ -407,7 +590,19 @@ html[data-drawer="open"] .scrim{
 }
 .ch__screen img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
 .ch__screen--glyph{color:var(--ch-ink);opacity:.9;padding:1.4rem}
-.ch__screen--glyph svg{width:clamp(46px,6vw,68px);height:auto}
+.ch__screen--glyph svg{width:clamp(46px,6vw,68px);height:auto;position:relative}
+/* dots behind the glyph, in the plate tone, so an iconless tile still
+   has a printed surface under it rather than a flat fill */
+.ch__screen--glyph::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--ch-dp);
+  --ht-s:9px;
+  --ht-r:28%;
+  background:var(--ht);
+  opacity:.42;
+  -webkit-mask-image:linear-gradient(165deg, #000, transparent 78%);
+  mask-image:linear-gradient(165deg, #000, transparent 78%);
+}
 
 /* the sweep across a lit screen */
 .ch__scan{
@@ -420,9 +615,9 @@ html[data-drawer="open"] .scrim{
 
 .ch__plate{
   display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;
-  padding:.7rem 1rem .75rem;
+  padding:.72rem 1rem .78rem;
   background:var(--plate);color:#fff;
-  border-top:3px solid #fff;
+  border-top:var(--keyline) solid #fff;
 }
 .ch__name{
   font-size:clamp(1rem,1.6vw,1.375rem);
@@ -434,11 +629,11 @@ html[data-drawer="open"] .scrim{
 
 .hero{
   --plate:var(--magenta-dp);
-  flex-direction:row;
-  min-height:clamp(268px,38vw,392px);
+  min-height:clamp(300px,42vw,440px);
 }
+.hero .ch__in{flex-direction:row;gap:var(--keyline);background:#fff}
 .hero__screen{
-  position:relative;flex:1 1 52%;min-width:0;
+  position:relative;flex:1 1 50%;min-width:0;
   background:#fff;overflow:hidden;
 }
 /* out of flow: the page is 2:3, and left in flow its own ratio would
@@ -449,26 +644,42 @@ html[data-drawer="open"] .scrim{
 }
 
 .hero__body{
-  flex:1 1 48%;min-width:0;
+  position:relative;
+  flex:1 1 50%;min-width:0;
   display:flex;flex-direction:column;justify-content:center;
   gap:.7rem;
-  padding:clamp(1rem,2.4vw,1.7rem);
+  padding:clamp(1.1rem,2.6vw,1.9rem);
   background:var(--magenta);
-  border-left:var(--keyline) solid #fff;
 }
+/* The loudest halftone on the site: 12px dots in the deep tone, thrown
+   from the bottom-left corner of the magenta field. This is the panel
+   that has to stop a scroll, so it gets the coarse screen. */
+.hero__body::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--magenta-dp);
+  --ht-s:14px;
+  --ht-r:32%;
+  background:var(--ht);
+  -webkit-mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
+  mask-image:radial-gradient(96% 96% at 0% 108%, #000 6%, transparent 76%);
+}
+.hero__body>*{position:relative;z-index:1}
 .hero__kicker{
-  font-size:.625rem;letter-spacing:.12em;
+  font-size:.6875rem;letter-spacing:.14em;
   text-transform:uppercase;line-height:1;
   align-self:flex-start;
-  padding:.35rem .6rem;border-radius:999px;
+  padding:.42rem .7rem .46rem;
   background:var(--magenta-dp);color:#fff;
-  border:2px solid rgba(255,255,255,.55);
+  clip-path:polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  rotate:-1.6deg;
 }
 /* white on bright magenta is 4.00 — AA large only, and WCAG's "large" starts
-   at 24px for a 400-weight face. The floor of this clamp is exactly that. */
+   at 24px for a 400-weight face. The floor of this clamp is well above it. */
 .hero__title{
   margin:0;font-weight:700;
-  font-size:clamp(1.5rem,3.1vw,2.15rem);line-height:1.06;
+  font-size:clamp(1.75rem,4.4vw,3.15rem);line-height:.96;
+  letter-spacing:-.02em;
+  text-wrap:balance;
   color:#fff;
 }
 /* the subtitle is small, so it moves off the bright face onto a deep-tone
@@ -476,11 +687,11 @@ html[data-drawer="open"] .scrim{
 .hero__sub{
   margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
   color:#fff;
-  padding:.5rem .75rem;border-radius:10px;
+  padding:.55rem .8rem;
   background:var(--magenta-dp);
-  border:2px solid rgba(255,255,255,.4);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
-.hero .btn{align-self:flex-start;margin-top:.25rem}
+.hero .btn{align-self:flex-start;margin-top:.3rem}
 
 /* ── START HERE: the ranking slot, without the metrics ──── */
 
@@ -491,7 +702,7 @@ html[data-drawer="open"] .scrim{
 .rank__row{
   display:flex;align-items:center;gap:.65rem;
   padding:.35rem .45rem;
-  border-radius:10px;
+  border-radius:4px;
   text-decoration:none;color:inherit;
   border:2px solid transparent;
   transition:background-color .16s, border-color .16s, transform .16s var(--ease);
@@ -505,7 +716,7 @@ html[data-drawer="open"] .scrim{
 }
 .rank__thumb{
   flex:0 0 auto;width:38px;height:57px;object-fit:cover;
-  border:2px solid #fff;border-radius:6px;background:#fff;
+  border:2px solid #fff;border-radius:3px;background:#fff;
 }
 .rank__label{
   flex:1;min-width:0;
@@ -534,45 +745,60 @@ html[data-drawer="open"] .scrim{
 /* ── THE DRAFTS: the chapter-card row ───────────────────── */
 
 .cardrow{
-  gap:.6rem;padding:.15rem .15rem .5rem;
+  gap:.75rem;padding:.5rem .15rem .75rem;
   scroll-snap-type:x mandatory;
 }
+/* The drafts are the one place the site shows the pages as objects, so they
+   are pinned down rather than aligned: every card sits at its own angle,
+   the way a page of thumbnails gets taped to a wall. Four-step cycle, so
+   the rhythm never resolves into a pattern the eye can lock onto. */
 .card{
   position:relative;flex:0 0 auto;
-  width:clamp(112px,15vw,144px);
+  width:clamp(116px,15vw,150px);
   scroll-snap-align:start;
   text-decoration:none;color:inherit;
-  border:3px solid #fff;border-radius:var(--r-sm);
+  border:var(--keyline) solid #fff;border-radius:var(--r-sm);
   overflow:hidden;background:var(--navy);
-  box-shadow:0 5px 0 var(--cyan-dp), 0 12px 22px rgba(0,0,0,.45);
+  box-shadow:0 6px 0 var(--cyan-dp), 0 12px 22px rgba(0,0,0,.45);
   transition:transform .18s var(--ease);
 }
-.card:hover,.card:focus-visible{transform:translateY(-5px)}
+.card:nth-child(4n+1){rotate:-1.6deg}
+.card:nth-child(4n+2){rotate:1.1deg;margin-top:.3rem}
+.card:nth-child(4n+3){rotate:-.5deg;margin-top:-.25rem}
+.card:nth-child(4n)  {rotate:1.9deg}
+.card:hover,.card:focus-visible{transform:translateY(-7px);z-index:2}
 .card img{width:100%;aspect-ratio:2/3;object-fit:cover;background:#fff}
 .card__foot{
   display:flex;align-items:baseline;gap:.35rem;
-  padding:.4rem .55rem .45rem;
+  padding:.42rem .55rem .48rem;
   background:var(--cyan-dp);
-  border-top:2px solid #fff;
+  border-top:3px solid #fff;
 }
 .card__n{
-  font-size:.75rem;line-height:1;
+  font-size:.8125rem;line-height:1;
   font-variant-numeric:tabular-nums;
 }
 .card__stage{font-size:.625rem;font-weight:700;color:rgba(255,255,255,.78);text-transform:capitalize}
 
-/* the "NEW" corner flag, rewritten as what is actually true */
+/* The corner flag, rewritten as what is actually true. Cut to a pennant
+   rather than a pill — a pill is UI, and this is a sticker slapped on the
+   panel. Struck through the keyline at the corner so it reads as applied
+   after the fact, not printed with it. */
 .badge,.ch__badge{
-  position:absolute;top:.5rem;left:.5rem;z-index:3;
-  font-size:.5625rem;letter-spacing:.08em;
+  position:absolute;top:.55rem;left:.55rem;z-index:4;
+  font-size:.625rem;letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.28rem .5rem;border-radius:999px;
-  background:var(--gold);color:var(--navy);
-  border:3px solid #fff;
-  box-shadow:0 3px 0 var(--gold-dp);
+  padding:.34rem .82rem .38rem .58rem;
+  background:#fff;color:var(--navy);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%);
   rotate:-7deg;
 }
-.ch__badge{top:.7rem;right:.7rem;left:auto;font-size:.625rem;padding:.35rem .6rem}
+.badge::before,.ch__badge::before{
+  content:"";position:absolute;inset:3px;z-index:-1;
+  background:var(--gold);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%);
+}
+.ch__badge{top:.85rem;right:.85rem;left:auto;font-size:.6875rem;padding:.4rem .95rem .44rem .66rem}
 
 /* ── BUILD STATUS: the mission slot, told straight ──────── */
 
@@ -580,13 +806,13 @@ html[data-drawer="open"] .scrim{
 .status li{
   display:flex;align-items:center;gap:.6rem;
   padding:.42rem .5rem;
-  border-radius:10px;
+  border-radius:4px;
   border:2px solid transparent;
 }
 .status li:hover{background:rgba(28,66,108,.42)}
 .status__mark{
   flex:0 0 auto;width:22px;height:22px;
-  display:grid;place-items:center;border-radius:6px;
+  display:grid;place-items:center;border-radius:3px;
   border:2px solid currentColor;
 }
 .status__mark svg{width:12px;height:12px}
@@ -609,42 +835,108 @@ html[data-drawer="open"] .scrim{
 
 /* ── QUICK ACCESS ───────────────────────────────────────── */
 
-.quick{flex-direction:row;align-items:stretch;gap:.7rem;padding-block:1.55rem 1rem}
-.quick__rail{flex:1;min-width:0;gap:.6rem;padding:.15rem .15rem .45rem;scroll-snap-type:x mandatory}
+.quick{
+  flex-direction:row;align-items:stretch;gap:.85rem;
+  padding-block:calc(1.55rem + var(--keyline)) calc(1rem + var(--keyline));
+}
+.quick__rail{flex:1;min-width:0;gap:.75rem;padding:.4rem .15rem .7rem;scroll-snap-type:x mandatory}
 .quick .nav{align-self:center}
 
-.ch--mini{
-  flex:0 0 auto;width:clamp(104px,13vw,132px);
-  scroll-snap-align:start;
-  box-shadow:0 5px 0 var(--ch-dp), 0 12px 22px rgba(0,0,0,.45);
+/* The round channel control. The reader used to share it for paging and no
+   longer does — its flips are slim and revealed — so this is the quick rail's
+   scroll button and nothing else. */
+.nav{
+  flex:0 0 auto;
+  width:clamp(44px,5vw,58px);aspect-ratio:1;
+  display:grid;place-items:center;
+  border-radius:50%;cursor:pointer;
+  background:var(--ch,var(--magenta));color:#fff;
+  border:3px solid #fff;
+  box-shadow:0 5px 0 var(--ch-dp,var(--magenta-dp));
+  transition:transform .16s var(--ease);
 }
-.ch--mini .ch__screen{min-height:64px;padding:.7rem}
-.ch--mini .ch__screen--glyph svg{width:34px}
-.ch--mini .ch__plate{padding:.42rem .6rem .48rem;flex-direction:column;gap:.1rem;align-items:flex-start}
+.nav svg{width:52%;height:52%}
+.nav:hover:not(:disabled){transform:translateY(-3px)}
+.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--ch-dp,var(--magenta-dp))}
+.nav:disabled{opacity:.32;cursor:not-allowed;box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.nav--rail{width:42px}
+
+/* The mini tiles stay square-cornered and keep a real box-shadow plinth.
+   They are the only framed thing on the page small enough that a corner
+   cut would eat the glyph, and without a clip they need no wrapper trick.
+   Their variation is the tilt instead. */
+.ch--mini{
+  flex:1 0 clamp(112px,13vw,150px);
+  scroll-snap-align:start;
+  clip-path:none;padding:0;
+  border:var(--keyline) solid #fff;border-radius:3px;
+  background:var(--ch);
+  box-shadow:0 6px 0 var(--ch-dp), 0 12px 22px rgba(0,0,0,.45);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+.ch--mini .ch__in{clip-path:none}
+.ch--mini:nth-child(odd) {rotate:-1.5deg}
+.ch--mini:nth-child(even){rotate:1.5deg;margin-top:.35rem}
+.ch--mini:hover,.ch--mini:focus-visible{
+  transform:translateY(-6px);
+  box-shadow:0 12px 0 var(--ch-dp), 0 20px 30px rgba(0,0,0,.5);
+}
+.ch--mini:active{
+  transform:translateY(4px);
+  box-shadow:0 2px 0 var(--ch-dp), 0 6px 12px rgba(0,0,0,.45);
+}
+.ch--mini .ch__screen{min-height:clamp(70px,7vw,104px);padding:.75rem}
+.ch--mini .ch__screen--glyph svg{width:36px}
+.ch--mini .ch__plate{padding:.45rem .6rem .5rem;flex-direction:column;gap:.1rem;align-items:flex-start}
 .ch--mini .ch__name{font-size:.75rem}
 .ch--mini .ch__sub{font-size:.625rem}
 
 /* ── panels ─────────────────────────────────────────────── */
 
+/* An inner view is one panel, so it takes the single boldest cut on the
+   site — the whole page tilts a hair and both leading corners come off.
+   Same construction as the dashboard's tiles: .panel is the keyline and
+   the clip, .panel__in is the interior. */
 .view--panel{width:var(--shell);margin-inline:auto;padding-bottom:2.5rem}
+.view--panel>.slab{--cut:var(--cut-nick);rotate:-.4deg}
 
 .panel{
-  border:var(--keyline) solid #fff;
-  border-radius:var(--r);
+  position:relative;
+  clip-path:var(--cut);
+  background:#fff;
+  padding:var(--keyline);
+  display:flex;flex-direction:column;
+}
+.panel__in{
+  flex:1;min-height:0;
+  clip-path:var(--cut);
   background:var(--navy-lift);
-  box-shadow:0 7px 0 var(--ch-dp,var(--navy-line)), 0 20px 40px rgba(0,0,0,.5);
   overflow:hidden;
 }
 
 .panel__bar{
-  display:flex;align-items:center;gap:1rem;
-  padding:.7rem .9rem;
-  background:var(--ch);border-bottom:3px solid #fff;
+  position:relative;z-index:5;   /* the note's popover drops out of this bar */
+  display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
+  padding:.8rem .95rem;
+  background:var(--ch);border-bottom:var(--keyline) solid #fff;
   color:var(--ch-ink);
 }
+/* the header band gets the deep tone screened over it, decaying to the
+   right so the title sits on the densest part of the field */
+.panel__bar::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--ch-dp);
+  --ht-s:9px;
+  --ht-r:28%;
+  background:var(--ht);
+  opacity:.5;
+  -webkit-mask-image:linear-gradient(96deg, #000 4%, transparent 62%);
+  mask-image:linear-gradient(96deg, #000 4%, transparent 62%);
+}
+.panel__bar>*{position:relative;z-index:1}
 .panel__title{
   margin:0;font-weight:700;
-  font-size:clamp(1rem,2vw,1.375rem);line-height:1;
+  font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;letter-spacing:.01em;
   margin-inline-end:auto;
 }
 /* counter rides in a deep-tone chip: reads as HUD instrumentation, and
@@ -685,65 +977,537 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .speak.is-speaking{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 
 .notice{
-  margin:0;padding:.8rem 1rem;
-  background:rgba(252,176,64,.13);
-  border-bottom:2px solid rgba(252,176,64,.32);
+  position:relative;
+  margin:0;padding:.85rem 1.1rem;
+  background:rgba(252,176,64,.14);
+  border-bottom:3px solid rgba(252,176,64,.42);
   font-size:.875rem;line-height:1.5;color:#FFE2B4;
 }
+.notice::before{
+  content:"";position:absolute;inset:0;
+  --ht-c:var(--gold);
+  --ht-s:9px;
+  --ht-r:26%;
+  background:var(--ht);
+  opacity:.16;
+  -webkit-mask-image:linear-gradient(92deg, #000, transparent 46%);
+  mask-image:linear-gradient(92deg, #000, transparent 46%);
+}
+.notice>*{position:relative}
 .notice strong{color:var(--gold)}
 
-/* ── reader ─────────────────────────────────────────────── */
+/* ═══ READER ══════════════════════════════════════════════
+   The page is the product, so the page gets the room. Three
+   controls are revealed rather than parked on screen — the
+   standing note, the flips, and the timeline — and every one
+   of them obeys the same three rules:
+
+     · it also appears on :focus-within, so a keyboard reaches it
+     · it is never the ONLY route to the thing (the note is on
+       aria-describedby, paging is on the arrow keys, the strip
+       is duplicated by the counter and the progress rail)
+     · it is permanently visible under @media (hover:none),
+       because a control that exists only under a pointer is a
+       control half the visitors do not have
+
+   .stage is both the hover host and the size container. Whether
+   there is room for a script column beside the page is a
+   question about this box, not about the viewport — the rail
+   takes 238px off one and not the other — so it is a container
+   query and not a media query.
+   ═══════════════════════════════════════════════════════ */
+
+.stage{
+  position:relative;
+  container-type:inline-size;
+  container-name:read;
+}
+.spread{display:flex;flex-direction:column;min-inline-size:0}
 
 .reader{
-  display:flex;align-items:center;justify-content:center;gap:clamp(.5rem,2vw,1.25rem);
-  padding:clamp(1rem,3vw,1.75rem);
+  flex:1 1 auto;min-inline-size:0;
+  display:flex;align-items:center;justify-content:center;
+  /* The flips live in this padding rather than over the artwork. The chrome
+     stops at the page border, and that rule does not get an exception for
+     being convenient. */
+  padding:clamp(.7rem,1.8vw,1.1rem) clamp(38px,6%,64px);
+  block-size:clamp(340px, calc(100dvh - 21rem), 900px);
 }
-.page{margin:0;position:relative;flex:0 1 auto}
+/* Shrink-wraps the page, which is what lets the flips sit against its edges
+   instead of stranded at the far sides of a column the page does not fill.
+   A portrait page in a landscape panel leaves a lot of room; the handles
+   should be next to the thing they turn. */
+.plate{
+  position:relative;
+  block-size:100%;
+  display:flex;align-items:center;
+  max-inline-size:100%;
+  /* Swipe moves this. The handler writes `translate` and `transition:none`
+     straight onto the node during a drag and clears both on release, so this
+     rule is what snaps the page back. Nothing about the drag goes through
+     React — a state update per pointermove re-rendered the script column and
+     the whole filmstrip on every frame, which is what made it stutter. */
+  transition:translate .22s var(--ease);
+}
+/* pan-y, not none: a horizontal drag is ours, a vertical one belongs to the
+   scroller and taking it would trap the page. */
+.reader{touch-action:pan-y}
+/* The other half of the same fix as draggable={false}: without this a drag
+   that starts on the artwork becomes a native image drag and the swipe never
+   gets a second pointermove. */
+.page img{-webkit-user-drag:none;user-select:none}
+.page{
+  margin:0;position:relative;
+  block-size:100%;
+  display:flex;align-items:center;justify-content:center;
+  min-inline-size:0;
+}
+/* Fills its parent's height, and gives that up rather than distort when the
+   box is narrower than a 2:3 page — which is only ever a small phone. */
 .page img{
-  max-height:clamp(300px,calc(100dvh - 360px),820px);width:auto;
+  block-size:auto;inline-size:auto;
+  max-block-size:100%;max-inline-size:100%;
   border:3px solid #fff;border-radius:var(--r-sm);
   background:#fff;
   box-shadow:0 14px 34px rgba(0,0,0,.55);
 }
 .page__tag{
-  position:absolute;top:.6rem;left:.6rem;
+  position:absolute;top:.55rem;left:.55rem;
+  display:inline-flex;align-items:baseline;gap:.3rem;
   font-size:.625rem;letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.3rem .55rem;border-radius:999px;
+  padding:.3rem .7rem .34rem .55rem;
   background:var(--navy);color:var(--gold);
-  border:2px solid var(--gold);
+  clip-path:polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  font-variant-numeric:tabular-nums;
   rotate:-4deg;
 }
+.page__of{color:var(--ink-soft);font-weight:400}
 
-.nav{
-  flex:0 0 auto;
-  width:clamp(44px,5vw,58px);aspect-ratio:1;
+/* ── the flips ──────────────────────────────────────────── */
+
+.flip{
+  position:absolute;inset-block:0;z-index:2;
+  inline-size:clamp(34px,4vw,56px);
   display:grid;place-items:center;
-  border-radius:50%;cursor:pointer;
-  background:var(--ch,var(--magenta));color:#fff;
-  border:3px solid #fff;
-  box-shadow:0 5px 0 var(--ch-dp,var(--magenta-dp));
-  transition:transform .16s var(--ease);
+  padding:0;border:0;cursor:pointer;
+  background:transparent;color:var(--ink-soft);
+  opacity:0;
+  transition:opacity .18s var(--ease), color .16s, background-color .16s;
 }
-.nav svg{width:52%;height:52%}
-.nav:hover:not(:disabled){transform:translateY(-3px)}
-.nav:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--ch-dp,var(--magenta-dp))}
-.nav:disabled{opacity:.32;cursor:not-allowed;box-shadow:0 5px 0 rgba(0,0,0,.35)}
-.nav--rail{width:42px}
+/* Anchored to the page's own edges — 100% of .plate is the page. */
+.flip--prev{inset-inline-end:100%}
+.flip--next{inset-inline-start:100%}
+.flip svg{inline-size:26px;block-size:26px}
+.flip:hover:not(:disabled){color:#fff;background:rgba(255,255,255,.07)}
+.flip:disabled{cursor:default}
+
+.stage:hover .flip,
+.stage:focus-within .flip{opacity:1}
+/* Dimmed rather than gone at the ends: a handle that vanishes reads as a
+   glitch, one that greys out reads as the end of the comic. */
+.stage:hover .flip:disabled,
+.stage:focus-within .flip:disabled{opacity:.26}
+
+/* ── the timeline ───────────────────────────────────────── */
+
+.timeline{--film-h:104px}
+
+/* Always visible, and the only part that is. It reports position on its own
+   and doubles as the affordance saying the strip is underneath. */
+.timeline__rail{
+  block-size:7px;
+  background:var(--navy);
+  border-block:2px solid var(--navy-line);
+  overflow:hidden;
+}
+.timeline__rail span{
+  display:block;block-size:100%;
+  background:var(--gold);
+  transition:inline-size .3s var(--ease);
+}
+
+.timeline__clip{
+  block-size:0;overflow:hidden;
+  transition:block-size .28s var(--ease);
+}
+.stage:hover .timeline__clip,
+.stage:focus-within .timeline__clip{block-size:var(--film-h)}
+@media (hover:none){
+  .flip{opacity:1}
+  .timeline__clip{block-size:var(--film-h)}
+}
 
 .filmstrip{
-  gap:.5rem;
-  padding:0 clamp(1rem,3vw,1.75rem) clamp(1rem,3vw,1.75rem);
+  padding:.7rem clamp(1rem,3vw,1.75rem);
 }
+.filmstrip__list{
+  display:flex;gap:.5rem;align-items:flex-start;
+  list-style:none;margin:0;padding:0;
+}
+.filmstrip__list>li{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.filmstrip__add{align-self:center}
 .filmstrip button{
+  position:relative;
   flex:0 0 auto;padding:0;cursor:pointer;background:none;
-  border:3px solid var(--navy-line);border-radius:8px;
+  border:3px solid var(--navy-line);border-radius:3px;
   overflow:hidden;line-height:0;
   transition:border-color .16s,transform .16s var(--ease);
 }
 .filmstrip button img{width:52px;height:78px;object-fit:cover}
 .filmstrip button:hover{transform:translateY(-3px);border-color:#fff}
 .filmstrip button[aria-current="true"]{border-color:var(--gold);transform:translateY(-3px)}
+
+.film__n{
+  position:absolute;inset-block-end:0;inset-inline-start:0;
+  padding:.12rem .3rem .14rem;
+  font-family:var(--face);font-weight:700;
+  font-size:.5625rem;letter-spacing:.05em;line-height:1;
+  font-variant-numeric:tabular-nums;
+  background:var(--navy);color:var(--ink-soft);
+}
+.filmstrip button[aria-current="true"] .film__n{background:var(--gold);color:var(--navy)}
+
+/* ── the phone's controls ───────────────────────────────── */
+
+/* display:none above 860px, so exactly one set of reader controls is ever in
+   the accessibility tree — the same rule the rail and the tab bar follow. */
+.rdock{display:none}
+
+/* ── the standing note, folded into the heading ─────────── */
+
+.tip{position:relative;display:inline-flex;flex:0 0 auto}
+.tip__mark{
+  inline-size:30px;block-size:30px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:3px solid #fff;border-radius:999px;
+  background:var(--ch-dp);color:#fff;
+  transition:transform .14s var(--ease);
+}
+.tip__mark svg{inline-size:14px;block-size:14px}
+.tip__mark:hover{transform:translateY(-2px)}
+
+.tip__body{
+  position:absolute;z-index:20;
+  inset-block-start:calc(100% + 9px);
+  inset-inline-end:0;
+  inline-size:min(34ch,68vw);
+  padding:.75rem .9rem;
+  background:var(--navy);color:#FFE2B4;
+  border:3px solid var(--gold);
+  font-size:.8125rem;line-height:1.5;
+  font-weight:400;text-transform:none;letter-spacing:0;
+  text-align:start;
+  box-shadow:0 12px 28px rgba(0,0,0,.62);
+  opacity:0;visibility:hidden;
+  transition:opacity .16s var(--ease), visibility 0s linear .16s;
+}
+/* The bridge across the 9px gap. Without it the pointer loses the tip on the
+   way down to it, which is the "hoverable" half of WCAG 1.4.13. */
+.tip__body::before{
+  content:"";position:absolute;
+  inset-block-end:100%;inset-inline:0;block-size:11px;
+}
+.tip:hover .tip__body,
+.tip:focus-within .tip__body,
+.tip[data-open="true"] .tip__body{
+  opacity:1;visibility:visible;
+  transition:opacity .16s var(--ease), visibility 0s;
+}
+/* Escape wins over all three. It comes last so it beats them on order alone,
+   and it lasts until the pointer or the focus genuinely leaves — otherwise
+   focus returning to the mark would re-open what was just dismissed. */
+.tip[data-dismissed="true"] .tip__body{
+  opacity:0;visibility:hidden;
+  transition:opacity .12s var(--ease), visibility 0s linear .12s;
+}
+
+/* ── the script page ────────────────────────────────────── */
+
+/* A page that is written but not drawn. Laid out as a page, at the same 2:3 as
+   every real one, because that is what it is in the running order — the shape
+   of a chapter can be built before the drawing exists. Paper-coloured rather
+   than navy: the comic's pages are white and this is one of them. */
+.sheet{
+  aspect-ratio:2/3;
+  block-size:100%;max-inline-size:100%;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:.7rem;
+  padding:clamp(1rem,3.5%,1.9rem);
+  background:#F4F1EA;color:#1B2233;
+  border:3px solid #fff;border-radius:var(--r-sm);
+  box-shadow:0 14px 34px rgba(0,0,0,.55);
+}
+.sheet__tag{
+  margin:0;align-self:flex-start;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.625rem;letter-spacing:.12em;
+  padding:.3rem .6rem .34rem;
+  background:var(--magenta-dp);color:#fff;
+  clip-path:polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.sheet__lines{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:.5rem;
+  font-size:clamp(.8125rem,1.5vh,.9375rem);line-height:1.45;
+}
+.sheet__lines b{
+  display:block;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.08em;color:var(--magenta-dp);
+}
+.sheet__lines li[data-kind="mark"]{
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.625rem;letter-spacing:.12em;color:#6B7690;
+  margin-block-start:.35rem;
+}
+.sheet__lines li[data-kind="note"]{font-style:italic;color:#4A5468}
+.sheet__none{margin:auto 0;color:#5A6478;font-size:.875rem;line-height:1.5}
+
+.thumb__blank{
+  display:grid;place-items:center;
+  inline-size:52px;block-size:78px;
+  background:var(--navy-lift);color:var(--ink-soft);
+}
+.thumb__blank svg{inline-size:20px;block-size:20px}
+
+/* ── the voice picker ───────────────────────────────────── */
+
+.vm{position:relative;display:inline-flex;flex:0 0 auto}
+.vm__open{cursor:pointer;font-family:inherit}
+.vm__open.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+
+.vm__panel{
+  position:absolute;z-index:30;
+  inset-block-start:calc(100% + 9px);
+  inset-inline-end:0;
+  inline-size:min(23rem,84vw);
+  display:flex;flex-direction:column;gap:.65rem;
+  padding:.95rem;
+  background:var(--navy);color:#fff;
+  border:3px solid #fff;
+  box-shadow:0 12px 28px rgba(0,0,0,.62);
+  /* The bar this drops out of is all tracked caps. The panel is a form. */
+  text-align:start;text-transform:none;letter-spacing:0;font-weight:400;
+}
+.vm__head{
+  margin:0;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.1em;color:var(--gold);
+}
+.vm__row{
+  display:grid;grid-template-columns:3.6rem 1fr auto;
+  align-items:center;gap:.6rem;margin:0;
+}
+.vm__label{font-size:.75rem;color:var(--ink-soft)}
+.vm__select{
+  grid-column:2/-1;min-inline-size:0;
+  font:inherit;font-size:.8125rem;
+  padding:.42rem .5rem;
+  background:var(--navy-lift);color:#fff;
+  border:2px solid var(--navy-line);border-radius:4px;
+}
+.vm__range{inline-size:100%;min-inline-size:0;accent-color:var(--gold)}
+.vm__out{
+  font-size:.75rem;color:#fff;
+  font-variant-numeric:tabular-nums;
+  min-inline-size:2.5rem;text-align:end;
+}
+.vm__foot{display:flex;gap:.5rem;margin-block-start:.15rem}
+.vm__none{margin:0;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
+
+/* ── the script column ──────────────────────────────────── */
+
+.script{
+  display:flex;flex-direction:column;gap:.7rem;
+  min-inline-size:0;
+  padding:clamp(.9rem,2vw,1.3rem);
+  background:rgba(8,14,29,.55);
+  border-block-start:var(--keyline) solid #fff;
+}
+.script__bar{display:flex;align-items:center;gap:.6rem}
+.script__bar .script__head{flex:1}
+.script__head{
+  min-inline-size:0;margin:0;
+  display:flex;align-items:center;gap:.45rem;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.8125rem;letter-spacing:.08em;color:var(--gold);
+}
+.script__head svg{inline-size:16px;block-size:16px;flex:0 0 16px}
+.script__page{
+  margin-inline-start:auto;
+  font-size:.6875rem;letter-spacing:.06em;color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;
+}
+
+.script__transport{display:flex;gap:.4rem;flex:0 0 auto}
+.tbtn{
+  inline-size:34px;block-size:34px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:3px solid #fff;border-radius:999px;
+  background:var(--navy);color:#fff;
+  box-shadow:0 3px 0 rgba(0,0,0,.45);
+  transition:transform .14s var(--ease);
+}
+.tbtn svg{inline-size:13px;block-size:13px}
+.tbtn:hover:not(:disabled){transform:translateY(-2px)}
+.tbtn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+.tbtn.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
+.tbtn:disabled{opacity:.34;cursor:not-allowed}
+
+.script__lines{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:.15rem;
+}
+.script__line{
+  position:relative;
+  padding:.34rem .5rem .38rem 1.95rem;
+  font-size:.875rem;line-height:1.5;
+  color:#DCE6FA;
+}
+/* A slug is a heading — tracked caps, like every other label on the site.
+   A direction is something the artist acts on rather than something anyone
+   says, so it stays sentence case and leans. Two different jobs, two looks. */
+.script__line[data-kind="mark"]{
+  margin-block-start:.5rem;
+  color:var(--gold);
+  font-family:var(--face);font-weight:700;
+  font-size:.625rem;letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.script__line[data-kind="mark"]:first-child{margin-block-start:0}
+.script__line[data-kind="note"]{
+  color:var(--ink-soft);
+  font-size:.8125rem;font-style:italic;
+}
+.script__who{
+  display:block;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.08em;
+  color:var(--gold);
+}
+/* The line being spoken, and the line the next Play will start from. Two
+   different states, so they cannot be the same highlight. */
+.script__line.is-live{background:rgba(252,176,64,.17);color:#fff}
+.script__line.is-from{background:rgba(159,179,217,.09)}
+
+.script__cue{
+  position:absolute;inset-inline-start:.25rem;inset-block-start:.42rem;
+  inline-size:21px;block-size:21px;
+  display:grid;place-items:center;
+  padding:0;cursor:pointer;
+  border:2px solid var(--navy-line);border-radius:999px;
+  background:var(--navy);color:var(--ink-soft);
+  opacity:0;transition:opacity .14s var(--ease), color .14s, border-color .14s;
+}
+.script__cue svg{inline-size:9px;block-size:9px}
+.script__line:hover .script__cue{opacity:1}
+.script__cue:focus-visible{opacity:1}
+.script__cue:hover{color:#fff;border-color:#fff}
+.script__line.is-live .script__cue{opacity:1;border-color:var(--gold);color:var(--gold)}
+@media (hover:none){.script__cue{opacity:1}}
+
+.script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
+.script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}
+/* The raw text behind the parsed view. Editor-only — admin.css reveals it,
+   and admin.css only ever loads for someone signed in. */
+.script__slot{display:none}
+
+/* Side by side once the panel is wide enough to hold both without squeezing
+   the artwork. Below that the script stacks under the page rather than
+   disappearing: it is the only text version of the page there is, and hiding
+   it on a phone would take the comic away from exactly the readers who most
+   need it as text. */
+@container read (min-width:900px){
+  .spread{flex-direction:row;align-items:stretch}
+  .script{
+    flex:0 0 clamp(290px,32%,420px);
+    border-block-start:0;
+    border-inline-start:var(--keyline) solid #fff;
+    overflow-y:auto;
+  }
+  /* A page with no script still says so — the reason there is no text is a
+     fact about this comic worth stating, not an embarrassment to hide. But it
+     is three sentences, not a transcript, so it does not get a transcript's
+     share of the width. */
+  .script--empty{flex-basis:clamp(240px,24%,320px)}
+  .reader{block-size:clamp(380px, calc(100dvh - 19rem), 920px)}
+}
+
+/* ═══ THE SHELF ═══════════════════════════════════════════
+   /read opens here now rather than on page one. "Start reading"
+   and "go back to where I was" are different intentions, and
+   dropping straight into page one only ever served the first.
+   ═══════════════════════════════════════════════════════ */
+
+.shelf{
+  display:flex;flex-direction:column;gap:clamp(.9rem,2vw,1.3rem);
+  padding:clamp(1rem,3vw,1.75rem);
+}
+
+.chapter{
+  position:relative;
+  padding:clamp(.9rem,2vw,1.2rem);
+  background:rgba(8,14,29,.5);
+  border:3px solid var(--navy-line);
+  border-radius:var(--r-sm);
+}
+.chapter__head{
+  display:flex;align-items:flex-start;gap:.85rem;flex-wrap:wrap;
+  margin-block-end:.9rem;
+}
+.chapter__n{
+  flex:0 0 auto;
+  font-family:var(--face);font-weight:700;
+  font-size:1.25rem;line-height:1;color:var(--gold);
+  font-variant-numeric:tabular-nums;
+  padding-block-start:.1rem;
+}
+.chapter__title{flex:1;min-inline-size:12ch}
+.chapter__title h2{
+  margin:0;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1rem,2.2vw,1.375rem);line-height:1.1;letter-spacing:.02em;
+}
+.chapter__blurb{margin:.3rem 0 0;font-size:.875rem;line-height:1.45;color:var(--ink-soft)}
+.chapter__count{
+  flex:0 0 auto;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.625rem;letter-spacing:.08em;
+  padding:.28rem .6rem;border-radius:999px;
+  background:var(--navy);color:var(--ink-soft);
+  border:2px solid var(--navy-line);
+}
+.chapter__none{margin:0;font-size:.875rem;color:var(--ink-soft)}
+
+.chapter__strip{
+  list-style:none;margin:0 0 .9rem;padding:.15rem .15rem .5rem;
+  display:flex;gap:.5rem;overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:var(--navy-line) transparent;
+}
+/* Without this they shrink to fit instead of scrolling, and ten pages of a
+   chapter become ten slivers. */
+.chapter__strip>li{flex:0 0 auto}
+.thumb{
+  position:relative;display:block;line-height:0;
+  border:3px solid var(--navy-line);border-radius:3px;
+  overflow:hidden;
+  transition:transform .16s var(--ease), border-color .16s;
+}
+.thumb img{inline-size:52px;block-size:78px;object-fit:cover}
+.thumb:hover,.thumb:focus-visible{transform:translateY(-3px);border-color:#fff}
+.thumb__n{
+  position:absolute;inset-block-end:0;inset-inline-start:0;
+  padding:.12rem .3rem .14rem;
+  font-family:var(--face);font-weight:700;
+  font-size:.5625rem;letter-spacing:.05em;line-height:1;
+  font-variant-numeric:tabular-nums;
+  background:var(--navy);color:var(--ink-soft);
+}
+.chapter__go{margin:0}
+.shelf__add{margin:0}
 
 /* ── cast / art ─────────────────────────────────────────── */
 
@@ -806,7 +1570,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .wiki__card:hover{transform:translateY(-4px);border-color:#fff}
 .wiki__card img,.wiki__card-mark{
-  flex:0 0 auto;width:56px;height:56px;border-radius:8px;
+  flex:0 0 auto;width:56px;height:56px;border-radius:3px;
   object-fit:cover;background:var(--navy-lift);
   border:2px solid var(--navy-line);
 }
@@ -909,14 +1673,23 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
 /* ═══ RESPONSIVE ═════════════════════════════════════════ */
 
-/* the dashboard's two-column top zone arrives before the rail does */
+/* The spread. Twelve columns, but the two content rows do not split them
+   at the same place — 8/4 over 7/5 — so the vertical gutter steps a full
+   column between rows and never reads as a grid line. The negative margins
+   then close the tilt gaps and let the keylines overlap. */
 @media (min-width:860px){
-  .dash{grid-template-columns:minmax(0,1fr) minmax(268px,324px)}
-  .dash__hot   {grid-column:1;grid-row:1}
-  .dash__start {grid-column:2;grid-row:1}
-  .dash__drafts{grid-column:1;grid-row:2}
-  .dash__status{grid-column:2;grid-row:2}
-  .dash__quick {grid-column:1/-1;grid-row:3}
+  .dash{
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:calc(var(--gap) + .35rem);
+  }
+  .dash>.slab + .slab{margin-top:0}
+
+  .dash__hot   {grid-column:1/9;  grid-row:1}
+  .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
+  .dash__drafts{grid-column:1/8;  grid-row:2; margin-top:-1.15rem;margin-right:-.6rem}
+  .dash__status{grid-column:8/13; grid-row:2; margin-left:-.7rem;margin-top:-1.8rem}
+  .dash__quick {grid-column:1/13; grid-row:3; margin-top:-1rem}
+
   .crumb{display:flex}
 }
 
@@ -957,32 +1730,259 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .rail__item[aria-current="page"]::after{display:none}
   .rail__promo{display:none}
-  .dash{grid-template-columns:minmax(0,1fr) minmax(240px,290px)}
+  /* the narrow rail costs the spread a column: the split steps to 7/5
+     over 6/6 so the two rows still refuse to share a gutter */
+  .dash__hot   {grid-column:1/8}
+  .dash__start {grid-column:8/13}
+  .dash__drafts{grid-column:1/7}
+  .dash__status{grid-column:7/13}
 }
 
+/* ═══ THE PHONE'S READER ══════════════════════════════════
+   Below 860px the reader stops being a panel on a page and
+   becomes the whole screen. Same markup: the drawers ARE the
+   timeline and the script column, repositioned, so there is
+   one filmstrip and one transcript rather than a desktop copy
+   and a phone copy that can drift apart.
+
+   One thing has to give for it to work at all. `.slab` carries
+   a drop-shadow filter, and a filter makes an element the
+   containing block for every fixed-position descendant — which
+   would pin the drawers inside the panel instead of to the
+   viewport. The full-screen reader has nothing to cast a shadow
+   onto, so the filter comes off here.
+   ═══════════════════════════════════════════════════════ */
+
 @media (max-width:859px){
-  .hero{flex-direction:column;min-height:0}
+  html[data-reading]{overflow:hidden}
+
+  .view--read{
+    position:fixed;inset:0;z-index:80;
+    inline-size:auto;margin:0;padding:0;
+    display:flex;flex-direction:column;
+    background:var(--navy);
+  }
+  /* Flattened on purpose. .view--read is already a viewport-sized fixed box,
+     so the drawers below can be ABSOLUTE against it — and absolute inside a
+     plain subtree hit-tests the same for a mouse as it does for a finger,
+     which position:fixed nested in here did not. Dropping the filter, the
+     isolation and the positioning from these three is what leaves .view--read
+     as the nearest positioned ancestor. */
+  .view--read>.slab{
+    filter:none;
+    rotate:none;
+    position:static;
+    isolation:auto;
+    flex:1;min-block-size:0;
+    padding:0;
+  }
+  .view--read .panel{position:static}
+  .view--read>.slab::before{display:none}
+  .view--read .panel{
+    --cut:none;
+    clip-path:none;
+    padding:0;background:none;
+    flex:1;min-block-size:0;
+  }
+  .view--read .panel__in{
+    clip-path:none;
+    /* overflow:hidden has to go, and it is not cosmetic. The drawers are
+       position:fixed against the viewport, so layout does not clip them — and
+       elementsFromPoint agreed the drawer was on top — but Chromium still
+       clips fixed descendants of a scroll/clip container when hit-testing real
+       input. The result was a drawer you could see and could not touch: every
+       tap fell through to the page image underneath, which then took pointer
+       capture for the swipe and ate the click. */
+    overflow:visible;
+    background:none;
+    display:flex;flex-direction:column;
+    block-size:100%;
+  }
+
+  /* The top bar retracts when the page is tapped, and comes straight back on
+     the next tap. Translated rather than removed, so nothing reflows and the
+     controls keep their place. */
+  .view--read .panel__bar{
+    flex:0 0 auto;
+    padding:.55rem .7rem;gap:.5rem;
+    border-block-end:3px solid #fff;
+    transition:translate .24s var(--ease);
+  }
+  .view--read[data-bare="on"] .panel__bar{translate:0 -100%;position:absolute;inset-inline:0}
+  .view--read .panel__bar .btn{font-size:.6875rem;padding:.42rem .6rem}
+  .view--read .panel__title{font-size:1rem;letter-spacing:.02em}
+
+  /* container-type implies `contain: layout`, and layout containment makes an
+     element BOTH a stacking context AND the containing block for every
+     fixed-position descendant. With it on, the drawers inside .stage were
+     positioned against .stage rather than the viewport and their z-index was
+     clamped inside it, so the scrim — a sibling of .stage — covered them and
+     swallowed every tap. Nothing needs the query here: it only ever matches
+     at a container width of 900px, which cannot happen below an 860px
+     viewport, so turning containment off costs nothing. */
+  .view--read .stage{
+    container-type:normal;
+    position:static;
+    flex:1;min-block-size:0;display:flex;flex-direction:column;
+  }
+  .view--read .spread{flex:1;min-block-size:0}
+  .view--read .reader{
+    block-size:100%;
+    padding:.4rem clamp(18px,5.5%,32px);
+  }
+  /* The phone rule below caps the page against a chrome height this mode does
+     not have — full-screen has a bar and a dock, not a header, a footer and a
+     tab bar — so the page takes the room it is actually given. */
+  .view--read .page img{max-block-size:100%}
+  .view--read .page img,.view--read .sheet{box-shadow:none}
+
+  /* The page number is already in the bar and again in the dock. A third copy
+     tipped over the artwork is noise, and it is the one that has nowhere
+     sensible to sit once the page is bound by width rather than height. */
+  .view--read .page__tag{display:none}
+  .view--read .panel__count{display:none}
+
+  /* ── the drawers ────────────────────────────────────────
+     They open IN FLOW and the page shrinks to make room. They
+     were overlays first — absolutely positioned sheets sliding
+     up over the page — and that is where two days of "I can see
+     it but I cannot tap it" came from: a positioned, animated
+     overlay nested this deep is hit-tested against a composited
+     layer that does not always agree with layout, so taps in
+     the drawer's lower half were resolving to whatever sat
+     behind it, or to the row above.
+
+     In flow there is no stacking context to lose, no transform
+     to go stale, and nothing underneath to fall through to. It
+     is also the better behaviour on a phone: an open drawer
+     never covers the page you are reading. */
+  .view--read .timeline,
+  .view--read .script{
+    display:none;
+    /* A fixed share, not a content-measured one. Opening a drawer shrinks the
+       page above it, which re-lays out a 1080x1620 image; with the drawer's
+       height depending on its own content that settled a frame late and the
+       first tap after opening landed a row out. */
+    flex:0 0 min(40dvh,19rem);
+    block-size:min(40dvh,19rem);
+    overflow-y:auto;
+    background:var(--navy-lift);
+    border-block-start:var(--keyline) solid #fff;
+  }
+  .view--read[data-drawer="pages"] .timeline,
+  .view--read[data-drawer="script"] .script{display:block}
+
+  /* Open, the strip is a grid rather than a rail: on a phone a chapter is
+     something you scan, not something you scrub. */
+  .view--read .timeline__rail{display:none}
+  .view--read .timeline__clip{block-size:auto;overflow:visible}
+  /* display:block, not just overflow:visible. As a flex item the grid inside
+     shrink-wraps to min-content, and auto-fill against min-content resolves to
+     exactly one column — a filmstrip stood on its end. */
+  .view--read .filmstrip{display:block;overflow:visible;padding:.9rem}
+  .view--read .filmstrip__list{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(62px,1fr));
+    gap:.7rem .6rem;
+  }
+  .view--read .filmstrip__list>li{inline-size:100%}
+  .view--read .filmstrip button{inline-size:100%}
+  .view--read .filmstrip button img,
+  .view--read .filmstrip .thumb__blank{
+    inline-size:100%;block-size:auto;aspect-ratio:2/3;
+  }
+
+  .view--read .script{border-inline-start:0}
+
+
+
+  /* No scrim. An in-flow drawer covers nothing, so there is nothing to dim —
+     and an overlay that exists only to be dimmed is an overlay that can
+     intercept a tap. */
+
+  .rdock{
+    display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+    /* positioned, so the z-index is not inert: the drawers are fixed at 84 and
+       would otherwise paint straight over the controls that opened them */
+    position:relative;z-index:86;
+    flex:0 0 auto;
+    padding:.5rem .7rem calc(.5rem + env(safe-area-inset-bottom));
+    background:var(--navy-lift);
+    border-block-start:3px solid #fff;
+    transition:translate .24s var(--ease);
+  }
+  .view--read[data-bare="on"] .rdock{translate:0 100%;position:absolute;inset-inline:0;inset-block-end:0}
+  .rdock__btn{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.5rem .8rem;border-radius:999px;cursor:pointer;
+    background:var(--navy);color:#fff;
+    border:3px solid #fff;
+    font-family:var(--face);font-weight:700;text-transform:uppercase;
+    font-size:.6875rem;letter-spacing:.06em;
+  }
+  .rdock__btn svg{inline-size:14px;block-size:14px}
+  .rdock__btn.is-on{background:var(--gold);color:var(--navy);border-color:#fff}
+  .rdock__count{
+    font-family:var(--face);font-size:.8125rem;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .rdock__count b{color:#fff;font-weight:700}
+
+  /* The page/cast/status readout is desktop furniture. On a phone it is three
+     numbers between the visitor and the comic, and the same counts are on the
+     dashboard anyway. display:none, so it leaves the accessibility tree with
+     the pixels rather than lingering in it. */
+  .readout{display:none}
+
+  .hero .ch__in{flex-direction:column}
+  .hero{min-height:0}
   .hero__screen{flex:0 0 clamp(180px,44vw,280px);width:100%}
-  .hero__body{border-left:0;border-top:var(--keyline) solid #fff}
 }
 
 @media (max-width:620px){
-  :root{--r:18px;--keyline:3px}
+  /* the cuts scale down with the keyline — a 20px nick on a 320px panel
+     is a bite, not a trim */
+  :root{
+    --keyline:4px;
+    --cut-nick: polygon(0 12px, 12px 0, 100% 0,
+                        100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    --cut-rise: polygon(0 9px, 100% 0, 100% calc(100% - 8px), 0 100%);
+    --cut-fall: polygon(0 0, 100% 9px, 100% 100%, 0 calc(100% - 8px));
+    --cut-band: polygon(0 7px, 16px 0, 100% 0,
+                        100% calc(100% - 7px), calc(100% - 16px) 100%, 0 100%);
+  }
 
   .sysbar{padding-top:.85rem;gap:.6rem}
-  .readout{width:100%}
-  .readout>div{flex:1;min-width:0}
 
-  .pane{padding:1.4rem .75rem .85rem}
-  .ribbon{left:1rem;font-size:.6875rem;padding:.36rem .8rem .42rem}
+  .pane{
+    padding:calc(1.4rem + var(--keyline)) calc(.75rem + var(--keyline)) calc(.85rem + var(--keyline));
+  }
+  .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
+  .ribbon--wide{font-size:.8125rem}
 
-  .hero__body{padding:1rem}
+  .hero__body{padding:1.1rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
-  .quick__rail{gap:.5rem}
+  .quick__rail{gap:.55rem}
+  .ch--mini{flex:0 0 clamp(112px,34vw,150px)}
 
-  .reader{padding:.9rem;gap:.4rem}
-  .page img{max-height:clamp(240px,calc(100dvh - 330px),640px)}
+  /* A portrait page in a portrait viewport is bound by WIDTH, not height, so
+     a fixed reader height here would only pad dead navy above and below it.
+     The box wraps the page instead, and the page is capped so a tall phone
+     still shows the flips and the timeline without scrolling for them. */
+  .reader{
+    padding:.7rem clamp(34px,10%,44px);
+    block-size:auto;
+  }
+  .page img{max-block-size:calc(100dvh - 17rem)}
+  .timeline{--film-h:92px}
+  .filmstrip{padding-inline:.9rem}
+  .filmstrip button img{width:44px;height:66px}
+  .tip__body{inline-size:min(34ch,86vw)}
+  /* Anchored to the bar rather than to its own button: on a narrow screen a
+     panel hung off a button sitting mid-row runs straight off the edge. */
+  .vm{position:static}
+  .vm__panel{inset-inline:.6rem;inline-size:auto}
   .nav{width:40px}
   .foot{padding-bottom:1.5rem}
 }

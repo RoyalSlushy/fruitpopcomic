@@ -166,3 +166,128 @@
 @media (max-width: 620px) {
   .cms-bar { bottom: calc(var(--tabh) + .6rem) }
 }
+
+/* The raw script box behind the reader's parsed transcript. Hidden for
+   visitors by globals.css, and revealed here — which means it is revealed
+   only for someone who has actually signed in, because this file ships with
+   the async admin chunk and with nothing else.
+
+   A blank script is the normal state on every page, so the box has to be a
+   real target before there is anything in it: without a min-height an empty
+   contenteditable is a zero-pixel line nobody can click into. */
+.script__slot {
+  display: block;
+  min-height: 6.5rem;
+  margin: 0;
+  padding: .55rem .7rem;
+  border: 2px dashed var(--navy-line);
+  border-radius: 4px;
+  background: var(--navy);
+  color: #DCE6FA;
+  font-size: .8125rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* ── press-and-hold reordering ──────────────────────────────
+   The anchor itself is not a box; it exists so the impl can find the list it
+   was dropped into. */
+.cms-drag { display: none }
+
+/* Held pages are dragged, not scrolled. The impl creeps the list when the
+   pointer nears an edge, which is what pays for taking the gesture. */
+.cms-drag-list [data-i] { touch-action: none }
+
+.cms-drag-list [data-i] {
+  cursor: grab;
+  /* A long press on an image otherwise raises the OS "save image" sheet, and
+     on desktop it starts a native image drag — both of which end the gesture
+     before it has begun. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.cms-drag-list.is-dragging { cursor: grabbing; touch-action: none }
+
+.cms-drag-list li.is-lifted {
+  position: relative;
+  z-index: 5;
+  cursor: grabbing;
+  rotate: -3deg;
+  scale: 1.08;
+  opacity: .92;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .55));
+  transition: scale .12s var(--ease), rotate .12s var(--ease);
+}
+
+/* The drop goes in the GAP, so the marker sits on the edge of the neighbour
+   rather than over it — an outline around a page reads as "replace this one". */
+.cms-drag-list li[data-drop] { position: relative }
+.cms-drag-list li[data-drop]::after {
+  content: "";
+  position: absolute;
+  inset-block: -4px;
+  inline-size: 4px;
+  background: var(--gold);
+  box-shadow: 0 0 0 2px var(--navy);
+  border-radius: 2px;
+}
+.cms-drag-list li[data-drop="before"]::after { inset-inline-start: -6px }
+.cms-drag-list li[data-drop="after"]::after { inset-inline-end: -6px }
+
+@media (prefers-reduced-motion: reduce) {
+  .cms-drag-list li.is-lifted { rotate: none; scale: 1; transition: none }
+}
+
+/* ── room for the editor's own bar ──────────────────────────
+   The bar is fixed to the bottom centre of the viewport, so it sits over
+   whatever the bottom centre happens to be — and in the reader that is the
+   middle of the page strip. Those thumbnails could not be clicked at all,
+   which only became obvious once they could be dragged.
+
+   Extra room under the page is what lets the strip be scrolled clear of it.
+   Editor-only, so a visitor's footer keeps its own spacing. */
+.shell { padding-block-end: 8rem }
+
+/* The phone's reader is full screen and does not scroll, so there is nothing
+   to scroll clear — the bar moves instead, up above the dock it would
+   otherwise cover. */
+@media (max-width: 859px) {
+  body:has(.view--read) .cms-bar { bottom: 5.25rem }
+}
+
+/* Folded, the bar is just its own handle — enough to get it back, and small
+   enough to sit in a corner rather than across whatever is underneath. */
+.cms-bar__fold {
+  position: relative;
+  flex: 0 0 auto;
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, .55);
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font-size: .75rem;
+  line-height: 1;
+}
+.cms-bar__dot {
+  position: absolute;
+  inset-block-start: -3px;
+  inset-inline-end: -3px;
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 999px;
+  background: var(--gold);
+  border: 2px solid var(--navy);
+}
+.cms-bar.is-slim {
+  left: auto;
+  right: 1rem;
+  translate: none;
+  padding: .35rem;
+  gap: 0;
+}
+.cms-bar.is-slim > :not(.cms-bar__fold) { display: none }

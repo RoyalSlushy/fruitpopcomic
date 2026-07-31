@@ -25,34 +25,41 @@ export default async function HomePage() {
 
       <div className="dash">
         {/* WHAT'S HOT */}
-        <div className="slab dash__hot">
+        {/* The channel hue is set on the SLAB, not on the tile inside it. The
+            plinth under a cut panel is painted by the slab — a clip-path clips
+            a box-shadow away with everything else — so the slab is what has to
+            know which channel it belongs to. */}
+        <div className="slab dash__hot" style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
           <EditableText as="span" className="ribbon ribbon--wide" path="home.ribbons.hot" value={home.ribbons.hot} />
-          <Link
-            className="ch hero"
-            href="/read"
-            style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}
-          >
+          <Link className="ch hero" href="/read">
             <EditableText as="span" className="ch__badge" path="home.hero.badge" value={home.hero.badge} />
-            <span className="hero__screen">
-              {first ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={mediaURL(first.image)} alt="" width={1080} height={1620} />
-              ) : null}
-              <span className="ch__scan" aria-hidden="true" />
-            </span>
-            <span className="hero__body">
-              <EditableText as="span" className="hero__kicker" path="home.hero.kicker" value={home.hero.kicker} />
-              <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
-              <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
-              <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
+            {/* .ch__in is the tile's interior. The cut corners live on a clip-path,
+                and a clip-path clips a border square, so the white keyline is the
+                outer element's own background showing through its padding — which
+                only works if something inside carries the cut through to the
+                interior edge. This is that something. */}
+            <span className="ch__in">
+              <span className="hero__screen">
+                {first ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={mediaURL(first.image)} alt="" width={1080} height={1620} />
+                ) : null}
+                <span className="ch__scan" aria-hidden="true" />
+              </span>
+              <span className="hero__body">
+                <EditableText as="span" className="hero__kicker" path="home.hero.kicker" value={home.hero.kicker} />
+                <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
+                <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
+                <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
+              </span>
             </span>
           </Link>
         </div>
 
         {/* START HERE — the real drafts in order, no invented metrics */}
-        <div className="slab dash__start">
-          <EditableText as="span" className="ribbon" style={{ '--ch-dp': 'var(--gold-dp)' } as React.CSSProperties} path="home.ribbons.start" value={home.ribbons.start} />
-          <div className="pane" style={{ '--ch-dp': 'var(--gold-dp)' } as React.CSSProperties}>
+        <div className="slab dash__start" style={{ '--ch': 'var(--gold)', '--ch-dp': 'var(--gold-dp)' } as React.CSSProperties}>
+          <EditableText as="span" className="ribbon" path="home.ribbons.start" value={home.ribbons.start} />
+          <div className="pane">
             <h2 className="sr-only">Start here — the first drafts in order</h2>
             <ol className="rank">
               {rank.map((p, i) => (
@@ -76,9 +83,9 @@ export default async function HomePage() {
         </div>
 
         {/* THE DRAFTS */}
-        <div className="slab dash__drafts">
-          <EditableText as="span" className="ribbon" style={{ '--ch-dp': 'var(--cyan-dp)' } as React.CSSProperties} path="home.ribbons.drafts" value={home.ribbons.drafts} />
-          <div className="pane" style={{ '--ch-dp': 'var(--cyan-dp)' } as React.CSSProperties}>
+        <div className="slab dash__drafts" style={{ '--ch': 'var(--cyan)', '--ch-dp': 'var(--cyan-dp)' } as React.CSSProperties}>
+          <EditableText as="span" className="ribbon" path="home.ribbons.drafts" value={home.ribbons.drafts} />
+          <div className="pane">
             <h2 className="sr-only">Every page draft</h2>
             <div className="cardrow">
               {pages.items.map((p, i) => (
@@ -101,9 +108,9 @@ export default async function HomePage() {
         </div>
 
         {/* BUILD STATUS — where a portal puts a daily mission */}
-        <div className="slab dash__status">
-          <EditableText as="span" className="ribbon" style={{ '--ch-dp': 'var(--peach-dp)' } as React.CSSProperties} path="home.ribbons.status" value={home.ribbons.status} />
-          <div className="pane" style={{ '--ch-dp': 'var(--peach-dp)' } as React.CSSProperties}>
+        <div className="slab dash__status" style={{ '--ch': 'var(--peach)', '--ch-dp': 'var(--peach-dp)' } as React.CSSProperties}>
+          <EditableText as="span" className="ribbon" path="home.ribbons.status" value={home.ribbons.status} />
+          <div className="pane">
             <h2 className="sr-only">What is finished and what is pending</h2>
             <ul className="status">
               {status.rows.map((r, i) => (
@@ -132,9 +139,9 @@ export default async function HomePage() {
         </div>
 
         {/* QUICK ACCESS */}
-        <div className="slab dash__quick">
-          <EditableText as="span" className="ribbon" style={{ '--ch-dp': 'var(--indigo-dp)' } as React.CSSProperties} path="home.ribbons.quick" value={home.ribbons.quick} />
-          <div className="pane quick" style={{ '--ch-dp': 'var(--indigo-dp)' } as React.CSSProperties}>
+        <div className="slab dash__quick" style={{ '--ch': 'var(--indigo)', '--ch-dp': 'var(--indigo-dp)' } as React.CSSProperties}>
+          <EditableText as="span" className="ribbon" path="home.ribbons.quick" value={home.ribbons.quick} />
+          <div className="pane quick">
             <h2 className="sr-only">Jump to a section</h2>
             <QuickRail>
               {home.quick.map((t, i) => (
@@ -148,12 +155,14 @@ export default async function HomePage() {
                     '--ch-ink': t.hue === 'indigo' ? '#fff' : 'var(--navy)',
                   } as React.CSSProperties}
                 >
-                  <span className="ch__screen ch__screen--glyph" aria-hidden="true">
-                    <Glyph name={t.glyph} width={4.5} />
-                  </span>
-                  <span className="ch__plate">
-                    <EditableText as="span" className="ch__name" path={`home.quick.${i}.label`} value={t.label} />
-                    <EditableText as="span" className="ch__sub" path={`home.quick.${i}.sub`} value={t.sub} />
+                  <span className="ch__in">
+                    <span className="ch__screen ch__screen--glyph" aria-hidden="true">
+                      <Glyph name={t.glyph} width={4.5} />
+                    </span>
+                    <span className="ch__plate">
+                      <EditableText as="span" className="ch__name" path={`home.quick.${i}.label`} value={t.label} />
+                      <EditableText as="span" className="ch__sub" path={`home.quick.${i}.sub`} value={t.sub} />
+                    </span>
                   </span>
                 </Link>
               ))}

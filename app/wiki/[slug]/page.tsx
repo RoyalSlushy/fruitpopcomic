@@ -33,25 +33,29 @@ export default async function WikiEntry({ params }: { params: Promise<{ slug: st
 
   return (
     <section className="view view--panel">
-      <div className="panel" style={{ '--ch': 'var(--gold)', '--ch-dp': 'var(--gold-dp)', '--ch-ink': 'var(--navy)' } as React.CSSProperties}>
-        <div className="panel__bar">
-          <Link className="btn btn--back" href="/">Menu</Link>
-          <h1 className="panel__title">Wiki</h1>
-          <Speak text={passage(entry.title, entry.summary, toSpeech(entry.body))} />
-        </div>
-        <div className="wiki">
-          <p className="wiki__back"><Link className="btn" href="/wiki">← All entries</Link></p>
-          <article className="wiki__article">
-            {entry.image && (
-              <EditableImage className="wiki__hero" path={`wiki.entries.${i}.image`} value={entry.image} alt="" />
-            )}
-            <p className="wiki__tag">{cat?.label ?? 'Lore'}</p>
-            <EditableText as="h2" path={`wiki.entries.${i}.title`} value={entry.title} />
-            {entry.summary && (
-              <EditableText as="p" className="wiki__sum" path={`wiki.entries.${i}.summary`} value={entry.summary} multiline />
-            )}
-            <div className="prose" dangerouslySetInnerHTML={{ __html: bodyHTML(entry.body) }} />
-          </article>
+      <div className="slab slab--bare" style={{ '--ch': 'var(--gold)', '--ch-dp': 'var(--gold-dp)', '--ch-ink': 'var(--navy)' } as React.CSSProperties}>
+        <div className="panel">
+          <div className="panel__in">
+            <div className="panel__bar">
+              <Link className="btn btn--back" href="/">Menu</Link>
+              <h1 className="panel__title">Wiki</h1>
+              <Speak text={passage(entry.title, entry.summary, toSpeech(entry.body))} />
+            </div>
+            <div className="wiki">
+              <p className="wiki__back"><Link className="btn" href="/wiki">← All entries</Link></p>
+              <article className="wiki__article">
+                {entry.image && (
+                  <EditableImage className="wiki__hero" path={`wiki.entries.${i}.image`} value={entry.image} alt="" />
+                )}
+                <p className="wiki__tag">{cat?.label ?? 'Lore'}</p>
+                <EditableText as="h2" path={`wiki.entries.${i}.title`} value={entry.title} />
+                {entry.summary && (
+                  <EditableText as="p" className="wiki__sum" path={`wiki.entries.${i}.summary`} value={entry.summary} multiline />
+                )}
+                <div className="prose" dangerouslySetInnerHTML={{ __html: bodyHTML(entry.body) }} />
+              </article>
+            </div>
+          </div>
         </div>
       </div>
     </section>

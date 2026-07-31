@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireAdmin, badOrigin, readJson, auditJson } from '../../../../lib/cms-auth.ts';
 import { isSectionKey, mergeSection, SECTION_KEYS, type SectionKey } from '../../../../lib/cms.ts';
 import { upsertSection, serviceProblems, SupabaseWriteError } from '../../../../lib/supabase.ts';
@@ -98,8 +98,26 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 
-  /* The read path tags its fetch with 'cms', so this is what makes a save
-     visible to the next render. */
+  /* Two calls, and both are load-bearing.
+   *
+   * revalidateTag('cms', 'max') is STALE-WHILE-REVALIDATE by design: it marks
+   * the tag stale and lets the next visitor have the old copy while a fresh one
+   * is fetched behind them. Next is explicit that it deliberately does not mark
+   * the path revalidated "so that server actions don't pull their own writes" —
+   * which is exactly what the editor needs to do. On its own it means the
+   * router.refresh() fired one line later on the client reads the copy that was
+   * just superseded, and the editor has to reload the page by hand to see their
+   * own change.
+   *
+   * updateTag() is the read-your-own-writes answer, but it throws outside a
+   * Server Action and this is a Route Handler. revalidatePath expires
+   * immediately, is not deprecated, and is legal here — so it is what actually
+   * makes the save visible to the refresh.
+   *
+   * Scoped to the root layout because a content change is not confined to one
+   * route: the rail, the footer and the derived counters are rendered from the
+   * same sections on every page. */
   revalidateTag('cms', 'max');
+  revalidatePath('/', 'layout');
   return NextResponse.json({ ok: true, saved: rows.map((r) => r.key) });
 }

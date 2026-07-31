@@ -11,22 +11,26 @@ export default async function AboutPage() {
 
   return (
     <section className="view view--panel">
-      <div className="panel" style={{ '--ch': 'var(--indigo)', '--ch-dp': 'var(--indigo-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
-        <div className="panel__bar">
-          <Link className="btn btn--back" href="/">Menu</Link>
-          <h1 className="panel__title">About</h1>
-          <Speak text={spoken} />
-        </div>
-        <div className="prose">
-          {about.blocks.map((b, i) => (
-            <EditableText
-              key={i}
-              as={b.kind}
-              path={`about.blocks.${i}.text`}
-              value={b.text}
-              multiline={b.kind === 'p'}
-            />
-          ))}
+      <div className="slab slab--bare" style={{ '--ch': 'var(--indigo)', '--ch-dp': 'var(--indigo-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
+        <div className="panel">
+          <div className="panel__in">
+            <div className="panel__bar">
+              <Link className="btn btn--back" href="/">Menu</Link>
+              <h1 className="panel__title">About</h1>
+              <Speak text={spoken} />
+            </div>
+            <div className="prose">
+              {about.blocks.map((b, i) => (
+                <EditableText
+                  key={i}
+                  as={b.kind}
+                  path={`about.blocks.${i}.text`}
+                  value={b.text}
+                  multiline={b.kind === 'p'}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

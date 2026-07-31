@@ -38,6 +38,43 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   stop: <rect x="16" y="16" width="32" height="32" rx="4" />,
+  /* Transport marks are solid. The rest of the set is drawn in stroke, so
+     these two have to opt out of the shared fill/stroke on the <svg>. */
+  play: <path d="M23 15 49 32 23 49z" fill="currentColor" stroke="none" />,
+  pause: (
+    <g fill="currentColor" stroke="none">
+      <rect x="20" y="16" width="8" height="32" rx="2" />
+      <rect x="36" y="16" width="8" height="32" rx="2" />
+    </g>
+  ),
+  /* the transcript column's mark: a page of ruled lines, one indented the way
+     a speaker's line is */
+  script: (
+    <>
+      <rect x="12" y="8" width="40" height="48" rx="5" />
+      <path d="M21 21h22M21 31h22M21 41h13" />
+    </>
+  ),
+  /* A speaker with a slider under it — the voice control, distinct from the
+     plain speaker that means "read this aloud". */
+  voice: (
+    <>
+      <path d="M27 14 16 24H9v16h7l11 10z" />
+      <path d="M37 20v24" />
+      <path d="M47 26v12" />
+      <path d="M57 30v4" />
+    </>
+  ),
+  /* The page grid behind the reader's Pages drawer. */
+  grid: (
+    <>
+      <rect x="9" y="9" width="19" height="19" rx="3" />
+      <rect x="36" y="9" width="19" height="19" rx="3" />
+      <rect x="9" y="36" width="19" height="19" rx="3" />
+      <rect x="36" y="36" width="19" height="19" rx="3" />
+    </>
+  ),
+  close: <path d="M18 18 46 46M46 18 18 46" />,
   info: (
     <>
       <circle cx="32" cy="32" r="24" />

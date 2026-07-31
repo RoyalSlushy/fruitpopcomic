@@ -44,56 +44,57 @@ export function Gallery({
 
   return (
     <section className="view view--panel">
-      <div
-        className="panel"
-        style={{ '--ch': `var(--${hue})`, '--ch-dp': `var(--${hue}-dp)`, '--ch-ink': 'var(--navy)' } as React.CSSProperties}
-      >
-        <div className="panel__bar">
-          <Link className="btn btn--back" href="/">Menu</Link>
-          <h1 className="panel__title">{title}</h1>
-          <Speak text={spoken} />
-          {kind === 'cast' && <p className="panel__count"><span>{count}</span></p>}
+      <div className="slab slab--bare">
+        <div className="panel">
+          <div className="panel__in">
+            <div className="panel__bar">
+              <Link className="btn btn--back" href="/">Menu</Link>
+              <h1 className="panel__title">{title}</h1>
+              <Speak text={spoken} />
+              {kind === 'cast' && <p className="panel__count"><span>{count}</span></p>}
+            </div>
+
+            {notice && noticePath && (
+              <EditableText as="p" className="notice" path={noticePath} value={notice} multiline />
+            )}
+
+            <div className={`cast${kind === 'art' ? ' cast--art' : ''}`}>
+              {items.map((s) => {
+                const i = all.indexOf(s);
+                return (
+                  <figure key={s.id || i}>
+                    <EditableImage
+                      path={`sheets.items.${i}.image`}
+                      value={s.image}
+                      alt={s.description}
+                      width={900}
+                      height={1350}
+                    />
+                    <figcaption>
+                      {s.name && (
+                        <>
+                          <EditableText as="strong" path={`sheets.items.${i}.name`} value={s.name} />
+                          {' — '}
+                        </>
+                      )}
+                      <EditableText
+                        as="span"
+                        path={`sheets.items.${i}.description`}
+                        value={s.description}
+                        multiline
+                      />
+                      <ListControls listPath="sheets.items" index={i} length={all.length} />
+                    </figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+
+            <p style={{ padding: '0 clamp(1rem,3vw,1.75rem) clamp(1rem,3vw,1.75rem)' }}>
+              <ListAdd listPath="sheets.items" length={all.length} />
+            </p>
+          </div>
         </div>
-
-        {notice && noticePath && (
-          <EditableText as="p" className="notice" path={noticePath} value={notice} multiline />
-        )}
-
-        <div className={`cast${kind === 'art' ? ' cast--art' : ''}`}>
-          {items.map((s) => {
-            const i = all.indexOf(s);
-            return (
-              <figure key={s.id || i}>
-                <EditableImage
-                  path={`sheets.items.${i}.image`}
-                  value={s.image}
-                  alt={s.description}
-                  width={900}
-                  height={1350}
-                />
-                <figcaption>
-                  {s.name && (
-                    <>
-                      <EditableText as="strong" path={`sheets.items.${i}.name`} value={s.name} />
-                      {' — '}
-                    </>
-                  )}
-                  <EditableText
-                    as="span"
-                    path={`sheets.items.${i}.description`}
-                    value={s.description}
-                    multiline
-                  />
-                  <ListControls listPath="sheets.items" index={i} length={all.length} />
-                </figcaption>
-              </figure>
-            );
-          })}
-        </div>
-
-        <p style={{ padding: '0 clamp(1rem,3vw,1.75rem) clamp(1rem,3vw,1.75rem)' }}>
-          <ListAdd listPath="sheets.items" length={all.length} />
-        </p>
       </div>
     </section>
   );
