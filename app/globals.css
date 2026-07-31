@@ -2074,6 +2074,40 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     visibility:hidden;
     transition:translate .26s var(--ease), visibility 0s linear .26s;
   }
+
+  /* ── the burger, off the strip and onto the glass ──────────
+     With the ribbon gone from the top strip, the burger is the
+     only thing that was ever on the LEFT of it — moving the
+     logo there means the two would collide. Rather than shuffle
+     both into a cramped row, the burger comes off the strip
+     entirely: fixed to the corner a thumb already rests near,
+     it floats over the page instead of sharing a line with the
+     wordmark.
+
+     It is only needed for as long as the tab bar is not the
+     answer to "where is the nav" — which on this route is
+     exactly the hero's first screen, before the first scroll.
+     Everywhere else the tab bar is already up, so this mirrors
+     ITS hidden condition rather than inventing a second clock:
+     hidden by default, shown only where the tab bar rule above
+     says the tab bar is not. */
+  .burger{
+    position:fixed;z-index:62;
+    right:calc(1rem + env(safe-area-inset-right));
+    bottom:calc(1rem + env(safe-area-inset-bottom));
+    box-shadow:0 4px 0 var(--navy-line), 0 10px 22px rgba(0,0,0,.5);
+    visibility:hidden;
+    scale:.7;
+    transition:scale .22s var(--ease), visibility 0s linear .22s;
+  }
+  html:not([data-scrolled="on"]) .shell[data-section="home"] .burger{
+    visibility:visible;
+    scale:1;
+    transition:scale .22s var(--ease), visibility 0s;
+  }
+  /* sysbar__home is the strip's only remaining flex item once the burger
+     leaves it, and a lone child in a space-between row sits at flex-start —
+     which is the whole of "move the logo to the top-left". */
 }
 
 /* ═══ THE DESKTOP READER ══════════════════════════════════

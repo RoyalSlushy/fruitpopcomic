@@ -211,6 +211,21 @@ stays the scroll container — a second scroll container would break the starfie
 which sizes itself from `document.body.scrollHeight`. Between 1024 and 1219px the
 rail narrows to `78px` of glyphs and shows the monogram instead of the wordmark.
 
+**Below 860px the hamburger comes off the strip.** With no ribbon over it, the
+wordmark is the strip's only remaining item, which is what puts it at the
+top-left — a lone flex child in a `space-between` row sits at the start edge
+with no extra rule needed. The burger can't stay on that line without crowding
+back into the logo, so it becomes a fixed button over the corner a thumb
+already rests near instead of a second thing sharing the strip.
+
+It is only on screen for as long as the tab bar is not the answer to "where is
+the nav" — the hero's first screen, before the first scroll — so it mirrors
+that *same* hidden condition rather than inventing a second clock: hidden by
+default, shown only where the tab bar rule says the tab bar is not. Everywhere
+else the tab bar is already up, so the floating burger stays off, and reaching
+`About` — the one nav item the tab bar drops — goes through the footer link
+every page already carries.
+
 **Dashboard.** Laid out as a comic page, not a card grid. Three devices do the
 work, and all three are load-bearing:
 
