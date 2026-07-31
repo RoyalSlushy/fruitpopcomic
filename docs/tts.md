@@ -28,7 +28,28 @@ nothing.
 So the model lives in one long-lived process, warm, and `/api/tts` is what
 stands between it and the internet.
 
-## Running the engine
+## Where the engine runs
+
+**Not on Vercel**, and the numbers are the argument rather than a preference:
+
+| | |
+|---|---|
+| dependencies, installed (onnxruntime, numpy, phonemiser) | ~250 MB |
+| the model, plus voices | 336 MB (112 MB quantised) |
+| **what a Vercel function may be, unzipped, including dependencies** | **250 MB** |
+
+The dependencies reach the ceiling before the model is added, so not even the
+quantised build fits — and a function is stateless, so every cold start would
+reload the graph. The engine goes on any host that keeps a process alive with
+1 GB of RAM; Vercel keeps the site; `KOKORO_URL` is the only thing joining them.
+
+[`services/kokoro/README.md`](../services/kokoro/README.md) has the deploy
+steps for the hosts worth using — **Hugging Face Spaces** (free, no card, and
+that directory is a Space as it stands) and **Fly** (`fly.toml` is written,
+scales to zero, wakes in a second). Both are a container and two environment
+variables.
+
+## Running the engine locally
 
 Needs one core that can generate faster than real time and about 1GB of RAM.
 No GPU, no API key, no per-character bill.
@@ -38,9 +59,6 @@ cd services/kokoro
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# the phonemiser for words the dictionary does not carry — mostly names
-sudo apt-get install -y espeak-ng      # or: brew install espeak-ng
-
 # the weights, once
 REL=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-v1.0
 curl -LO $REL/kokoro-v1.0.onnx
@@ -49,7 +67,8 @@ curl -LO $REL/voices-v1.0.bin
 python main.py            # → http://127.0.0.1:8080
 ```
 
-Or the container, which bakes the weights in so a restart is not a download:
+Or the container, which bakes the weights in so a restart is not a download —
+and which is the same image every host above runs:
 
 ```bash
 docker build -t fruitpop-kokoro services/kokoro

@@ -1,0 +1,37 @@
+# The voice engine on Fly. `fly launch --no-deploy` then `fly deploy` from this
+# directory. See README.md next to this file for the other hosts.
+
+app = "fruitpop-kokoro"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  # Two per core on the machine below. Oversubscribing turns a fast queue into
+  # a slow one for everybody.
+  KOKORO_CONCURRENCY = "4"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Nobody is listening most of the time, and a warm model costs the same as a
+  # cold one when it is idle — so the machine stops and wakes on a request.
+  # A second or two, against thirty for a cold container elsewhere.
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "120s"   # the model loads before the first request
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+[[vm]]
+  # 1GB is the floor: the graph plus onnxruntime's arenas. 512MB OOMs on load.
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 2
