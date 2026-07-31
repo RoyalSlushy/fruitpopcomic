@@ -43,6 +43,8 @@ Set these in the Vercel project (and in `.env.local` locally):
 | `SUPABASE_SERVICE_ROLE_KEY` | **the only thing that can write.** Server-side only, never `NEXT_PUBLIC_` |
 | `CMS_ADMIN_PASSWORD` | the editor password |
 | `CMS_SESSION_SECRET` | 32+ bytes, signs the session cookie |
+| `KOKORO_URL` | the voice engine. Unset = no read-aloud, which is a supported state |
+| `KOKORO_TOKEN` | optional shared secret for that engine |
 
 `CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET` have **no defaults and no
 fallback**. If either is missing — or the secret is under 32 characters — every
@@ -122,6 +124,7 @@ pin one stable alias and register that.
 ```
 app/                  routes; layout.tsx holds the shell
   api/cms/            login · logout · content · save · upload
+  api/tts/            read-aloud: a cached, capped proxy to the voice engine
 content/              THE CONTENT, as typed consts — the site renders from these alone
 lib/
   cms.ts              the merge: code owns shape, the database owns values
@@ -130,12 +133,16 @@ lib/
   cms-schema.ts       templates for new list items, labels for hover chips
   cms-context.tsx     drafts, baseline, dirty set
   supabase.ts         server-only REST; holds the service-role key
-  speech.ts           read-aloud text prep: chunking, HTML → spoken text
+  tts-chunk.ts        read-aloud text prep: sentences, budgets, HTML → spoken
+  tts.ts              the queue: fetch, decode, schedule gaplessly
+  kokoro.ts           the voice list and the URL both halves agree on
 components/
-  site/               the site itself; Speak.tsx is the read-aloud button
+  site/               the site itself; AudioPlayer.tsx is the read-aloud button
   cms/                editable primitives; every *Impl is lazy-loaded
+services/kokoro/      the voice engine — FastAPI + Kokoro, runs on its own box
 public/               images
 docs/cms.md           how the CMS works and how to edit
+docs/tts.md           how read-aloud works and how to run the engine
 ```
 
 ## Editing
@@ -160,11 +167,22 @@ Every panel with prose carries a **Listen** button: About, a wiki entry, Cast
 and Art. The Reader's is labelled **Describe**, because a comic page has no text
 to read — it speaks the page's alt text instead.
 
-It uses the browser's own speech synthesiser (the Web Speech API), so there is
-no key, no server hop and no per-character bill, and the voice is the one the
-visitor already chose in their OS. Browsers without it get no button rather than
-a dead one. Text is spoken in sentence-sized chunks because Chrome silently cuts
-off a single utterance after about fifteen seconds.
+It runs on **Kokoro**, an 82M-parameter open-weight model (Apache-2.0) on a
+small server of ours — not the browser's synthesiser, and not a paid API. Every
+visitor hears the same voice, chosen from thirteen in the picker beside the
+button, with a speed and a preview.
+
+That model does **not** run inside Next.js: it is ~310MB of ONNX, which is
+larger than a Vercel function may be, and shipping it to the browser instead
+would be an 86MB download before the first word. It runs as a small standalone
+service (`services/kokoro/`) and `/api/tts` is a cached, capped proxy in front
+of it. Long text is split into whole sentences before any of it is requested,
+and each chunk is scheduled on the audio clock at the exact sample the previous
+one ends, so the joins are silent.
+
+**Read-aloud is optional.** With no `KOKORO_URL` set the site builds and serves
+exactly as it does now, and no Listen button appears anywhere — rather than one
+that fails when pressed. See [`docs/tts.md`](docs/tts.md) for running the engine.
 
 Two things follow from this that are worth knowing:
 

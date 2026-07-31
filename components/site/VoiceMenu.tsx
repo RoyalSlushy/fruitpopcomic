@@ -2,36 +2,38 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
-import {
-  DEFAULTS, PITCH, RATE, hydrate, resolvedVoice, sample, setSettings, supported, useTts,
-} from '../../lib/tts.ts';
-import { split } from '../../lib/voices.ts';
+import { DEFAULTS, SPEED, hydrate, sample, setSettings, useTts } from '../../lib/tts.ts';
+import { VOICES } from '../../lib/kokoro.ts';
 
 /* The voice picker.
  *
- * Read-aloud has always been as good as the voice it was handed, and the one
- * the browser hands you by default is usually the oldest thing installed. The
- * good voices are already there — Microsoft's Natural set on Edge, Siri and the
- * Premium downloads on Apple, Google's on Android — sitting in the same list.
- * This is the surface that offers them, sorted so the best one the visitor
- * already owns is at the top.
+ * This used to be a rescue operation. The browser's own synthesiser hands you
+ * whatever it likes, which is usually the oldest thing installed, and the good
+ * voices sat unoffered in the same list as decades of legacy formant synths —
+ * so this panel existed to sort that list and hope something decent was in it.
+ * What a visitor heard depended entirely on what their machine happened to own.
  *
- * Preview is not a nicety. A list of voice names tells you nothing about what
+ * With Kokoro there is no list to rescue. Every visitor has the same thirteen
+ * voices because they come from the same model on the same server, so this is
+ * now a choice rather than a repair: an accent, a name, and a speed.
+ *
+ * Preview is still not a nicety. A list of names tells you nothing about what
  * any of them sound like, so picking without hearing is guessing. */
 
 const PREVIEW = 'The stand is empty, and the sky has gone the wrong colour.';
 
+const ACCENTS = ['American', 'British'] as const;
+
 export function VoiceMenu({ className = '' }: { className?: string }) {
-  const [ok, setOk] = useState(false);
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const id = useId();
 
   const tts = useTts();
-  const { settings, voices } = tts;
+  const { settings } = tts;
 
-  useEffect(() => { setOk(supported()); hydrate(); }, []);
+  useEffect(() => { hydrate(); }, []);
 
   const close = useCallback((restore = false) => {
     setOpen(false);
@@ -52,12 +54,9 @@ export function VoiceMenu({ className = '' }: { className?: string }) {
     };
   }, [open, close]);
 
-  if (!ok) return null;
+  if (tts.ready !== true) return null;
 
-  const lang = typeof document !== 'undefined'
-    ? document.documentElement.lang || 'en' : 'en';
-  const { top: recommended, rest } = split(voices, lang);
-  const now = resolvedVoice();
+  const untouched = settings.voice === DEFAULTS.voice && settings.speed === DEFAULTS.speed;
 
   return (
     <div className={`vm${className ? ` ${className}` : ''}`} ref={wrap}>
@@ -81,85 +80,57 @@ export function VoiceMenu({ className = '' }: { className?: string }) {
           <select
             id={`${id}-v`}
             className="vm__select"
-            value={settings.voiceURI ?? ''}
-            onChange={(e) => setSettings({ voiceURI: e.target.value || null })}
+            value={settings.voice}
+            onChange={(e) => setSettings({ voice: e.target.value })}
           >
-            <option value="">
-              Best available{now ? ` — ${now.name}` : ''}
-            </option>
-            {/* Split rather than sorted-and-hoped-for: the difference between a
-                neural voice and a 1990s formant synth is the whole point of
-                this control, and a flat list buries it. */}
-            {recommended.length > 0 && (
-              <optgroup label="Recommended">
-                {recommended.map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>{v.name}</option>
+            {ACCENTS.map((accent) => (
+              <optgroup key={accent} label={accent}>
+                {VOICES.filter((v) => v.accent === accent).map((v) => (
+                  <option key={v.id} value={v.id}>{v.label}</option>
                 ))}
               </optgroup>
-            )}
-            {rest.length > 0 && (
-              <optgroup label="Everything else">
-                {rest.map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name} · {v.lang}
-                  </option>
-                ))}
-              </optgroup>
-            )}
+            ))}
           </select>
         </label>
 
-        <label className="vm__row" htmlFor={`${id}-r`}>
+        <label className="vm__row" htmlFor={`${id}-s`}>
           <span className="vm__label">Speed</span>
           <input
-            id={`${id}-r`}
+            id={`${id}-s`}
             className="vm__range"
             type="range"
-            min={RATE.min} max={RATE.max} step={RATE.step}
-            value={settings.rate}
-            onChange={(e) => setSettings({ rate: Number(e.target.value) })}
+            min={SPEED.min} max={SPEED.max} step={SPEED.step}
+            value={settings.speed}
+            onChange={(e) => setSettings({ speed: Number(e.target.value) })}
           />
-          <output className="vm__out" htmlFor={`${id}-r`}>{settings.rate.toFixed(1)}×</output>
+          <output className="vm__out" htmlFor={`${id}-s`}>{settings.speed.toFixed(2)}×</output>
         </label>
 
-        <label className="vm__row" htmlFor={`${id}-p`}>
-          <span className="vm__label">Pitch</span>
-          <input
-            id={`${id}-p`}
-            className="vm__range"
-            type="range"
-            min={PITCH.min} max={PITCH.max} step={PITCH.step}
-            value={settings.pitch}
-            onChange={(e) => setSettings({ pitch: Number(e.target.value) })}
-          />
-          <output className="vm__out" htmlFor={`${id}-p`}>{settings.pitch.toFixed(1)}</output>
-        </label>
+        {/* Pitch is gone, and it is worth saying why rather than quietly
+            dropping a control: Kokoro has no pitch parameter. Its pitch is
+            part of the voice, and the voices are the choice above. */}
 
         <div className="vm__foot">
-          <button type="button" className="btn btn--solid" onClick={() => sample(PREVIEW)}>
+          <button
+            type="button"
+            className="btn btn--solid"
+            onClick={() => sample(PREVIEW)}
+            disabled={tts.loading}
+          >
             <Glyph name="play" width={4} />
-            Preview
+            {tts.loading ? 'Loading' : 'Preview'}
           </button>
           <button
             type="button"
             className="btn"
             onClick={() => setSettings(DEFAULTS)}
-            disabled={
-              settings.voiceURI === null
-              && settings.rate === DEFAULTS.rate
-              && settings.pitch === DEFAULTS.pitch
-            }
+            disabled={untouched}
           >
             Reset
           </button>
         </div>
 
-        {voices.length === 0 && (
-          <p className="vm__none">
-            No voices reported yet. Some browsers only load them after the first
-            time something is read aloud.
-          </p>
-        )}
+        {tts.error && <p className="vm__none" role="alert">{tts.error}</p>}
       </div>
     </div>
   );

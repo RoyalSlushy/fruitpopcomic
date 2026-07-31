@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { EditableText } from '../cms/EditableText.tsx';
 import { EditableImage } from '../cms/EditableImage.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
-import { Speak } from './Speak.tsx';
-import { passage } from '../../lib/speech.ts';
+import { AudioPlayer } from './AudioPlayer.tsx';
+import { passage } from '../../lib/tts-chunk.ts';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import type { Sheet } from '../../content/sheets.ts';
 
@@ -50,7 +50,7 @@ export function Gallery({
             <div className="panel__bar">
               <Link className="btn btn--back" href="/">Menu</Link>
               <h1 className="panel__title">{title}</h1>
-              <Speak text={spoken} />
+              <AudioPlayer text={spoken} />
               {kind === 'cast' && <p className="panel__count"><span>{count}</span></p>}
             </div>
 

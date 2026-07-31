@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { getSection } from '../../lib/cms-server.ts';
 import { EditableText } from '../../components/cms/EditableText.tsx';
-import { Speak } from '../../components/site/Speak.tsx';
-import { passage } from '../../lib/speech.ts';
+import { AudioPlayer } from '../../components/site/AudioPlayer.tsx';
+import { passage } from '../../lib/tts-chunk.ts';
 
 export default async function AboutPage() {
   const about = await getSection('about');
@@ -17,7 +17,7 @@ export default async function AboutPage() {
             <div className="panel__bar">
               <Link className="btn btn--back" href="/">Menu</Link>
               <h1 className="panel__title">About</h1>
-              <Speak text={spoken} />
+              <AudioPlayer text={spoken} />
             </div>
             <div className="prose">
               {about.blocks.map((b, i) => (

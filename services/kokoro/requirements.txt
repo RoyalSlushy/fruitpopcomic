@@ -1,0 +1,19 @@
+# The voice engine. Pinned to minors: this is a model server, and a surprise
+# upgrade of the runtime under it is how a voice changes without anyone asking.
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+pydantic>=2.9,<3.0
+
+# Kokoro itself. Pulls onnxruntime and the misaki phonemiser.
+kokoro-onnx>=0.4.9,<0.5
+numpy>=1.26,<3.0
+
+# NOT LISTED, and needed anyway:
+#   espeak-ng — the fallback phonemiser for words the dictionary does not have.
+#   It is a system package, not a wheel:
+#     apt-get install -y espeak-ng      (Debian/Ubuntu)
+#     brew install espeak-ng            (macOS)
+#
+# NOT LISTED, and downloaded once:
+#   kokoro-v1.0.onnx and voices-v1.0.bin. See README.md in this directory.

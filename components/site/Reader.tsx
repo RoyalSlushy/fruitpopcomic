@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chevron, Glyph } from './Glyph.tsx';
-import { Speak } from './Speak.tsx';
+import { AudioPlayer } from './AudioPlayer.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
@@ -530,7 +530,7 @@ export function Reader({
                 )}
               </h1>
               <NoteTip label="About these pages" text={notice} path="about.reader.notice" />
-              <Speak text={description} label="Describe" />
+              <AudioPlayer text={description} label="Describe" />
               <p className="panel__count">
                 <span>{human}</span><span className="sep">/</span><span>{total}</span>
               </p>

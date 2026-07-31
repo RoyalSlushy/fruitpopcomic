@@ -5,7 +5,7 @@ import { Glyph } from './Glyph.tsx';
 import { EditableText } from '../cms/EditableText.tsx';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import { scriptLines, speechOf } from '../../lib/script.ts';
-import { pause, resume, speak, stop, supported, useTts } from '../../lib/tts.ts';
+import { hydrate, pause, resume, speak, stop, useTts } from '../../lib/tts.ts';
 
 /* The written side of a page.
  *
@@ -49,8 +49,11 @@ export function PageScript({ index, page, script, isDraft }: {
   const [from, setFrom] = useState(0);
   const list = useRef<HTMLOListElement>(null);
 
-  const [ok, setOk] = useState(false);
-  useEffect(() => { setOk(supported()); }, []);
+  /* Whether read-aloud exists at all is a fact about the deployment, not the
+     browser, so it is asked once and answered for the whole page. Until it
+     answers there are no transport buttons, rather than dead ones. */
+  useEffect(() => { hydrate(); }, []);
+  const ok = tts.ready === true;
 
   /* A new page is a new script; carrying playback across would read the wrong
      page's lines under the right page's artwork. */
@@ -113,14 +116,16 @@ export function PageScript({ index, page, script, isDraft }: {
           <span className="script__transport">
             <button
               type="button"
-              className={`tbtn${mine && tts.speaking && !tts.paused ? ' is-on' : ''}`}
+              className={`tbtn${mine && tts.speaking && !tts.paused ? ' is-on' : ''}`
+                + `${mine && tts.loading ? ' is-waiting' : ''}`}
               onClick={() => {
                 if (!mine || !tts.speaking) play();
                 else if (tts.paused) resume();
                 else pause();
               }}
               aria-label={
-                mine && tts.speaking && !tts.paused ? 'Pause reading'
+                mine && tts.loading ? 'Waiting for the voice engine'
+                : mine && tts.speaking && !tts.paused ? 'Pause reading'
                 : from > 0 ? `Read aloud from line ${from + 1}`
                 : 'Read the script aloud'
               }
@@ -131,7 +136,7 @@ export function PageScript({ index, page, script, isDraft }: {
               type="button"
               className="tbtn"
               onClick={() => { stop(); setFrom(0); }}
-              disabled={!mine || !tts.speaking}
+              disabled={!mine || (!tts.speaking && !tts.loading)}
               aria-label="Stop reading and return to the first line"
             >
               <Glyph name="stop" width={5} />
@@ -139,6 +144,12 @@ export function PageScript({ index, page, script, isDraft }: {
           </span>
         )}
       </div>
+
+      {/* The engine's own words when it fails. Audio that silently never
+          arrives looks like a button that does nothing. */}
+      {mine && tts.error && (
+        <p className="script__err" role="alert">{tts.error}</p>
+      )}
 
       {/* Politely announced, so a screen reader hears which line is live
           without the visual highlight being the only signal. */}

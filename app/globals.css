@@ -1029,6 +1029,28 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 /* speaking reads as the live state: gold plate, same as any active control */
 .speak.is-speaking{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 
+/* Waiting on the voice engine. The audio is generated per sentence on a server
+   rather than by the browser, so there is a real wait before the first word —
+   short, but long enough that a button which looked idle would get pressed
+   twice. The pulse is the only thing on the site that animates while nothing
+   has happened yet, which is exactly what it is for. */
+.speak.is-loading{
+  background:var(--gold-dp,#B87400);color:#fff;
+  cursor:progress;
+  animation:fp-wait 1.1s var(--ease) infinite;
+}
+.speak.is-error{border-color:var(--magenta);color:#FFC7E4}
+.speak__err{
+  flex:0 0 auto;
+  font-size:.6875rem;line-height:1.3;color:#FFC7E4;
+  max-inline-size:28ch;
+}
+@keyframes fp-wait{50%{opacity:.55}}
+
+/* Same wait, in the transcript column's smaller transport. */
+.tbtn.is-waiting{cursor:progress;animation:fp-wait 1.1s var(--ease) infinite}
+.script__err{margin:0;font-size:.75rem;line-height:1.4;color:#FFC7E4}
+
 .notice{
   position:relative;
   margin:0;padding:.85rem 1.1rem;

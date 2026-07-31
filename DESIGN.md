@@ -591,6 +591,196 @@ Added with the reader rebuild:
   state would leave the loser's button stuck reading "Stop" for audio that had
   already been cancelled. `owner` is what makes the other one render idle
   without being told.
+- **The voice is chosen, not accepted, and now everyone hears the same one.**
+  Read-aloud is only as good as the voice it is handed, and the browser hands
+  you whatever it likes — usually the oldest synth installed. A picker used to
+  sort that list and hope something decent was in it, which meant what a visitor
+  heard depended entirely on what their machine happened to own.
+
+  Read-aloud now runs on **Kokoro**, an 82M-parameter open-weight model
+  (Apache-2.0) on a small server of ours. Every visitor gets the same thirteen
+  voices because they come from the same model, so the picker is a choice rather
+  than a repair: an accent, a name, a speed, and a preview — because a list of
+  names still tells you nothing about what any of them sound like.
+
+  Four things are load-bearing, and `docs/tts.md` has the whole of it:
+
+  - **The model does not run in Next.js**, and that is not a shortcut. It is
+    ~310MB of ONNX; a Vercel function is not allowed to be that large, and a
+    cold graph per invocation is the wrong shape for a page several people are
+    listening to. In the browser it is worse in a different way — `kokoro-js`
+    in WASM is an 86MB download before the first word, on a site whose build
+    asserts that visitors download almost nothing.
+  - **The first chunk is short on purpose.** Text is split into whole sentences
+    packed to 450 characters, but the first one gets 180: time to first audio is
+    the only latency a listener feels, and everything after it is generated
+    while the previous chunk is still playing.
+  - **The joins are scheduled, not swapped.** Each chunk is decoded to an
+    `AudioBuffer` and started at an absolute time on the audio clock — the end
+    of the chunk before it, to the sample. Two `<audio>` elements swapped on
+    `ended` leave a 30–80ms hole in every sentence, and a listener hears that as
+    a fault in the recording rather than as a detail of how it was made.
+  - **Punctuation is the whole score.** Kokoro has no prosody markup: a full
+    stop is a fall, a question mark is a rise, a comma is a breath. So the
+    chunker preserves exactly what the writer typed and invents none of it —
+    a chunk cut mid-clause ends on a comma, never on a full stop.
+
+  The choice is persisted, applies to every caller, and changing it mid-sentence
+  restarts from the line being read rather than from the top. What was lost in
+  the swap is named rather than quietly dropped: **there is no pitch control**,
+  because Kokoro has none — its pitch is part of the voice, and the voice is the
+  choice above.
+
+  A deployment with no `KOKORO_URL` shows **no read-aloud button anywhere**
+  rather than one that fails when pressed. The site builds and serves without
+  it, and the build log says so.
+
+## Content rules
+
+These are design decisions, not copy suggestions.
+
+- **Comic pages are shown flat and clean**, on white, in their own field. The
+  chrome stops at the page border. Pages are 2:3 at 1080px native.
+- **Character art keeps its own ground.** The pale field each figure was drawn on
+  is preserved as-is; the tile frames it and never recolours it.
+- **Nothing is claimed that isn't supplied.** The dashboard borrows a manga
+  portal's shape, and every slot that would normally carry invented data carries
+  something real instead:
+
+  | Portal convention | What ships here |
+  |---|---|
+  | Top-N ranking with view counts | `START HERE` — the real drafts in file order, no metrics |
+  | New chapters, numbered and titled | `THE DRAFTS` — ten cards, index only, no titles |
+  | Daily missions and rewards | `BUILD STATUS` — what is finished and what is pending |
+  | Genre tiles | `QUICK ACCESS` — the four other sections |
+  | Events, creators | not built; neither exists |
+
+  The only per-page fact shown is the **pencil stage** — magenta, sanguine, blue —
+  which `docs/art-analysis.md` §3 establishes by date and which the filenames
+  carry. No release dates, no reader counts, no cadence, no page numbers beyond
+  the array index, no character names.
+- **The build's own state is the densest panel on the page.** Where a portal puts a
+  mission list, this puts the five things that are and aren't done. It is the site's
+  thesis rendered as instrumentation rather than an apology in a paragraph.
+- **The empty wiki ships empty**, with an empty state that says so.
+- **Pages are reordered by dragging them.** Press and hold a page in the
+  filmstrip, drag it between two others, let go. It is editor-only, and the
+  drag code is in the async admin chunk with the rest of the CMS — a visitor's
+  markup gains nothing, not even an attribute.
+
+  Four things had to be true for it to feel like picking something up, and each
+  one is a bug that was there first:
+
+  - **Hold, not grab.** A tap on a thumbnail already means "go to that page",
+    so the lift waits 320ms and any real movement before then cancels it —
+    that is a scroll, not a lift.
+  - **Capture on the list.** Once lifted the pointer is captured by the list,
+    so the thumbnail's own handlers stop firing. Without it, letting go over a
+    different page would also navigate to it.
+  - **Scrolling gives way.** `touch-action:none` on the thumbnail is not
+    enough: the gesture still belongs to whichever ancestor scrolls, and the
+    moment the drag moved, that ancestor claimed it and the browser answered
+    with `pointercancel`. Every scroll container above the list gives its
+    `touch-action` up for the duration and gets it back on drop.
+  - **No click afterwards.** A drag ends in a pointerup and the browser follows
+    that with a click. Swallowed once, or every drop would navigate.
+
+  The drop target is the **gap**, not the item, so the indicator is drawn on
+  the near edge of the page you are next to rather than around it — an outline
+  around a page reads as "replace this one". The arithmetic is in
+  `lib/reorder.ts`, separated out and tested because dragging thinks in gaps
+  while `moveItem` thinks in indices, and the item is spliced out before it is
+  put back.
+
+  **Dragging is never the only way.** The ↑ ↓ buttons stay exactly where they
+  were; a drag has no keyboard equivalent, and inventing one out of the arrow
+  keys would collide with the reader's own paging.
+
+  One thing this exposed rather than caused: the editor's save bar is fixed to
+  the bottom centre of the viewport, which is where the reader keeps its page
+  strip. Those thumbnails could not be clicked at all. The bar now folds down
+  to a pill, and the shell reserves room below the page so the strip can be
+  scrolled clear of it.
+- **The editor is dismissible.** Both of its exits used to lead back to a
+  password box: pressing Done dropped to the sign-in bar, and clicking off that
+  bar did nothing at all, so a gear pressed by accident left a password field
+  parked over the site until the page was reloaded. Now a press outside the
+  sign-in box, Escape, its `✕`, and Done all do the same thing — the editor
+  leaves the page, and the marker cookie that would reload it goes with it.
+  Only the sign-in box is dismissible that way; an editing session holds
+  unsaved work, and is closed by Done and by nothing else.
+- **Both of the site's editing affordances are hover-shaped** — a chip naming
+  the field, a Replace button over an image — so on a phone neither of them
+  exists. In the reader the same gesture that retracts the chrome raises a page
+  sheet instead: the page image, the thumbnail and the script, for the page you
+  are looking at. It closes on a tap outside it or Escape, and it is the same
+  surface with a mouse, because a desktop copy and a phone copy drift apart.
+
+  It also filled a hole that had nothing to do with phones. The reader's page
+  image was a plain `<img>` — the drawing itself, the one thing a comic CMS has
+  to be able to replace, was reachable from nowhere, and a script page could
+  never be given the art that would finish it.
+- **A page can exist before it is drawn.** A page with no image is a *script
+  page*: it holds its place in the running order and shows its script on a
+  paper-coloured sheet at the same 2:3 as every real page, so the shape of a
+  chapter can be laid out before the art exists. It is rendered as a page rather
+  than as a gap because that is what it is. A page added in the editor starts
+  as one, since the template ships a blank image — and a script page does not
+  also get the script column beside it, because it already is the script.
+- **The script column ships empty too, and that is the point.** Every page now
+  carries a `script` field, one beat per line, rendered beside the artwork as
+  attributed dialogue. It is blank on all ten pages and must stay blank until
+  the creator writes one out. The lettering is drawn into the drawing; there is
+  nothing to extract, so anything in that column that the creator did not type
+  would be invented dialogue — which is invented story, and the one rule this
+  project does not bend. The empty state says why rather than apologising, and
+  it is narrower than a populated column, because three sentences do not earn a
+  transcript's share of the width.
+
+  What the field buys once it is filled: the page becomes selectable,
+  searchable, translatable and reachable by a screen reader, none of which an
+  image is. Read-aloud gets something worth reading — before this the only
+  spoken thing was a one-sentence description of a page nobody can read.
+
+## Accessibility
+
+- Two navigation landmarks, distinctly labelled (`Sections`, `Quick navigation`).
+  Exactly one is rendered at any width — the other is `display:none` and so leaves
+  the accessibility tree entirely.
+- The closed drawer is `visibility:hidden`, which keeps it off the tab order. The
+  visibility flip is stepped, not eased, so it is already visible when focus moves
+  into it on open. `Esc` closes and returns focus to the hamburger.
+- `aria-current="page"` tracks the route on both navs; the router sets it in
+  `paint()`.
+- Route changes move focus to the new view (`tabindex="-1"` on each section), and
+  each view carries the page's only `<h1>`.
+- `BUILD STATUS` is a list with an `aria-hidden` glyph and the state in text. It is
+  deliberately **not** checkboxes — they would be controls that do nothing.
+- Comic-page alt text names the lettering limitation rather than pretending
+  otherwise. Where a script exists it stops apologising and points at the
+  column instead, because the page is genuinely readable then.
+
+Added with the reader rebuild:
+
+- **Hover-revealed content meets WCAG 1.4.13 on all three counts.** The standing
+  note is *dismissible* (Escape closes it), *hoverable* (a `::before` bridges
+  the 9px gap so the pointer can reach the panel without it vanishing) and
+  *persistent* (it stays until the pointer leaves, focus leaves, or Escape).
+  Escape needs a `data-dismissed` flag to beat the CSS as well as the state:
+  dismissing returns focus to the mark, the mark is inside the tip, and
+  `:focus-within` would otherwise light it straight back up.
+- **Paging never moves focus** — that would yank a keyboard visitor off the
+  arrow they are holding — so the change is announced through a polite live
+  region instead of being silent.
+- `Home` and `End` jump to the first and last page. Arrow keys are ignored
+  inside a field or a `contenteditable`, so they never fight the editor.
+- The spoken line carries `aria-current`, and a second live region names it, so
+  following along works by eye and by screen reader both.
+- One speech queue for the whole page (`lib/tts.ts`). `speechSynthesis` is a
+  single global device, so two components each holding their own `speaking`
+  state would leave the loser's button stuck reading "Stop" for audio that had
+  already been cancelled. `owner` is what makes the other one render idle
+  without being told.
 - **The voice is chosen, not accepted.** Read-aloud is only as good as the voice
   it is handed, and the one a browser hands you by default is usually the oldest
   synth installed. Every current platform ships something genuinely good —

@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { getSection } from '../../../lib/cms-server.ts';
 import { EditableText } from '../../../components/cms/EditableText.tsx';
 import { EditableImage } from '../../../components/cms/EditableImage.tsx';
-import { Speak } from '../../../components/site/Speak.tsx';
-import { passage, toSpeech } from '../../../lib/speech.ts';
+import { AudioPlayer } from '../../../components/site/AudioPlayer.tsx';
+import { passage, toSpeech } from '../../../lib/tts-chunk.ts';
 
 export async function generateStaticParams() {
   const wiki = await getSection('wiki');
@@ -39,7 +39,7 @@ export default async function WikiEntry({ params }: { params: Promise<{ slug: st
             <div className="panel__bar">
               <Link className="btn btn--back" href="/">Menu</Link>
               <h1 className="panel__title">Wiki</h1>
-              <Speak text={passage(entry.title, entry.summary, toSpeech(entry.body))} />
+              <AudioPlayer text={passage(entry.title, entry.summary, toSpeech(entry.body))} />
             </div>
             <div className="wiki">
               <p className="wiki__back"><Link className="btn" href="/wiki">← All entries</Link></p>
