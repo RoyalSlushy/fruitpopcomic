@@ -703,6 +703,25 @@ html[data-drawer="open"] .scrim{
 }
 .hero .btn{align-self:flex-start;margin-top:.3rem}
 
+/* The shelf's slideshow only exists where the shelf does, which is the phone
+   layout — the desktop hero is a row, and its caption box is painted to its
+   own edge with nothing left over to put a band in. */
+.hero__reel{display:none}
+
+/* Ken Burns, for a band far wider than a page: every move travels DOWN its
+   page, so the hard crop reads as reading rather than as a slice.
+   `translateY()` before `scale()` matters — transforms apply right to left,
+   so this scales about the band's top edge first and then pans in the page's
+   own units. The other order would multiply the pan by the zoom and walk the
+   later moves off the bottom of the page. Each pair keeps `scale − pan` above
+   the band's share of a page height (0.26 at the narrowest phone), which is
+   the condition for the window to stay on the artwork. */
+@keyframes hkb-0{from{transform:translateY(-2%)  scale(1.02)} to{transform:translateY(-26%) scale(1.12)}}
+@keyframes hkb-1{from{transform:translateY(-46%) scale(1.14)} to{transform:translateY(-20%) scale(1.02)}}
+@keyframes hkb-2{from{transform:translateY(-58%) scale(1.06)} to{transform:translateY(-34%) scale(1.16)}}
+@keyframes hkb-3{from{transform:translateY(-12%) scale(1.16)} to{transform:translateY(-40%) scale(1.04)}}
+@keyframes hkb-4{from{transform:translateY(-30%) scale(1.00)} to{transform:translateY(-52%) scale(1.20)}}
+
 /* ── START HERE: the ranking slot, without the metrics ──── */
 
 .rank{
@@ -2095,6 +2114,55 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   /* the screen is the fill, so it stops where the fill stops */
   .hero__body::before{inset-block-end:var(--shelf)}
+
+  /* ── the shelf's slideshow ────────────────────────────────
+     The band the button hangs over is the pages themselves,
+     one at a time, drifting. Reel.tsx owns which page; this
+     owns the move, because a Ken Burns pan is a transform over
+     time and nothing else.
+
+     Absolute, filling exactly the unpainted shelf, so it costs
+     the flow nothing — adding it as a flex child would have
+     pushed the copy up and moved the button off the edge it
+     was just aligned to. z-index 0 against the 1 that
+     `.hero__body>*` hands its children, so the button paints
+     over the band rather than under it.
+
+     The band is far wider than a page is, so the frame crops
+     hard and the pan is what makes that a decision rather than
+     a loss: each move travels DOWN its page, so the crop reads
+     as reading rather than as a slice. `block-size:auto` is
+     what gives it somewhere to travel — the layer is a whole
+     page tall, and the band is a window onto it.
+     ─────────────────────────────────────────────────────── */
+  .hero__body>.hero__reel{
+    display:block;
+    position:absolute;z-index:0;
+    inset-inline:0;inset-block-end:0;
+    block-size:var(--shelf);
+    overflow:hidden;
+    background:#fff;
+  }
+  .hero__frame{
+    position:absolute;inset-block-start:0;inset-inline:0;
+    inline-size:100%;block-size:auto;
+    /* scale grows the page DOWNWARD from the band's top rather than out from
+       its middle, which is what keeps every move's travel inside the page */
+    transform-origin:50% 0;
+    opacity:0;
+    transition:opacity 1.2s linear;
+  }
+  .hero__frame[data-lit="on"]{opacity:1}
+  /* Longer than a slide is lit, deliberately: the move starts while the layer
+     is still dark and is still running when it goes dark again, so a visitor
+     only ever sees the middle of it and never a start or a stop. A layer is
+     lit from its own 5.3s to its 13s, so this has to clear 13. */
+  .hero__frame[data-kb]{animation-duration:15s;animation-timing-function:linear;animation-fill-mode:both}
+  .hero__frame[data-kb="0"]{animation-name:hkb-0}
+  .hero__frame[data-kb="1"]{animation-name:hkb-1}
+  .hero__frame[data-kb="2"]{animation-name:hkb-2}
+  .hero__frame[data-kb="3"]{animation-name:hkb-3}
+  .hero__frame[data-kb="4"]{animation-name:hkb-4}
   .hero__screen{
     flex:0 0 auto;
     inline-size:100%;

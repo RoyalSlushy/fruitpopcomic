@@ -211,8 +211,12 @@ still in `globals.css` (`view-transition-name` on `.rail`/`.tabbar`, the
 `::view-transition-*` rules), so restoring it is a small change once a stable API
 lands.
 
-What remains: a single diagonal light sweep across the hero on hover, and the tile
-press. `prefers-reduced-motion` disables the sweep.
+What remains: a single diagonal light sweep across the hero on hover, the tile
+press, and the phone shelf's Ken Burns pan — five moves, assigned by which page
+is showing rather than by which layer is holding it, so one layer never repeats
+a move every other slide. `prefers-reduced-motion` disables the sweep and stops
+the shelf dead; see **Layout** for why stopping it beats letting the global
+reduce rule flatten a pan into a snap between end states.
 
 ## Layout
 
@@ -348,9 +352,41 @@ measured at exactly 50% of the button's height on 390×844, 412×915 and
 The shelf's depth is what it is because two things were asked for at once: the
 button not moving, and the box's edge crossing it. The button sat 102px clear
 of the box's bottom, so the edge has to come up at least that far — which
-leaves a white band of about the same depth under it. Shrinking `--shelf`
-closes the band but walks the button down the screen with it; the two cannot
-be traded separately.
+leaves a band of about the same depth under it. Shrinking `--shelf` closes the
+band but walks the button down the screen with it; the two cannot be traded
+separately.
+
+**The shelf holds the pages, drifting.** `Reel.tsx` owns which page is showing;
+`globals.css` owns the move, because a Ken Burns pan is a transform over time
+and nothing else. It is absolutely positioned into exactly the unpainted shelf,
+so it costs the flow nothing — added as a flex child it would have pushed the
+copy up and moved the button off the edge it was just aligned to — and sits at
+`z-index:0` against the `1` that `.hero__body>*` hands its children, so the
+button paints over the band rather than under it. Page one is skipped: it is
+the artwork directly above, and the same drawing twice on one screen reads as a
+bug rather than a slideshow.
+
+The band is far wider than a page is, so the frame crops hard, and **the pan is
+what makes that a decision rather than a loss**: every move travels *down* its
+page, so the crop reads as reading. `block-size:auto` is what gives it somewhere
+to travel — a layer is a whole page tall (513px against a 124px band, so 389px
+of room) and the band is a window onto it. In the transform, `translateY()`
+comes *before* `scale()`: transforms apply right to left, so that scales about
+the band's top edge first and then pans in the page's own units. The other order
+multiplies the pan by the zoom and walks the later moves off the bottom of the
+page. Each pair keeps `scale − pan` above the band's share of a page height
+(0.26 at the narrowest phone), which is the condition for the window to stay on
+the artwork.
+
+Three things keep it from being a tax on a phone: **two layers, not ten** (a
+slide is a full 1080px page, so the pair double-buffers and the dark one carries
+the next page with a whole interval to load it), it **only ticks while it is on
+screen**, and `prefers-reduced-motion` **stops** it rather than speeding it up —
+the global reduce rule flattens animation durations, which would leave the pan
+snapping between end states, so the tick never starts and the shelf holds one
+still page. The cadence is slow twice over: a Ken Burns pan wants to be barely
+perceptible, and each turn is a full page off the network. Measured at 6.5s a
+slide, that is five page images in twenty seconds.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its

@@ -4,6 +4,7 @@ import { EditableText } from '../components/cms/EditableText.tsx';
 import { EditableImage } from '../components/cms/EditableImage.tsx';
 import { Glyph } from '../components/site/Glyph.tsx';
 import { QuickRail } from '../components/site/QuickRail.tsx';
+import { Reel } from '../components/site/Reel.tsx';
 import { pad, mediaURL } from '../lib/media.ts';
 
 /* The dashboard. A server component: every editable value is passed to a leaf
@@ -53,6 +54,11 @@ export default async function HomePage() {
                 <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
                 <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
                 <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
+                {/* The shelf the button hangs over is the pages themselves,
+                    drifting. `slice(1)` because page one is the artwork
+                    directly above it — the same drawing twice on one screen
+                    reads as a bug rather than a slideshow. */}
+                <Reel pages={pages.items.slice(1).map((p) => mediaURL(p.image))} />
               </span>
             </span>
           </Link>
