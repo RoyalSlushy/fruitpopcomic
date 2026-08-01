@@ -289,12 +289,14 @@ it just lands on top of that bar. The dashboard is the one route with nothing
 at that y-range to land on — the hero fills the whole window under it — so it
 is the one route where the header can leave.
 
-There, at ≤859px, `.sysbar` becomes an absolutely positioned chip pinned
+There, at ≤859px, `.sysbar` becomes an absolutely positioned mark pinned
 `top`/`left` (each axis carrying its own `env(safe-area-inset-*)` term, since a
-notch eats into one edge at a time and never both), with the same solid backing
-every other floating control on the site already carries — the burger, the tab
-bar, the DRAFTS badge — because floating over a hand-drawn page is floating
-over unpredictable ground, unlike the dark ground the strip sat on in flow.
+notch eats into one edge at a time and never both), laid straight on the
+artwork with **no plate under it**. The burger and the tab bar carry plates
+because they are things you press and have to read as pressable over anything;
+a logo only has to be legible, and its own drop-shadow does that. The mark is
+pale cloud-blue and white in places and the pages under it are white paper, so
+the shadow is not decoration — without it the wordmark loses its own edges.
 
 **Absolute, not fixed.** Fixed would pin it to the *viewport*, so it would
 still be sitting in the corner after the hero scrolled out from under it — a
@@ -302,11 +304,10 @@ mark on the glass rather than a mark on the page, and a second landmark
 competing with the burger's own fixed one. Absolute, against the initial
 containing block (nothing between `.sysbar` and `<html>` is itself
 positioned), anchors it to the same document y-origin the hero panel starts
-at, so the two scroll away together: the chip only ever reads as sitting ON
-the artwork, never as furniture bolted to the screen. The wordmark shrinks to
-fit the chip instead of the chip stretching to fit the strip-sized mark, and
-its drop-shadow filter goes with it — the plate already buys the legibility
-the shadow used to.
+at, so the two scroll away together: the mark only ever reads as sitting ON
+the artwork, never as furniture bolted to the screen. It also drops to about
+the burger's own size — it was sized for a strip that ran most of the screen's
+width, and laid bare on the page it wants to be a mark rather than a banner.
 
 **The picture is a 4:5 window and the caption box takes the remainder.** The
 other way round — the artwork growing into whatever the copy left — made its
@@ -322,6 +323,34 @@ the panel past the fold and takes the button with it. Reserving the copy's share
 way only where honouring it would have pushed the call to action off the screen.
 Measured: exact 4:5 at 390×844, 412×915, 430×932 and 360×780; it yields at
 360×640, where the button stays above the fold instead.
+
+**The button hangs over the caption box's bottom edge.** The gradient stops
+`--shelf` short of the box's bottom, so the box has an edge inside the panel
+for the button to cross, and what shows under it is the panel's own white —
+the same paper the artwork is drawn on, so the panel reads paper, ink, paper
+rather than sprouting a new colour at the bottom.
+
+**Painted short, not sized short.** The box is the flex item that absorbs the
+panel's slack; shrink its box and `.hero__screen` is pinned at 4:5 and cannot
+grow into what it gave up, so the slack has nowhere to go. Painting the
+gradient short leaves the layout untouched and moves only the edge — which is
+what keeps the button exactly where it already was.
+
+The copy is justified to the box's **bottom** for this, and that half is
+load-bearing. Centred, the button sat on half of whatever slack the window
+happened to leave, so no fixed shelf could be relied on to cross it: at
+390×844 the edge landed mid-button, at 360×640 it cleared the button entirely
+and left it floating on white. Anchored, the button is always the same
+distance off the box's bottom and the edge always cuts the same part of it —
+measured at exactly 50% of the button's height on 390×844, 412×915 and
+360×640 alike.
+
+The shelf's depth is what it is because two things were asked for at once: the
+button not moving, and the box's edge crossing it. The button sat 102px clear
+of the box's bottom, so the edge has to come up at least that far — which
+leaves a white band of about the same depth under it. Shrinking `--shelf`
+closes the band but walks the button down the screen with it; the two cannot
+be traded separately.
 
 The **tab bar retracts** while that first screen is showing and rides back in on
 the first scroll — the hero is the whole of the window, so nothing sits over its

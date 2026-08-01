@@ -2061,7 +2061,40 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      and takes the button with it. Reserving the copy's share means the ratio
      holds on every phone tall enough to hold both, and gives way only where
      honouring it would have pushed the call to action off the screen. */
-  .hero__body{flex:1 1 auto}
+  /* ── the caption box, and the button that leaves it ───────
+     The gradient stops --shelf short of the box's bottom, so
+     the box has a visible bottom edge inside the panel and the
+     button can hang over it. Painted short rather than sized
+     short, because the box is the flex item that absorbs the
+     panel's slack: shrink its BOX and .hero__screen is pinned
+     at 4:5 and cannot grow into what it gave up, so the slack
+     would have nowhere to go. Painting leaves the layout
+     untouched and moves only the edge.
+
+     What shows under the edge is the panel's own white — the
+     same paper the artwork is drawn on, so the panel reads
+     paper, ink, paper rather than sprouting a new colour at
+     the bottom.
+
+     The copy is justified to the box's BOTTOM for this, and
+     that is the load-bearing half. Centred, the button sat on
+     half of whatever slack the window happened to leave, so no
+     fixed shelf could be relied on to cross it: on a 390×844 it
+     would land mid-button, on a 360×640 it would clear the
+     button entirely and leave it floating on white. Anchored,
+     the button is always the same distance off the box's
+     bottom, so the edge always cuts the same part of it. */
+  .hero__body{
+    flex:1 1 auto;
+    --shelf:7.75rem;
+    justify-content:flex-end;
+    /* less than --shelf by the part of the button that hangs below the edge */
+    padding-block-end:calc(var(--shelf) - 1.35rem);
+    background:linear-gradient(180deg, var(--magenta), var(--peach-dp)) no-repeat;
+    background-size:100% calc(100% - var(--shelf));
+  }
+  /* the screen is the fill, so it stops where the fill stops */
+  .hero__body::before{inset-block-end:var(--shelf)}
   .hero__screen{
     flex:0 0 auto;
     inline-size:100%;
@@ -2112,32 +2145,31 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      box shrinks to wrap exactly it — no width or margin left to
      override.
 
-     Its own backing plate is new: floating over a hand-drawn
-     page is floating over unpredictable ground, unlike the dark
-     ground it sat on in flow, and every other floating control
-     on this site — the burger, the tab bar, the DRAFTS badge —
-     already carries one for exactly that reason. */
+     No plate under it. The mark is a logo, not a control — the
+     burger and the tab bar carry plates because they are things
+     you press and they have to read as pressable over anything;
+     this one only has to be legible. Its own drop-shadow does
+     that, which is why the filter the strip always had stays on
+     here rather than being traded for a box. */
   .shell[data-section="home"] .sysbar{
     position:absolute;z-index:63;
     top:calc(.6rem + env(safe-area-inset-top));
     left:calc(.6rem + env(safe-area-inset-left));
     /* the base rule's own width and centring are what a strip needs and a
-       chip does not — without these two the box keeps --shell's width and
-       stretches back out across the screen */
+       bare mark does not — without these two the box keeps --shell's width
+       and stretches back out across the screen */
     width:auto;margin:0;
-    padding:.5rem .7rem;
-    border:3px solid #fff;border-radius:var(--r-sm);
-    background:var(--navy-lift);
-    box-shadow:0 4px 0 var(--navy-line), 0 10px 22px rgba(0,0,0,.5);
+    padding:0;
   }
-  /* Sized for a strip that ran most of the screen's width; the chip is
-     barely wider than the burger it mirrors, so the mark shrinks to fit it
-     rather than forcing the chip out wide to fit the mark. The shadow
-     filter goes too — that was for legibility over the ground it used to
-     sit on in flow, and the plate already buys that now. Home only, same
-     reason as the rule above: everywhere else the mark is still on the
-     strip it was always on. */
-  .shell[data-section="home"] .sysbar__home img{width:104px;filter:none}
+  /* Sized for a strip that ran most of the screen's width; laid straight on
+     the artwork it wants to be about the burger's own size instead. The
+     shadow is the one thing holding it off the page — this mark is pale
+     cloud-blue and white in places, and the pages it sits on are white
+     paper, so without it the wordmark loses its own edges. */
+  .shell[data-section="home"] .sysbar__home img{
+    width:118px;
+    filter:drop-shadow(0 2px 3px rgba(6,10,22,.6)) drop-shadow(0 6px 16px rgba(6,10,22,.5));
+  }
 
   /* ── the burger, off the strip and onto the glass ──────────
      With the ribbon gone from the top strip, the burger is the
@@ -2366,7 +2398,11 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .ribbon{left:1rem;font-size:.75rem;padding:.42rem .9rem .46rem}
 
-  .hero__body{padding:1.1rem}
+  /* Not the `padding` shorthand: this block sits AFTER the phone layout, so a
+     shorthand here silently puts the block-end back to 1.1rem and drops the
+     button out of the shelf it is supposed to be hanging over. Each rule owns
+     one edge — the block-end belongs to the shelf. */
+  .hero__body{padding-inline:1.1rem;padding-block-start:1.1rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
   .quick__rail{gap:.55rem}
