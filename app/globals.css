@@ -666,6 +666,13 @@ html[data-drawer="open"] .scrim{
      is the same move the halftone below already makes; this just does it
      with the base fill too. */
   background:linear-gradient(180deg, var(--magenta), var(--peach-dp));
+  /* Tuned by hand. Not `--cut`: that token drives the PANEL's three copies of
+     one shape (.ch, .ch__in, the plinth) and setting it here would redraw the
+     frame instead of the caption box. Two of the points sit outside the box on
+     purpose — nothing paints out there, so they are steering the edges that run
+     to them rather than adding area, which is what leans the right edge without
+     nicking either corner. */
+  clip-path:polygon(0 0, calc(100% - 2.1px) -14.8px, calc(100% + 1.9px) calc(100% + 16.3px), 0 100%);
 }
 /* The loudest halftone on the site: 12px dots in the deep tone, thrown
    from the bottom-left corner of the field. This is the panel that has to
@@ -699,7 +706,14 @@ html[data-drawer="open"] .scrim{
   color:#fff;
   padding:.55rem .8rem;
   background:var(--magenta-dp);
-  clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  /* Tuned by hand, then re-expressed as PERCENTAGES of this box rather than
+     pasted as pixels. The shape was drawn against the tuner's 342x430 panel;
+     this plate is 307x78, so px-for-px the point meant to sit 13% down the
+     edge landed 73% down instead and the wedge cut straight through the
+     second line of copy. Proportional, the drawn shape survives the change of
+     box — which is the whole argument for % over px on a cut whose element
+     is not the one it was drawn on. */
+  clip-path:polygon(-0.2% -0.3%, calc(100% - 7.2%) 13.2%, calc(100% - 1.1%) calc(100% - 4.7%), -0.5% calc(100% + 0.5%));
 }
 .hero .btn{align-self:flex-start;margin-top:.3rem}
 

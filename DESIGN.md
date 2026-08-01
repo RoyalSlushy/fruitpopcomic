@@ -158,6 +158,20 @@ when the dashboard went bolder. Prose is capped at 68ch.
 
   The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
   trim.
+- **Two cuts are hand-drawn rather than tokenised**, both inside the hero: the
+  caption box (`.hero__body`) and the standfirst's plate (`.hero__sub`). They are
+  set as `clip-path` directly, *not* as `--cut` — that token drives the panel's
+  three copies of one shape (`.ch`, `.ch__in`, the plinth), so setting it here
+  would redraw the frame instead of the box inside it. Both carry points outside
+  their box; nothing paints out there, so those points steer the edges running to
+  them rather than adding area, which is how the caption box leans its right edge
+  without nicking either corner.
+
+  The plate's is written in **percentages**, and that is the one thing to keep if
+  it is ever re-tuned. It was drawn against a 342×430 panel and the plate is
+  307×78 — pasted as pixels, the point meant to sit 13% down its edge landed 73%
+  down instead and the wedge cut through the second line of copy. A cut drawn on
+  one box and worn by another has to be proportional or it is not the same shape.
 - **Keyline:** 5px white, and it is **not a border**. A `clip-path` clips a border
   square at the cut corners, so the keyline is the element's own white background
   showing through its padding, with the interior painted inset by exactly that
