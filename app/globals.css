@@ -2123,7 +2123,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      leans its right edge without nicking either corner.
      ─────────────────────────────────────────────────────── */
   .hero__body{
-    clip-path:polygon(0 0, calc(100% - 2.1px) -14.8px, calc(100% + 1.9px) calc(100% + 16.3px), 0 100%);
+    clip-path:polygon(0 0, calc(100% + 4.6px) -39.8px, calc(100% + 1.1px) calc(100% + 24.5px), 0 100%);
   }
   /* Percentages, and that is the part to keep if this is ever re-tuned. The
      shape was drawn against a 342x430 panel and this plate is 307x78, so
