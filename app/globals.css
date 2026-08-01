@@ -2068,43 +2068,37 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .hero .ch__in{flex-direction:column}
   .hero{min-height:0}
-  /* The picture is a 4:5 window, and the caption box takes what is left. The
-     other way round — the picture growing into the difference — made its shape
-     a subtraction: a tall phone got a tall crop, a short one got a letterbox of
-     the same drawing, and neither was a decision anybody made. A page is
-     composed for a frame, so the frame is the fixed thing.
+  /* ── who absorbs the panel's slack ────────────────────────
+     The picture does. It is the only thing here that can be
+     any height without something being wrong: the copy is the
+     copy, and the shelf under it has to stay the depth the
+     button hangs over. So the caption box is sized to exactly
+     what it holds and the picture takes the rest of the window,
+     which is also what keeps the shelf's last pixel above the
+     fold — a fixed ratio on the picture had it setting the
+     panel's height rather than answering it.
+     ─────────────────────────────────────────────────────── */
+  .hero__body{flex:0 0 auto}
 
-     The cap is what stops the ratio from fighting the full-screen hero. The
-     panel's height is a MINIMUM, so nothing here overflows and nothing shrinks
-     — a 4:5 window taller than the window simply grows the panel past the fold
-     and takes the button with it. Reserving the copy's share means the ratio
-     holds on every phone tall enough to hold both, and gives way only where
-     honouring it would have pushed the call to action off the screen. */
   /* ── the caption box, and the button that leaves it ───────
      The gradient stops --shelf short of the box's bottom, so
      the box has a visible bottom edge inside the panel and the
      button can hang over it. Painted short rather than sized
-     short, because the box is the flex item that absorbs the
-     panel's slack: shrink its BOX and .hero__screen is pinned
-     at 4:5 and cannot grow into what it gave up, so the slack
-     would have nowhere to go. Painting leaves the layout
-     untouched and moves only the edge.
+     short: the shelf is where the slideshow goes, and a box
+     that reserved it as real space would hand it to the flex
+     line instead. Painting leaves the layout alone and moves
+     only the edge.
 
-     What shows under the edge is the panel's own white — the
-     same paper the artwork is drawn on, so the panel reads
-     paper, ink, paper rather than sprouting a new colour at
-     the bottom.
-
-     The copy is justified to the box's BOTTOM for this, and
-     that is the load-bearing half. Centred, the button sat on
-     half of whatever slack the window happened to leave, so no
-     fixed shelf could be relied on to cross it: on a 390×844 it
-     would land mid-button, on a 360×640 it would clear the
-     button entirely and leave it floating on white. Anchored,
-     the button is always the same distance off the box's
-     bottom, so the edge always cuts the same part of it. */
+     The copy is justified to the box's BOTTOM, and that is the
+     load-bearing half. Left centred, the button sat on half of
+     whatever slack the window happened to leave, so no fixed
+     shelf could be relied on to cross it: on a 390×844 the edge
+     landed mid-button, on a 360×640 it cleared the button
+     entirely. Anchored, the button is always the same distance
+     off the box's bottom, so the edge always cuts the same part
+     of it — and the shelf is always exactly --shelf deep, which
+     is what the slideshow is positioned into. */
   .hero__body{
-    flex:1 1 auto;
     --shelf:7.75rem;
     justify-content:flex-end;
     /* less than --shelf by the part of the button that hangs below the edge */
@@ -2163,12 +2157,15 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .hero__frame[data-kb="2"]{animation-name:hkb-2}
   .hero__frame[data-kb="3"]{animation-name:hkb-3}
   .hero__frame[data-kb="4"]{animation-name:hkb-4}
+  /* Flexed, not pinned to a ratio, for now. It grows into whatever the copy
+     and the shelf leave, so the panel adds up to exactly the window instead
+     of to the sum of a fixed ratio plus everything else — which is what was
+     dropping the slideshow's bottom edge under the fold. The floor is there
+     for a landscape window, where what is left over is not much. */
   .hero__screen{
-    flex:0 0 auto;
+    flex:1 1 auto;
     inline-size:100%;
-    aspect-ratio:4/5;
     min-block-size:150px;
-    max-block-size:calc(100dvh - 17rem);
   }
 
   /* The bar rides in on the first scroll, so the hero above is the whole of

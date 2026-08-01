@@ -313,32 +313,38 @@ the artwork, never as furniture bolted to the screen. It also drops to about
 the burger's own size — it was sized for a strip that ran most of the screen's
 width, and laid bare on the page it wants to be a mark rather than a banner.
 
-**The picture is a 4:5 window and the caption box takes the remainder.** The
-other way round — the artwork growing into whatever the copy left — made its
-shape a subtraction: a tall phone got a tall crop of the page, a short one got a
-letterbox of the same drawing, and neither was a decision anybody made. A page is
-composed for a frame, so the frame is the fixed thing.
+**The picture takes the slack; everything else is sized to what it is.** The
+copy is the copy, and the shelf under it has to stay the depth the button hangs
+over — the picture is the only thing on the panel that can be any height without
+something being wrong. So the caption box is sized to exactly what it holds and
+the picture flexes into the rest of the window.
 
-It carries a cap, and the cap is what stops the ratio from fighting the
-full-screen hero above. Nothing here overflows and so nothing shrinks — the
-panel's height is a minimum, so a 4:5 window taller than the window simply grows
-the panel past the fold and takes the button with it. Reserving the copy's share
-(`100dvh − 17rem`) holds the ratio on every phone tall enough for both and gives
-way only where honouring it would have pushed the call to action off the screen.
-Measured: exact 4:5 at 390×844, 412×915, 430×932 and 360×780; it yields at
-360×640, where the button stays above the fold instead.
+It was pinned to **4:5** for a while, and the reason it is not any more is worth
+keeping. A fixed ratio makes the picture *set* the panel's height rather than
+answer it: picture + copy + shelf is then a sum that has no reason to equal the
+window, and on anything short it overshot. The panel's height is a minimum, so
+nothing overflowed and nothing shrank — the panel simply grew past the fold and
+took the slideshow with it. Measured against the flexed version, the shelf's
+band sat **58.9px below the fold at 360×640** and **78.9px at 320×568**; flexed,
+it clears by 1.7px and 2.0px. A `max-block-size` cap had been holding the worst
+of that back, which is really the tell: a ratio that needs a cap to stay on
+screen is not deciding the layout, it is arguing with it.
+
+What the ratio bought was a picture whose shape did not change with the window,
+and that is a real thing to want back — a page is composed for a frame. If it
+returns it has to come back as something the panel's height is derived *from*
+rather than something added to it.
 
 **The button hangs over the caption box's bottom edge.** The gradient stops
 `--shelf` short of the box's bottom, so the box has an edge inside the panel
-for the button to cross, and what shows under it is the panel's own white —
-the same paper the artwork is drawn on, so the panel reads paper, ink, paper
-rather than sprouting a new colour at the bottom.
+for the button to cross, and what shows under it is the slideshow below.
 
-**Painted short, not sized short.** The box is the flex item that absorbs the
-panel's slack; shrink its box and `.hero__screen` is pinned at 4:5 and cannot
-grow into what it gave up, so the slack has nowhere to go. Painting the
-gradient short leaves the layout untouched and moves only the edge — which is
-what keeps the button exactly where it already was.
+**Painted short, not sized short.** The shelf is where the slideshow goes, so
+it has to be a fixed depth the band can be positioned into; a box that reserved
+it as real space would hand it to the flex line and let the picture take it
+back. Painting the gradient short leaves the layout untouched and moves only
+the edge — which is also what kept the button exactly where it already was when
+the edge first came up to meet it.
 
 The copy is justified to the box's **bottom** for this, and that half is
 load-bearing. Centred, the button sat on half of whatever slack the window
