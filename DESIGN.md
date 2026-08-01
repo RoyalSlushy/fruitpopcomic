@@ -164,10 +164,13 @@ when the dashboard went bolder. Prose is capped at 68ch.
   breakpoint the caption box stays square and the plate keeps its original 10px
   slant. They are set as `clip-path` directly, *not* as `--cut` — that token
   drives the panel's three copies of one shape (`.ch`, `.ch__in`, the plinth), so
-  setting it here would redraw the frame instead of the box inside it. Both carry
-  points outside their box; nothing paints out there, so those points steer the
-  edges running to them rather than adding area, which is how the caption box
-  leans its right edge without nicking either corner.
+  setting it here would redraw the frame instead of the box inside it. The
+  caption box borrows the panel's own `--cut-rise` move rather than inventing a
+  new one — top edge climbing left to right — so its corner reads as an echo of
+  the slab's tilt instead of a shape fighting it. A quad only has four corners
+  to move, so the "climb" comes from dropping the left ones in, not from
+  pushing the right ones past the box's own edge, which is already as high as a
+  clip-path can put them.
 
   The plate's is written in **percentages**, and that is the one thing to keep if
   it is ever re-tuned. It was drawn against a 342×430 panel and the plate is

@@ -2101,6 +2101,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .hero__body{
     --shelf:7.75rem;
     justify-content:flex-end;
+    /* a touch past the base clamp's floor — the corner cut just above takes a
+       bite out of this same edge, and the extra room keeps it clear of the
+       title rather than sharing a corner with it */
+    padding-block-start:1.4rem;
     /* less than --shelf by the part of the button that hangs below the edge */
     padding-block-end:calc(var(--shelf) - 1.35rem);
     background:linear-gradient(180deg, var(--magenta), var(--peach-dp)) no-repeat;
@@ -2117,13 +2121,17 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      plinth), and setting it here would redraw the frame rather
      than the boxes inside it.
 
-     Both carry points outside their own box. Nothing paints out
-     there, so those points are steering the edges that run to
-     them rather than adding area — which is how the caption box
-     leans its right edge without nicking either corner.
+     The caption box borrows the panel's own move — --cut-rise,
+     top edge climbing left to right — rather than inventing a
+     new one, so the corner it lifts reads as an echo of the
+     slab's tilt instead of a shape fighting it. A quad only has
+     four corners to move, so "climbing" has to mean the LEFT
+     ones give way rather than the right ones somehow rising past
+     the box's own top edge, which is where the corner is already
+     as high as a clip-path can put it.
      ─────────────────────────────────────────────────────── */
   .hero__body{
-    clip-path:polygon(0 0, calc(100% + 4.6px) -39.8px, calc(100% + 1.1px) calc(100% + 24.5px), 0 100%);
+    clip-path:polygon(0 12px, 100% 0, 100% calc(100% - 10px), 0 100%);
   }
   /* Percentages, and that is the part to keep if this is ever re-tuned. The
      shape was drawn against a 342x430 panel and this plate is 307x78, so
@@ -2493,7 +2501,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      shorthand here silently puts the block-end back to 1.1rem and drops the
      button out of the shelf it is supposed to be hanging over. Each rule owns
      one edge — the block-end belongs to the shelf. */
-  .hero__body{padding-inline:1.1rem;padding-block-start:1.1rem}
+  .hero__body{padding-inline:1.1rem;padding-block-start:1.4rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
   .quick__rail{gap:.55rem}
