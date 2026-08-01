@@ -158,14 +158,16 @@ when the dashboard went bolder. Prose is capped at 68ch.
 
   The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
   trim.
-- **Two cuts are hand-drawn rather than tokenised**, both inside the hero: the
-  caption box (`.hero__body`) and the standfirst's plate (`.hero__sub`). They are
-  set as `clip-path` directly, *not* as `--cut` — that token drives the panel's
-  three copies of one shape (`.ch`, `.ch__in`, the plinth), so setting it here
-  would redraw the frame instead of the box inside it. Both carry points outside
-  their box; nothing paints out there, so those points steer the edges running to
-  them rather than adding area, which is how the caption box leans its right edge
-  without nicking either corner.
+- **Two cuts are hand-drawn rather than tokenised**, both inside the hero and
+  both **below 860px only**: the caption box (`.hero__body`) and the standfirst's
+  plate (`.hero__sub`). They were tuned against the phone's boxes, so above the
+  breakpoint the caption box stays square and the plate keeps its original 10px
+  slant. They are set as `clip-path` directly, *not* as `--cut` — that token
+  drives the panel's three copies of one shape (`.ch`, `.ch__in`, the plinth), so
+  setting it here would redraw the frame instead of the box inside it. Both carry
+  points outside their box; nothing paints out there, so those points steer the
+  edges running to them rather than adding area, which is how the caption box
+  leans its right edge without nicking either corner.
 
   The plate's is written in **percentages**, and that is the one thing to keep if
   it is ever re-tuned. It was drawn against a 342×430 panel and the plate is
