@@ -586,27 +586,35 @@ Four controls, and the shape of the row is the argument for each:
 | | |
 |---|---|
 | `‹` | back to the chapters — **bare**, no pill |
-| `▦ 1 / 10` | where you are, and the way into the filmstrip, in one button |
+| `▦ Pages` `1 / 10` | the filmstrip drawer, and where you are |
 | `▤ Script` | the transcript drawer |
 | `⚙` | read-aloud: the action and its settings, in one panel |
 
-**Back is the only one without a pill**, and that is the distinction being drawn:
-everything else on this bar changes what the bar is *showing*, and those are the
-ones that look like they belong to it. A control that leaves does not.
-
-**The count rides on the Pages button rather than beside it.** It was a bare span
-next to a button that said `Pages` — two things saying one thing, where you are
-and the way to somewhere else in the same list. The number is the label now and
-the word moved into the accessible name (`Pages — page 1 of 10`), which is where
-it was doing the real work anyway.
+**The two ends are bare marks and the two middles are pills**, and that is the
+distinction being drawn: the pills change what the bar is *showing*, and the
+marks are the ways out of reading — one leaves the chapter, one opens a panel
+over it. A control that leaves does not look like it belongs to the row.
 
 **One gear, not a speak button and a picker beside it.** Read-aloud is the only
 thing this reader has to set, so the panel *is* the settings and `Describe` — the
 button that starts it — is the first thing inside it, above a rule. The action
 and the preferences it obeys in one place, for the price of one slot in the bar.
-The mark is **faders rather than a cog**: at 16px a cog's teeth close into a
-texture and the whole thing reads as a sun, and faders are the more honest sign
-anyway, since the panel behind it is a voice to pick and two sliders.
+The cog is a real silhouette — eight shallow teeth cut as one closed outline —
+rather than a hub with radial spokes, which at this size closes up and reads as
+a sun.
+
+**The count sits beside the button, and folds into it only when the window is
+short.** Both forms are in the markup and the stylesheet picks one: with room, a
+labelled button and a number are two things doing one job each, which is the
+more legible pair. Under `max-height: 520px` — a phone turned sideways, where
+the dock is a seventh of the window rather than a fifteenth — the labels go and
+the number becomes the button's own label. The drawers give ground at that
+height too: a fixed 40dvh sheet is reasonable over an 844px window and takes a
+third of the page over a 390px one.
+
+Both counts are `aria-hidden` and the button is simply `Pages`. The page number
+is already announced by the live region at the foot of the reader, and saying it
+in two places is how the two get to disagree.
 
 Two more things moved rather than went, because a phone bar has room for four
 controls and not eight:
@@ -622,6 +630,43 @@ The gear keeps its word in the markup, which is what a screen reader announces,
 and loses it to the stylesheet. It is still a 40px target, and its panel opens
 **upward** — the bar it hangs off is at the bottom of the screen, so a panel
 dropping down would open straight off the end of it.
+
+### Editing, on the reader
+
+The editor had grown three surfaces onto the reader that overlapped or got in
+each other's way. All three are one now.
+
+- **One script, not two.** The script column rendered the parsed transcript
+  *and* a raw dashed edit box under it, so an editor read every page's dialogue
+  twice. The box is gone: `PageTools` — the sheet a tap on the page raises — is
+  a real `<textarea>`, which is the better editor of the two and already existed.
+- **The edit bar is marks.** Save, Discard and Done were three labelled pills
+  floating over the page being edited; they are icons with `data-tip` and an
+  accessible name. Fixing that exposed an older bug in the same bar: it was
+  positioned with `left:50%` and pulled back by a translate, and **a fixed box
+  offset from one edge only has the distance to the other edge as its available
+  width** — so on a 390px phone it laid out in 195px and wrapped to three rows
+  inside a pill that had 366px of room. It uses both insets and a margin now.
+- **The filmstrip lost its per-page buttons.** Three controls on every page is
+  thirty on a ten-page chapter, inside a drawer 300px tall — and they were the
+  wrong three: reordering is what the press-and-hold drag already does better
+  than a pair of arrows, and the two things arrows cannot do were absent.
+
+**So the gesture that reorders also asks.** Hold a page and move, and you are
+dragging it; hold a page and let go, and a menu opens on it — change image and
+script, add a blank page after, delete. Which of the two you meant is decided by
+what you did next, not by aiming at a different target. `ListDragImpl` dispatches
+a bubbling `cms:hold` event rather than taking a callback, so the drag still
+knows how to pick a thing up and nothing about what a thing *is*.
+
+Two things that only showed up once it was built. The bar and the filmstrip
+drawer both live at the bottom of the window, and measured, the bar covered
+**six of ten thumbnails** — survivable while every page carried its own buttons,
+fatal once holding a thumbnail *is* how a page is edited, so the bar moves to the
+top while a reader drawer is open. And `Add blank page after` added a page that
+was not after anything: the list template leaves `chapter` blank, which drops a
+new page into the trailing Unsorted group, where the chapter-scoped strip it was
+added from could not show it at all. It inherits the held page's chapter.
 
 **The flips are gone below 860px.** They are a hover affordance — `opacity:0`
 until the pointer is over the stage — and a phone has no hover to reveal them

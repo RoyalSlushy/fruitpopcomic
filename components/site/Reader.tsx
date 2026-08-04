@@ -7,9 +7,10 @@ import { Speak } from './Speak.tsx';
 import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
-import { ListControls, ListAdd } from '../cms/ListControls.tsx';
+import { ListAdd } from '../cms/ListControls.tsx';
 import { ListDrag } from '../cms/ListDrag.tsx';
 import { PageTools } from '../cms/PageTools.tsx';
+import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
 import { scriptLines } from '../../lib/script.ts';
@@ -95,6 +96,7 @@ export function Reader({
   const [drawer, setDrawer] = useState<null | 'pages' | 'script'>(null);
   const [bare, setBare] = useState(false);          // chrome hidden (immersive)
   const [tools, setTools] = useState(false);        // the editor's page sheet
+  const [held, setHeld] = useState<number | null>(null);  // the held page's menu
   const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
   const [cinema, setCinema] = useState(false);      // the page, and nothing else
 
@@ -265,8 +267,28 @@ export function Reader({
     setTools(false);
   }, [cinema]);
 
-  /* Stable: the sheet holds a document listener that depends on it. */
+  /* Stable: the sheets hold document listeners that depend on them. */
   const closeTools = useCallback(() => setTools(false), []);
+  const closeHeld = useCallback(() => setHeld(null), []);
+
+  /* A page held in the filmstrip and let go without moving is asking what else
+     it can do — ListDragImpl decides which of the two gestures happened and
+     says so here. The event rather than a prop is what keeps the drag's code
+     free of any idea what an item IS. */
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const onHold = (e: Event) => {
+      const at = (e as CustomEvent<{ listPath: string; index: number }>).detail;
+      if (at?.listPath === 'pages.items') setHeld(at.index);
+    };
+    el.addEventListener('cms:hold', onHold);
+    return () => el.removeEventListener('cms:hold', onHold);
+  }, []);
+
+  /* Leaving edit mode, or paging away, with the menu open would strand it over
+     a page nobody is looking at. */
+  useEffect(() => { if (!editing) setHeld(null); }, [editing]);
 
   /* Leaving edit mode with the sheet open would strand a piece of state
      nobody can see — PageTools renders nothing for a visitor — and the next
@@ -865,17 +887,21 @@ export function Reader({
                             )}
                             <span className="film__n" aria-hidden="true">{pad(n)}</span>
                           </button>
-                          {/* Reordering moves the page in the FLAT running
-                              order, which is the thing /read/[n] indexes. */}
-                          <ListControls listPath="pages.items" index={p.index} length={pages.length} />
                         </li>
                       ))}
-                      <li className="filmstrip__add">
-                        <ListAdd listPath="pages.items" length={pages.length} />
-                      </li>
-                      {/* Adds press-and-hold reordering to the list above it.
-                          Renders nothing for a visitor, and the list needs to
-                          know nothing about it. */}
+                      {/* Only when there is nothing to hold. Everything a page
+                          can be asked is asked by holding it — but an empty
+                          chapter has no page to hold, so it keeps the one
+                          button that can end that. */}
+                      {pages.length === 0 && (
+                        <li className="filmstrip__add">
+                          <ListAdd listPath="pages.items" length={0} />
+                        </li>
+                      )}
+                      {/* Press-and-hold on the list above: hold and move to
+                          reorder, hold and let go to be asked what else this
+                          page can do. Renders nothing for a visitor, and the
+                          list needs to know nothing about either. */}
                       <ListDrag listPath="pages.items" />
                     </ul>
                   </nav>
@@ -957,24 +983,34 @@ export function Reader({
                 <Chevron dir="left" />
               </Link>
 
-              {/* The count rides on the button rather than beside it. It was a
-                  bare span next to a button that said `Pages`, which is two
-                  things saying one thing — where you are, and the way to go
-                  somewhere else in the same list. The number IS the label now,
-                  and the word it replaced moves into the accessible name,
-                  where it was doing the real work anyway. */}
+              {/* Both forms of the count are in the markup and the stylesheet
+                  picks one. With room, the word labels the button and the
+                  count stands beside it, which is what the bar has always
+                  said. On a short viewport — a phone turned sideways, where
+                  the bar is a bigger share of what is left — they fold into
+                  one and the number becomes the label.
+
+                  Both are aria-hidden and the button is just `Pages`: the page
+                  number is already announced by the live region at the bottom
+                  of this component, and saying it twice in two places is how
+                  the two get to disagree. */}
               <button
                 type="button"
                 className={`rdock__btn${drawer === 'pages' ? ' is-on' : ''}`}
                 aria-expanded={drawer === 'pages'}
-                aria-label={`Pages — page ${human} of ${total}`}
+                aria-label="Pages"
                 onClick={() => setDrawer((d) => (d === 'pages' ? null : 'pages'))}
               >
                 <Glyph name="grid" width={5} />
-                <span className="rdock__count" aria-hidden="true">
+                <span className="rdock__label">Pages</span>
+                <span className="rdock__count rdock__count--in" aria-hidden="true">
                   <b>{human}</b> / {total}
                 </span>
               </button>
+
+              <span className="rdock__count" aria-hidden="true">
+                <b>{human}</b> / {total}
+              </span>
 
               {page && !isScriptPage(page) && (
                 <button
@@ -1007,6 +1043,21 @@ export function Reader({
                 for a visitor — the tap toggles the chrome for them and this
                 component is not in their bundle. Keyed by the page, so paging
                 with it open re-reads the page it is now over. */}
+            {/* What a held page offers. `held` is an index into the flat
+                running order, which is what the strip's buttons carry and what
+                the list operations take. */}
+            {held !== null && pages[held] && (
+              <PageMenu
+                key={pages[held].id}
+                listPath="pages.items"
+                index={held}
+                page={sibs.findIndex((s) => s.index === held) + 1 || held + 1}
+                chapter={pages[held].chapter}
+                onEdit={() => { go(held); setTools(true); }}
+                onClose={closeHeld}
+              />
+            )}
+
             {tools && page && (
               <PageTools
                 key={page.id}

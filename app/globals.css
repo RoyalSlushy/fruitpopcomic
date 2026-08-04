@@ -1545,9 +1545,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
 .script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
 .script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}
-/* The raw text behind the parsed view. Editor-only — admin.css reveals it,
-   and admin.css only ever loads for someone signed in. */
-.script__slot{display:none}
 
 /* Side by side once the panel is wide enough to hold both without squeezing
    the artwork. Below that the script stacks under the page rather than
@@ -2167,14 +2164,21 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .view--read[data-bare="on"] .rdock{translate:0 100%;position:absolute;inset-inline:0;inset-block-end:0}
 
-  /* Riding on the Pages button now, so it is styled as that button's label
-     rather than as a thing standing on its own in the row. */
+  /* ── the count, in one of two places ──────────────────────
+     Beside the button by default, which is what the bar has
+     always said and the more legible of the two: a labelled
+     button and a number are two things doing one job each.
+
+     It folds INTO the button only when the viewport is short —
+     see the max-height rule at the end of this block. */
   .rdock__count{
+    font-family:var(--face);font-size:.8125rem;
     font-variant-numeric:tabular-nums;white-space:nowrap;
     color:var(--ink-soft);
   }
-  .rdock__count b{color:inherit;font-weight:700}
-  .rdock__btn.is-on .rdock__count{color:inherit}
+  .rdock__count b{color:#fff;font-weight:700}
+  .rdock__count--in{display:none;font-size:inherit;color:inherit}
+  .rdock__count--in b{color:inherit}
 
   /* Back is the only control here that leaves, and it is the only one without
      a pill. No border, no fill — the glyph and the 40px it needs to be a
@@ -2207,18 +2211,26 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .rdock__btn.is-on{background:var(--gold);color:var(--navy);border-color:#fff}
 
   /* ── the gear ─────────────────────────────────────────────
-     Keeps its word in the markup — that is what a screen reader
-     announces — and loses it to this rule, where the icon is
-     doing the work and the row has no width for a sixth label.
-     Still a 40px target. */
+     A mark, like back, and for the same reason: the two ends of
+     this bar are the ways OUT of reading — one leaves the
+     chapter, one opens a panel over it — and the pills between
+     them are the two that change what the bar is showing.
+     Keeps its word in the markup, which is what a screen reader
+     announces, and loses it here. Still a 40px target. */
   .rdock .vm__open{
     inline-size:40px;block-size:40px;flex:0 0 40px;
     padding:0;gap:0;
     display:inline-grid;place-items:center;
     font-size:0;letter-spacing:0;
-    border-radius:999px;
+    border:0;border-radius:999px;
+    background:none;box-shadow:none;
+    color:var(--ink-soft);
   }
-  .rdock .vm__open svg{inline-size:16px;block-size:16px}
+  .rdock .vm__open svg{inline-size:21px;block-size:21px}
+  .rdock .vm__open:hover,.rdock .vm__open:focus-visible{background:none;color:#fff}
+  /* Open, it is the only thing on the bar doing something, so it says so in
+     the one way a bare mark can. */
+  .rdock .vm__open.is-on{background:none;color:var(--gold)}
   /* Opens upward, because the bar it hangs off is at the bottom of the screen
      and a panel dropping down would open straight off the end of it. */
   .rdock .vm__panel{
@@ -2249,6 +2261,26 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     color:var(--ink-soft);font-variant-numeric:tabular-nums;
   }
   .view--read .filmstrip{padding-block-start:.7rem}
+
+  /* ── a phone turned sideways ──────────────────────────────
+     Height, not width, because height is what has run out. In
+     landscape the window is about 390px tall and the dock is a
+     seventh of it rather than a fifteenth, so the count folds
+     into the button it belongs to and the labels go: the row
+     becomes two marks and two icons, and the page keeps the
+     pixels. Portrait phones — 640 and up — are untouched.
+
+     The drawers give ground too. A fixed 40dvh sheet is fine
+     over an 844px window and takes a third of the page over a
+     390px one, so they are capped nearer half of what is left. */
+  @media (max-height:520px){
+    .rdock__label{display:none}
+    .rdock__count{display:none}
+    .rdock__count--in{display:inline}
+    .view--read .timeline,
+    .view--read .script{--sheet:min(58dvh,15rem)}
+    .view--read .script--empty{--sheet:min(46dvh,10rem)}
+  }
 
   /* The page/cast/status readout is desktop furniture. On a phone it is three
      numbers between the visitor and the comic, and the same counts are on the

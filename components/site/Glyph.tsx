@@ -101,16 +101,28 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M32 21h.03" />
     </>
   ),
-  /* Faders, not a cog. This is drawn at 16px in the reader's dock, where a
-     cog's teeth close up into a texture and the whole thing reads as a sun —
-     and faders are the more honest mark anyway: the panel behind it is a
-     voice to pick and two sliders. */
+  /* A real cog silhouette rather than a hub with spokes: eight teeth cut as
+     one closed outline, so at 16px it still reads as a gear instead of
+     collapsing into a sun. Shallow teeth (25 out, 19 in) for the same reason
+     — deep ones close into a texture at this size. */
   settings: (
     <>
-      <path d="M11 17h42M11 32h42M11 47h42" />
-      <circle cx="24" cy="17" r="5.5" />
-      <circle cx="41" cy="32" r="5.5" />
-      <circle cx="20" cy="47" r="5.5" />
+      <path d="M56.6 27.7 A25 25 0 0 1 56.6 36.3 L50.5 36.4 A19 19 0 0 1 48.2 41.9 L52.5 46.4 A25 25 0 0 1 46.4 52.5 L41.9 48.2 A19 19 0 0 1 36.4 50.5 L36.3 56.6 A25 25 0 0 1 27.7 56.6 L27.6 50.5 A19 19 0 0 1 22.1 48.2 L17.6 52.5 A25 25 0 0 1 11.5 46.4 L15.8 41.9 A19 19 0 0 1 13.5 36.4 L7.4 36.3 A25 25 0 0 1 7.4 27.7 L13.5 27.6 A19 19 0 0 1 15.8 22.1 L11.5 17.6 A25 25 0 0 1 17.6 11.5 L22.1 15.8 A19 19 0 0 1 27.6 13.5 L27.7 7.4 A25 25 0 0 1 36.3 7.4 L36.4 13.5 A19 19 0 0 1 41.9 15.8 L46.4 11.5 A25 25 0 0 1 52.5 17.6 L48.2 22.1 A19 19 0 0 1 50.5 27.6 Z" />
+      <circle cx="32" cy="32" r="8" />
+    </>
+  ),
+  check: <path d="M13 33.5 26 46.5 51 18" />,
+  undo: (
+    <>
+      <path d="M13 16v14h14" />
+      <path d="M13.9 30A21 21 0 1 1 17 45.5" />
+    </>
+  ),
+  exit: (
+    <>
+      <path d="M25 12H13a3 3 0 0 0-3 3v34a3 3 0 0 0 3 3h12" />
+      <path d="M40 21l11 11-11 11" />
+      <path d="M51 32H23" />
     </>
   ),
 };
