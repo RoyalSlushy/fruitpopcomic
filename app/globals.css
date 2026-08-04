@@ -1476,22 +1476,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 
 .script__transport{display:flex;align-items:center;gap:.4rem;flex:0 0 auto}
-/* The picker is the phone's only copy of this control. Above 860px the panel
-   bar still carries one and two would be the same setting twice. */
-.vm--script{display:none}
-@media (max-width:859px){
-  .vm--script{display:inline-flex}
-  .vm--script .vm__open{
-    inline-size:34px;block-size:34px;padding:0;gap:0;
-    display:inline-grid;place-items:center;
-    font-size:0;letter-spacing:0;border-radius:999px;
-  }
-  .vm--script .vm__open svg{inline-size:13px;block-size:13px}
-  /* Opens upward: the transport is pinned to the top of a drawer that is
-     itself at the bottom of the screen, so a panel dropping down would open
-     straight off the end of it. */
-  .vm--script .vm__panel{inset-block-start:auto;inset-block-end:calc(100% + .4rem)}
-}
 .tbtn{
   inline-size:34px;block-size:34px;
   display:grid;place-items:center;
@@ -2049,21 +2033,56 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      to go stale, and nothing underneath to fall through to. It
      is also the better behaviour on a phone: an open drawer
      never covers the page you are reading. */
+  /* They GROW, and the page above gives way as they do. Opening used to be a
+     display swap, so the page jumped to its smaller size in a single frame
+     and the drawer was simply there — which reads as a layout bug rather than
+     as something opening. The height is the thing animated, so the page
+     shrinking and the sheet arriving are the same motion.
+
+     Not display:none any more, so `visibility` is what keeps a closed drawer
+     out of the tab order. It is transitioned with a DELAY rather than a
+     duration — visibility is discrete — so it flips to visible at the start
+     of opening and back to hidden only once the sheet has finished closing.
+     Without the delay the content would vanish on the first frame of the
+     close and the drawer would collapse around nothing. */
   .view--read .timeline,
   .view--read .script{
-    display:none;
+    display:block;
     /* A fixed share, not a content-measured one. Opening a drawer shrinks the
        page above it, which re-lays out a 1080x1620 image; with the drawer's
        height depending on its own content that settled a frame late and the
        first tap after opening landed a row out. */
-    flex:0 0 min(40dvh,19rem);
-    block-size:min(40dvh,19rem);
-    overflow-y:auto;
+    --sheet:min(40dvh,19rem);
+    flex:0 0 auto;
+    block-size:0;
+    visibility:hidden;
+    overflow:hidden;
     background:var(--navy-lift);
-    border-block-start:var(--keyline) solid #fff;
+    border-block-start:0 solid #fff;
+    transition:
+      block-size .3s var(--ease),
+      border-block-start-width .3s var(--ease),
+      visibility 0s .3s;
   }
   .view--read[data-drawer="pages"] .timeline,
-  .view--read[data-drawer="script"] .script{display:block}
+  .view--read[data-drawer="script"] .script{
+    block-size:var(--sheet);
+    border-block-start-width:var(--keyline);
+    visibility:visible;
+    overflow-y:auto;
+    transition:
+      block-size .3s var(--ease),
+      border-block-start-width .3s var(--ease),
+      visibility 0s;
+  }
+  /* The one thing that must not ease: a reader who has asked for less motion
+     gets the drawer, not a 300ms account of it arriving. */
+  @media (prefers-reduced-motion:reduce){
+    .view--read .timeline,
+    .view--read .script{transition:visibility 0s}
+    .view--read[data-drawer="pages"] .timeline,
+    .view--read[data-drawer="script"] .script{transition:visibility 0s}
+  }
 
   /* Open, the strip is a grid rather than a rail: on a phone a chapter is
      something you scan, not something you scrub. */
@@ -2093,8 +2112,11 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
        content, which scrolls with it. */
     padding-block:0;
   }
-  /* …except with nothing to scroll, where the padding is just padding. */
-  .view--read .script--empty{padding-block:clamp(.9rem,2vw,1.3rem)}
+  /* …except with nothing to scroll, where the padding is just padding — and
+     only once it is open. Padding survives `block-size:0`: a closed drawer
+     carrying it stays 29px tall forever, invisible and still taking the room
+     from the page above. */
+  .view--read[data-drawer="script"] .script--empty{padding-block:clamp(.9rem,2vw,1.3rem)}
   .view--read .script__lines{padding-block-end:clamp(.9rem,2vw,1.3rem)}
 
   /* The transport stays put. It scrolled away with the heading before, which
@@ -2124,9 +2146,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      rather than a measured one, for the reason the full one is: a height that
      resolves from content settles a frame after the page above it re-lays
      out, and the first tap lands where the drawer was. */
-  .view--read .script--empty{
-    flex-basis:min(26dvh,12rem);block-size:min(26dvh,12rem);
-  }
+  .view--read .script--empty{--sheet:min(26dvh,12rem)}
 
 
 
@@ -2147,16 +2167,33 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .view--read[data-bare="on"] .rdock{translate:0 100%;position:absolute;inset-inline:0;inset-block-end:0}
 
-  /* The count is the hinge the row balances on: the two drawer buttons sit
-     inboard of it and the three marks — back, describe, note — sit outboard,
-     so the row reads as position-in-the-middle with its controls either side
-     rather than as a queue of six pills. */
+  /* Riding on the Pages button now, so it is styled as that button's label
+     rather than as a thing standing on its own in the row. */
   .rdock__count{
-    margin-inline:auto;
-    font-family:var(--face);font-size:.8125rem;color:var(--ink-soft);
     font-variant-numeric:tabular-nums;white-space:nowrap;
+    color:var(--ink-soft);
   }
-  .rdock__count b{color:#fff;font-weight:700}
+  .rdock__count b{color:inherit;font-weight:700}
+  .rdock__btn.is-on .rdock__count{color:inherit}
+
+  /* Back is the only control here that leaves, and it is the only one without
+     a pill. No border, no fill — the glyph and the 40px it needs to be a
+     target. Pressing anything else on this bar changes what the bar is
+     showing, and those are the ones that look like they belong to it. */
+  .rdock__back{
+    inline-size:40px;block-size:40px;flex:0 0 40px;
+    display:inline-grid;place-items:center;
+    margin-inline-start:-.15rem;
+    color:var(--ink-soft);
+  }
+  .rdock__back svg{inline-size:20px;block-size:20px}
+  .rdock__back:hover,.rdock__back:focus-visible{color:#fff}
+
+  /* The two drawer buttons take the middle, so the row reads as the page you
+     are on and the two ways to look at it, with the way out at one end and
+     the settings at the other. */
+  .rdock__btn:first-of-type{margin-inline-start:auto}
+  .rdock .vm{margin-inline-start:auto}
 
   .rdock__btn{
     display:inline-flex;align-items:center;gap:.35rem;
@@ -2169,26 +2206,33 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .rdock__btn svg{inline-size:14px;block-size:14px;flex:0 0 14px}
   .rdock__btn.is-on{background:var(--gold);color:var(--navy);border-color:#fff}
 
-  /* ── the marks ────────────────────────────────────────────
-     Back, describe and the note keep their words in the markup
-     — that is what a screen reader announces, and what the tip
-     shows on focus — and lose them to this rule, where the icon
-     is doing the work and six labelled pills would not fit a
-     360px row at all. Each is still a 40px target. */
-  .rdock .btn{
+  /* ── the gear ─────────────────────────────────────────────
+     Keeps its word in the markup — that is what a screen reader
+     announces — and loses it to this rule, where the icon is
+     doing the work and the row has no width for a sixth label.
+     Still a 40px target. */
+  .rdock .vm__open{
     inline-size:40px;block-size:40px;flex:0 0 40px;
     padding:0;gap:0;
     display:inline-grid;place-items:center;
     font-size:0;letter-spacing:0;
     border-radius:999px;
   }
-  .rdock .btn svg{inline-size:15px;block-size:15px}
-
-  /* The voice picker rides along with the Describe button as a fragment. Here
-     it moves to the script drawer's own transport, which is the long read and
-     the place the choice actually pays off — and because the setting is one
-     global, stored value, choosing it there sets it for Describe as well. */
-  .rdock .vm{display:none}
+  .rdock .vm__open svg{inline-size:16px;block-size:16px}
+  /* Opens upward, because the bar it hangs off is at the bottom of the screen
+     and a panel dropping down would open straight off the end of it. */
+  .rdock .vm__panel{
+    inset-block-start:auto;inset-block-end:calc(100% + .5rem);
+    inline-size:min(21rem,calc(100vw - 1.1rem));
+  }
+  /* The action, above the preferences it obeys, with a rule between them so
+     the panel reads as one thing to press and some things to set. */
+  .vm__extra{
+    display:flex;
+    padding-block-end:.75rem;
+    border-block-end:2px solid var(--navy-line);
+  }
+  .vm__extra .btn{inline-size:100%;justify-content:center}
 
   /* ── the chapter, over its filmstrip ──────────────────────
      The title the top bar used to carry, in the drawer that

@@ -101,6 +101,18 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M32 21h.03" />
     </>
   ),
+  /* Faders, not a cog. This is drawn at 16px in the reader's dock, where a
+     cog's teeth close up into a texture and the whole thing reads as a sun —
+     and faders are the more honest mark anyway: the panel behind it is a
+     voice to pick and two sliders. */
+  settings: (
+    <>
+      <path d="M11 17h42M11 32h42M11 47h42" />
+      <circle cx="24" cy="17" r="5.5" />
+      <circle cx="41" cy="32" r="5.5" />
+      <circle cx="20" cy="47" r="5.5" />
+    </>
+  ),
 };
 
 /* the rail and tab bar key off the section id; quick tiles name a glyph */

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Chevron, Glyph } from './Glyph.tsx';
 import { Speak } from './Speak.tsx';
+import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
@@ -943,8 +944,12 @@ export function Reader({
                 display:none above 860px, so exactly one set of controls is
                 ever in the accessibility tree. */}
             <div className="rdock">
+              {/* Bare: the glyph and nothing round it. Every other mark on
+                  this bar is a pill because pressing it changes what the bar
+                  is showing; this one leaves. A button that goes somewhere
+                  else does not need to look like it belongs to the row. */}
               <Link
-                className="btn btn--back btn--mark tipped rdock__back"
+                className="rdock__back tipped"
                 href="/read"
                 aria-label="To Chapters"
                 data-tip="To Chapters"
@@ -952,19 +957,24 @@ export function Reader({
                 <Chevron dir="left" />
               </Link>
 
+              {/* The count rides on the button rather than beside it. It was a
+                  bare span next to a button that said `Pages`, which is two
+                  things saying one thing — where you are, and the way to go
+                  somewhere else in the same list. The number IS the label now,
+                  and the word it replaced moves into the accessible name,
+                  where it was doing the real work anyway. */}
               <button
                 type="button"
                 className={`rdock__btn${drawer === 'pages' ? ' is-on' : ''}`}
                 aria-expanded={drawer === 'pages'}
+                aria-label={`Pages — page ${human} of ${total}`}
                 onClick={() => setDrawer((d) => (d === 'pages' ? null : 'pages'))}
               >
                 <Glyph name="grid" width={5} />
-                <span className="rdock__label">Pages</span>
+                <span className="rdock__count" aria-hidden="true">
+                  <b>{human}</b> / {total}
+                </span>
               </button>
-
-              <span className="rdock__count">
-                <b>{human}</b> / {total}
-              </span>
 
               {page && !isScriptPage(page) && (
                 <button
@@ -978,14 +988,19 @@ export function Reader({
                 </button>
               )}
 
-              {/* Keeps its word in the markup — that is what a screen reader
-                  announces — and loses it to the stylesheet, where the icon is
-                  doing the work and the row has no width to spare. The voice
-                  picker that rides beside it is hidden here and shown on the
-                  script's own transport instead: the setting is one global,
-                  stored value, so choosing it there is choosing it for this
-                  button too. */}
-              <Speak text={description} label="Describe" />
+              {/* One gear rather than a speak button and a picker beside it.
+                  Read-aloud is the only thing this reader has to set, so the
+                  panel is the settings, and the button that starts it is the
+                  first thing inside — the action and the preferences it obeys
+                  in the same place, for the price of one slot in the bar. */}
+              <VoiceMenu
+                className="vm--dock"
+                glyph="settings"
+                label="Settings"
+                head="Read aloud"
+              >
+                <Speak text={description} label="Describe" picker={false} />
+              </VoiceMenu>
             </div>
 
             {/* The editor's sheet, raised by a tap on the page. Renders nothing

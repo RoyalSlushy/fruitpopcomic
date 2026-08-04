@@ -575,14 +575,40 @@ reader controls is ever in the accessibility tree.
 of an 844px screen to say overlapping things — the page count was on both. Worse,
 they bracketed the artwork, so the page could never be larger than the gap
 between them. Below 860px `.panel__bar` is `display:none` and the dock is the
-whole of the reader's chrome: the way back to the chapters, `Pages`, the count,
-`Script`, and read-aloud. That is 57px, and the page grows by the difference.
+whole of the reader's chrome. That is 57px, and the page grows by the difference.
 
 A bar at the bottom is also a bar a thumb can reach. The back button used to sit
 in the top-left corner, which is the single furthest point on a phone from the
 hand holding it.
 
-Two things moved rather than went, because a phone bar has room for five
+Four controls, and the shape of the row is the argument for each:
+
+| | |
+|---|---|
+| `‹` | back to the chapters — **bare**, no pill |
+| `▦ 1 / 10` | where you are, and the way into the filmstrip, in one button |
+| `▤ Script` | the transcript drawer |
+| `⚙` | read-aloud: the action and its settings, in one panel |
+
+**Back is the only one without a pill**, and that is the distinction being drawn:
+everything else on this bar changes what the bar is *showing*, and those are the
+ones that look like they belong to it. A control that leaves does not.
+
+**The count rides on the Pages button rather than beside it.** It was a bare span
+next to a button that said `Pages` — two things saying one thing, where you are
+and the way to somewhere else in the same list. The number is the label now and
+the word moved into the accessible name (`Pages — page 1 of 10`), which is where
+it was doing the real work anyway.
+
+**One gear, not a speak button and a picker beside it.** Read-aloud is the only
+thing this reader has to set, so the panel *is* the settings and `Describe` — the
+button that starts it — is the first thing inside it, above a rule. The action
+and the preferences it obeys in one place, for the price of one slot in the bar.
+The mark is **faders rather than a cog**: at 16px a cog's teeth close into a
+texture and the whole thing reads as a sun, and faders are the more honest sign
+anyway, since the panel behind it is a voice to pick and two sliders.
+
+Two more things moved rather than went, because a phone bar has room for four
 controls and not eight:
 
 - **The chapter title** is now the heading of the `Pages` drawer, which is the
@@ -591,13 +617,11 @@ controls and not eight:
 - **The standing notice** (`These are rough drafts…`) went with it, as the same
   `ⓘ` mark beside that title. It is a fact about the whole comic, so it is met
   once next to the chapter rather than parked in the chrome of every page.
-- **The voice picker** moved to the script drawer's own transport, which is where
-  read-aloud actually runs long enough for the choice to matter. The setting is
-  one global, stored value, so choosing it there sets it for `Describe` too.
 
-The remaining marks — back and `Describe` — keep their words in the markup, which
-is what a screen reader announces, and lose them to the stylesheet. Each is still
-a 40px target.
+The gear keeps its word in the markup, which is what a screen reader announces,
+and loses it to the stylesheet. It is still a 40px target, and its panel opens
+**upward** — the bar it hangs off is at the bottom of the screen, so a panel
+dropping down would open straight off the end of it.
 
 **The flips are gone below 860px.** They are a hover affordance — `opacity:0`
 until the pointer is over the stage — and a phone has no hover to reveal them
@@ -624,6 +648,28 @@ the first tap after opening landed a row out. A page with no script gets a
 smaller fixed share rather than a measured one for the same reason — three
 sentences do not need a transcript's drawer, but they must not need a reflow to
 find that out either.
+
+**They grow, and the page above gives way as they do.** Opening used to be a
+`display` swap: the page jumped to its smaller size in one frame and the drawer
+was simply *there*, which reads as a layout bug rather than as something opening.
+The **height** is what animates, so the page shrinking and the sheet arriving are
+one motion rather than two events.
+
+That costs `display:none`, so `visibility` is what now keeps a closed drawer out
+of the tab order — transitioned with a **delay** rather than a duration, since
+visibility is discrete. It flips to visible on the first frame of opening and
+back to hidden only once the sheet has finished closing; without the delay the
+content would vanish immediately on close and the drawer would collapse around
+nothing.
+
+One trap comes with animating to zero: a closed drawer's own **block padding
+survives `block-size:0`**. The empty-script sheet sat 29px tall forever,
+invisible and still taking that room from the page, so its padding is applied
+only while open. (The full script drawer sidesteps this — its block padding is on
+the content rather than the box, for the separate reason below.)
+
+`prefers-reduced-motion` drops the height transition entirely. Someone who has
+asked for less motion gets the drawer, not a 300ms account of it arriving.
 
 Three things about the script drawer specifically, because it is the one that
 scrolls:
