@@ -466,6 +466,29 @@ either gone for this route or behind a control:
 - **The filmstrip is behind a `Pages` button** rather than opening on hover.
   Parked under the artwork it cost every page a hundred pixels of height, all
   day, to show ten thumbnails of the pages you are not reading.
+- **It is a carousel of screenfuls, not a grid that scrolls.** A chapter is a
+  small, countable thing, and scrolling is the wrong verb for one: grouped, no
+  thumbnail is ever half in view, and the dots underneath are the chapter's
+  length at a glance. How many fit in a group is **measured** — the drawer is a
+  `dvh` share and a thumbnail is a grid cell, so the answer is a division of
+  numbers only the browser knows, and it changes when the phone turns. A
+  `ResizeObserver` does it and the dots come off the same number, so they cannot
+  disagree with the groups they index.
+
+  The arithmetic is the stylesheet's, done twice, rather than a measurement of a
+  rendered cell — asking the DOM how tall a thumbnail is would be circular (its
+  height comes from its width, which comes from the column count, which is what
+  is being solved for) and a measurement that feeds itself oscillates at a
+  boundary. Two things it got wrong first: the keyline is *inside* the cell, so
+  a row is the picture plus its border rather than the whole cell scaled, which
+  overstated a row by 9px — the difference between two rows fitting a 199px
+  drawer and one. And a leftover `≤620px` rule pinned thumbnails to 44×66,
+  so the groups were sized for a 93px row and drawn with a 72px one.
+- **Pages past the one being read are dimmed.** The strip is a record of how far
+  in you are as much as it is a way around, and a page nobody has opened should
+  not look like one they have read. Opacity only — the label still says which
+  page it is and `aria-current` still says which is open — so nothing about it
+  reaches the accessibility tree.
 - **The page number is not tipped over the artwork.** It was a corner flag on
   the drawing that said what the bar already said two feet away, and the bar's
   copy is the one that is never in the way.
@@ -586,14 +609,35 @@ Four controls, and the shape of the row is the argument for each:
 | | |
 |---|---|
 | `‹` | back to the chapters — **bare**, no pill |
-| `▦ Pages` `1 / 10` | the filmstrip drawer, and where you are |
-| `▤ Script` | the transcript drawer |
-| `⚙` | read-aloud: the action and its settings, in one panel |
+| `▦ Pages` | the filmstrip drawer, hugging the chevron |
+| `1 / 10` | where you are, taking the space between |
+| `▤ Script` `⚙` | the transcript drawer, hugging the settings |
 
 **The two ends are bare marks and the two middles are pills**, and that is the
 distinction being drawn: the pills change what the bar is *showing*, and the
 marks are the ways out of reading — one leaves the chapter, one opens a panel
 over it. A control that leaves does not look like it belongs to the row.
+
+**Each pill hugs the mark it belongs with** — the way out of the chapter beside
+the way into its pages, the settings beside the text they read aloud — and the
+count takes the gap, being the one thing on the bar that is neither. The `auto`
+margin lives on the *count* rather than on the clusters, because it is the only
+element that still has to centre when the Script button is absent, which it is
+on a page that is its own script. When the count is hidden on a short viewport
+that auto has to move, or the whole bar bunches against the left edge; the right
+cluster takes it over, starting at whichever of the two is actually there.
+
+**The dock carries a halftone**, thrown on the diagonal from the bottom-right —
+the corner the gear sits in and the one a right hand covers last. It was the one
+flat surface left on a site whose first rule is that nothing sits on flat colour.
+It is written out rather than taken from `var(--ht)`, and the reason is a bug
+worth knowing about: **`--ht` is declared on `:root`, and a `var()` inside a
+custom property is substituted against the element that DECLARES it, not the one
+that uses it.** So `--ht-c` set on a consumer never reaches the gradient, and
+every halftone surface on this site — the hero's peach dots, the panel bar's
+channel-deep ones — is actually painting the root default, `rgba(0,0,0,.5)`.
+A dark screen was the one thing the dock's could not be, since the whole point
+of it is a lift, so this one states its own colour.
 
 **One gear, not a speak button and a picker beside it.** Read-aloud is the only
 thing this reader has to set, so the panel *is* the settings and `Describe` — the

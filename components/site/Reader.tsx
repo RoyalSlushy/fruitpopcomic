@@ -7,8 +7,7 @@ import { Speak } from './Speak.tsx';
 import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
-import { ListAdd } from '../cms/ListControls.tsx';
-import { ListDrag } from '../cms/ListDrag.tsx';
+import { PageRail } from './PageRail.tsx';
 import { PageTools } from '../cms/PageTools.tsx';
 import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
@@ -851,59 +850,14 @@ export function Reader({
                 </div>
 
                 <div className="timeline__clip">
-                  <nav className="filmstrip" ref={strip} aria-label="Pages in this chapter">
-                    <ul className="filmstrip__list">
-                      {sibs.map((p, n) => (
-                        <li key={p.page.id}>
-                          <button
-                            type="button"
-                            data-i={p.index}
-                            aria-label={`Page ${n + 1}`}
-                            aria-current={p.index === at ? 'true' : 'false'}
-                            /* Both, and deliberately. The drawer is a fixed
-                               element nested several levels inside the panel,
-                               and Chromium hit-tests the real pointer stream
-                               and the compatibility mouse events it synthesises
-                               after touchend differently: pointerdown/up land
-                               on the thumbnail, the click that follows falls
-                               through to the page behind. onClick alone was
-                               therefore dead to a finger while working from a
-                               keyboard; onPointerUp alone would be dead to a
-                               keyboard. go() is idempotent, so when both do
-                               fire the second is a no-op. */
-                            onPointerUp={() => go(p.index)}
-                            onClick={() => go(p.index)}
-                          >
-                            {isScriptPage(p.page) ? (
-                              <span className="thumb__blank" aria-hidden="true">
-                                <Glyph name="script" width={5} />
-                              </span>
-                            ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={mediaURL(p.page.thumb || p.page.image)}
-                                alt="" width={52} height={78} loading="lazy"
-                              />
-                            )}
-                            <span className="film__n" aria-hidden="true">{pad(n)}</span>
-                          </button>
-                        </li>
-                      ))}
-                      {/* Only when there is nothing to hold. Everything a page
-                          can be asked is asked by holding it — but an empty
-                          chapter has no page to hold, so it keeps the one
-                          button that can end that. */}
-                      {pages.length === 0 && (
-                        <li className="filmstrip__add">
-                          <ListAdd listPath="pages.items" length={0} />
-                        </li>
-                      )}
-                      {/* Press-and-hold on the list above: hold and move to
-                          reorder, hold and let go to be asked what else this
-                          page can do. Renders nothing for a visitor, and the
-                          list needs to know nothing about either. */}
-                      <ListDrag listPath="pages.items" />
-                    </ul>
+                  <nav className="filmstrip" aria-label="Pages in this chapter">
+                    <PageRail
+                      pages={sibs}
+                      at={at}
+                      total={pages.length}
+                      onPick={go}
+                      stripRef={strip}
+                    />
                   </nav>
                 </div>
               </div>

@@ -1239,7 +1239,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 
 /* ── the timeline ───────────────────────────────────────── */
 
-.timeline{--film-h:104px}
+.timeline{--film-h:150px}
 /* The chapter's name over its own filmstrip. It carries the title on the
    phone, where the bar that used to hold it is gone; up here that bar is
    still the heading and this would be it a second time. */
@@ -1269,27 +1269,119 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   transition:block-size .28s var(--ease);
 }
 .view--read[data-drawer="pages"] .timeline__clip{block-size:var(--film-h)}
+/* The clip is a fixed height and the rail has to FILL it, not sit at its own
+   content height inside it — that is what decides how many rows a group is. */
+.timeline__clip{display:flex}
+.filmstrip{flex:1;min-inline-size:0;min-block-size:0}
 @media (hover:none){.flip{opacity:1}}
 
 .filmstrip{
   padding:.7rem clamp(1rem,3vw,1.75rem);
+  display:flex;flex-direction:column;gap:.5rem;
+  min-block-size:0;
 }
-.filmstrip__list{
-  display:flex;gap:.5rem;align-items:flex-start;
+
+/* ── the group carousel ─────────────────────────────────────
+   One swipe is one screenful. The strip was a single grid that scrolled, and
+   scrolling is the wrong verb for a chapter: it is a small, countable thing,
+   and a reader wants to know how much of it there is. Grouped, nothing is ever
+   half in view — and the dots underneath are the chapter's length at a glance.
+
+   How many fit in a group is MEASURED, in PageRail.tsx. The drawer is a dvh
+   share and a thumbnail is a fixed box, so the answer is a division of numbers
+   only the browser knows, and it changes when the phone turns.
+
+   Snap is mandatory and the group is the snap target, not the thumbnail: a
+   carousel that can rest between two groups is a grid that scrolls again. */
+.film{
+  flex:1;min-block-size:0;
+  overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  /* A vertical drag inside the drawer belongs to the drawer, and the reader's
+     own page-turn swipe must never see a horizontal one that started here. */
+  overscroll-behavior-x:contain;
+}
+.film::-webkit-scrollbar{display:none}
+.film__track{
+  display:flex;
   list-style:none;margin:0;padding:0;
+  block-size:100%;
 }
-.filmstrip__list>li{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.film__group{
+  flex:0 0 100%;
+  scroll-snap-align:start;scroll-snap-stop:always;
+  min-inline-size:0;
+}
+.film__grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(52px,1fr));
+  /* Centred, not start-aligned. The drawer is a fixed share of the viewport
+     and the rows are whole thumbnails, so there is always a remainder — at
+     360x640 it is 62px. Parked at the top that reads as a group that failed to
+     fill; centred it reads as the margin it is. */
+  align-content:center;
+  gap:10px;
+  list-style:none;margin:0;padding:0;
+  block-size:100%;
+}
+.film__grid>li{min-inline-size:0}
+.film__grid .thumb__blank{inline-size:100%;aspect-ratio:2/3;display:grid;place-items:center}
 .filmstrip__add{align-self:center}
-.filmstrip button{
+
+/* ── how far in you are ─────────────────────────────────────
+   Everything past the page being read is dimmed. The strip is a record of
+   progress as much as it is a way around, and a page nobody has opened should
+   not look the same as one they have read. Decorative only — the label still
+   says which page it is, and aria-current still says which one is open — so it
+   is opacity and nothing that reaches the accessibility tree. */
+.film__grid button[data-ahead="true"]{opacity:.42}
+.film__grid button[data-ahead="true"]:hover,
+.film__grid button[data-ahead="true"]:focus-visible{opacity:1}
+
+/* ── the dots ───────────────────────────────────────────────
+   One per group, and only where there is more than one: a single dot is a
+   claim about position with nothing to compare it against. */
+.film__dots{
+  flex:0 0 auto;
+  display:flex;justify-content:center;align-items:center;gap:.4rem;
+  padding-block-start:.1rem;
+}
+.film__dot{
+  inline-size:22px;block-size:22px;
+  padding:0;cursor:pointer;border:0;background:none;
+  display:grid;place-items:center;
+}
+/* The target is 22px and the mark is 7px. A dot big enough to press is a dot
+   too big to read as punctuation, so the two sizes are separated. */
+.film__dot::before{
+  content:"";
+  inline-size:7px;block-size:7px;border-radius:999px;
+  background:var(--navy-line);
+  transition:background-color .16s var(--ease), scale .16s var(--ease);
+}
+.film__dot:hover::before{background:var(--ink-soft)}
+.film__dot[aria-selected="true"]::before{background:var(--gold);scale:1.28}
+.film__grid button{
   position:relative;
-  flex:0 0 auto;padding:0;cursor:pointer;background:none;
+  /* block, not the button default: an inline-level box sits on the text
+     baseline and carries the descender gap with it, which put 5px of dead
+     space under every thumbnail and threw off the row arithmetic. */
+  display:block;
+  inline-size:100%;padding:0;cursor:pointer;background:none;
   border:3px solid var(--navy-line);border-radius:3px;
   overflow:hidden;line-height:0;
   transition:border-color .16s,transform .16s var(--ease);
 }
-.filmstrip button img{width:52px;height:78px;object-fit:cover}
-.filmstrip button:hover{transform:translateY(-3px);border-color:#fff}
-.filmstrip button[aria-current="true"]{border-color:var(--gold);transform:translateY(-3px)}
+/* The cell drives the thumbnail, not the other way round: .film__grid's
+   columns are `1fr` past a 52px floor, so a fixed 52px image would leave the
+   grid's own gaps growing while the pictures stayed put. */
+.film__grid button img{
+  inline-size:100%;block-size:auto;aspect-ratio:2/3;
+  object-fit:cover;display:block;
+}
+.film__grid button:hover{transform:translateY(-3px);border-color:#fff}
+.film__grid button[aria-current="true"]{border-color:var(--gold);transform:translateY(-3px)}
 
 .film__n{
   position:absolute;inset-block-end:0;inset-inline-start:0;
@@ -1299,7 +1391,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-variant-numeric:tabular-nums;
   background:var(--navy);color:var(--ink-soft);
 }
-.filmstrip button[aria-current="true"] .film__n{background:var(--gold);color:var(--navy)}
+.film__grid button[aria-current="true"] .film__n{background:var(--gold);color:var(--navy)}
 
 /* ── the reader's controls ──────────────────────────────────
    Two sets, one at a time. `.rdock` is the phone's and `.rtools` is the
@@ -2084,22 +2176,13 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   /* Open, the strip is a grid rather than a rail: on a phone a chapter is
      something you scan, not something you scrub. */
   .view--read .timeline__rail{display:none}
-  .view--read .timeline__clip{block-size:auto;overflow:visible}
-  /* display:block, not just overflow:visible. As a flex item the grid inside
-     shrink-wraps to min-content, and auto-fill against min-content resolves to
-     exactly one column — a filmstrip stood on its end. */
-  .view--read .filmstrip{display:block;overflow:visible;padding:.9rem}
-  .view--read .filmstrip__list{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(62px,1fr));
-    gap:.7rem .6rem;
-  }
-  .view--read .filmstrip__list>li{inline-size:100%}
-  .view--read .filmstrip button{inline-size:100%}
-  .view--read .filmstrip button img,
-  .view--read .filmstrip .thumb__blank{
-    inline-size:100%;block-size:auto;aspect-ratio:2/3;
-  }
+  .view--read .timeline__clip{block-size:auto;overflow:visible;flex:1;min-block-size:0}
+  /* The drawer's height has to REACH the rail, or the rail sizes to its own
+     content and every group is one row deep regardless of the room. Measured
+     before this: a 300px drawer handed the rail 93px. */
+  .view--read .timeline{display:flex;flex-direction:column}
+  .view--read[data-drawer="pages"] .timeline{overflow:hidden}
+  .view--read .filmstrip{padding:.9rem;overflow:visible}
 
   .view--read .script{
     border-inline-start:0;
@@ -2164,6 +2247,38 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   }
   .view--read[data-bare="on"] .rdock{translate:0 100%;position:absolute;inset-inline:0;inset-block-end:0}
 
+  /* ── the dock's own texture ───────────────────────────────
+     The bar was the one flat surface left on a site whose
+     first rule is that nothing sits on flat colour. A screen
+     in the LIFTED tone rather than the deep one, so it reads
+     as the panel catching light rather than as a shadow under
+     the buttons — and thrown from the bottom-right corner on
+     the diagonal, which is the corner the gear sits in and the
+     one a right hand covers last.
+
+     Behind everything: `.rdock > *` is raised over it, so the
+     dots never touch a glyph or the inside of a pill. */
+  .rdock::before{
+    content:"";position:absolute;inset:0;
+    /* Written out rather than taken from `var(--ht)`. The mixin is declared on
+       :root, and a var() inside a custom property is substituted against the
+       element that DECLARES it, not the one that uses it — so `--ht-c` set
+       here never reaches the gradient and every --ht surface on the site is
+       actually painting the root default, rgba(0,0,0,.5). A dark screen is
+       the one thing this could not be: the whole point is a lift. */
+    --dot:#20507F;
+    --pitch:7px;
+    background:
+      radial-gradient(circle at 50% 50%, var(--dot) 30%, transparent 36%)
+        0 0 / var(--pitch) var(--pitch),
+      radial-gradient(circle at 50% 50%, var(--dot) 30%, transparent 36%)
+        calc(var(--pitch) / 2) calc(var(--pitch) / 2) / var(--pitch) var(--pitch);
+    -webkit-mask-image:linear-gradient(302deg, #000 2%, transparent 58%);
+    mask-image:linear-gradient(302deg, #000 2%, transparent 58%);
+    pointer-events:none;
+  }
+  .rdock > *{position:relative;z-index:1}
+
   /* ── the count, in one of two places ──────────────────────
      Beside the button by default, which is what the bar has
      always said and the more legible of the two: a labelled
@@ -2193,11 +2308,16 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .rdock__back svg{inline-size:20px;block-size:20px}
   .rdock__back:hover,.rdock__back:focus-visible{color:#fff}
 
-  /* The two drawer buttons take the middle, so the row reads as the page you
-     are on and the two ways to look at it, with the way out at one end and
-     the settings at the other. */
-  .rdock__btn:first-of-type{margin-inline-start:auto}
-  .rdock .vm{margin-inline-start:auto}
+  /* Two clusters and a number. Pages hugs the back chevron and Script hugs the
+     gear, so each pill sits against the mark it belongs with — the way out of
+     the chapter next to the way into its pages, the settings next to the text
+     they read aloud. The count takes the space between them, which is the one
+     thing on this bar that is neither a way out nor a drawer.
+
+     The auto is on the COUNT rather than on the two clusters: it is the only
+     element that has to stay centred when the Script button is absent, which
+     it is on a page that is its own script. */
+  .rdock__count{margin-inline:auto}
 
   .rdock__btn{
     display:inline-flex;align-items:center;gap:.35rem;
@@ -2277,6 +2397,13 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     .rdock__label{display:none}
     .rdock__count{display:none}
     .rdock__count--in{display:inline}
+    /* The count was carrying the auto margin that pushed the two clusters
+       apart, and a display:none element has no margins — so the whole bar
+       bunched against the left edge. The right cluster takes it over, and it
+       starts at whichever of the two is actually there: a page that is its own
+       script has no Script button. */
+    .rdock:has(.rdock__btn:nth-of-type(2)) .rdock__btn:nth-of-type(2){margin-inline-start:auto}
+    .rdock:not(:has(.rdock__btn:nth-of-type(2))) .vm{margin-inline-start:auto}
     .view--read .timeline,
     .view--read .script{--sheet:min(58dvh,15rem)}
     .view--read .script--empty{--sheet:min(46dvh,10rem)}
@@ -2759,7 +2886,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .page img{max-block-size:calc(100dvh - 17rem)}
   .timeline{--film-h:92px}
   .filmstrip{padding-inline:.9rem}
-  .filmstrip button img{width:44px;height:66px}
+  /* No fixed thumbnail size here any more. The grid's columns are what size a
+     thumbnail now, and a hard 44x66 at this width overrode that — which broke
+     the row arithmetic in PageRail rather than just looking small: the groups
+     were sized for a 93px row and drawn with a 72px one. */
   .tip__body{inline-size:min(34ch,86vw)}
   /* Anchored to the bar rather than to its own button: on a narrow screen a
      panel hung off a button sitting mid-row runs straight off the edge. */
