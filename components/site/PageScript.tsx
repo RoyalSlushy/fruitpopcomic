@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
+import { VoiceMenu } from './VoiceMenu.tsx';
 import { EditableText } from '../cms/EditableText.tsx';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import { scriptLines, speechOf } from '../../lib/script.ts';
@@ -136,6 +137,13 @@ export function PageScript({ index, page, script, isDraft }: {
             >
               <Glyph name="stop" width={5} />
             </button>
+            {/* The picker belongs beside the transport that uses it most: a
+                script is the long read, and the difference between a neural
+                voice and a 1990s formant synth is four minutes of listening
+                rather than one sentence. Hidden above 860px, where the panel
+                bar's copy is still on screen and this would be a second one
+                of the same control. */}
+            <VoiceMenu className="vm--script" />
           </span>
         )}
       </div>

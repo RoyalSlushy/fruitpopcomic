@@ -1123,6 +1123,36 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      the whole filmstrip on every frame, which is what made it stutter. */
   transition:translate .22s var(--ease);
 }
+/* ── the carousel's neighbours ──────────────────────────────
+   The pages either side, parked hard against the plate's edges so a drag
+   reveals them rather than hauling the current page across empty navy. They
+   exist only where the reader turns pages by DRAGGING — the phone — and the
+   media query below is what switches them on. Up here they would sit in the
+   gutter the flips occupy.
+
+   `--peek-gap` is read back by Reader.tsx to know how far a committed turn
+   has to travel, so the distance the page moves and the distance the
+   neighbour is sitting at are one number rather than two that agree today. */
+.plate{--peek-gap:14px}
+.peek{
+  display:none;
+  position:absolute;inset-block:0;
+  inline-size:100%;
+  align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.peek--prev{inset-inline-end:calc(100% + var(--peek-gap))}
+.peek--next{inset-inline-start:calc(100% + var(--peek-gap))}
+.peek img,.peek__sheet{
+  inline-size:auto;block-size:auto;
+  max-block-size:100%;max-inline-size:100%;
+  border:3px solid #fff;border-radius:var(--r-sm);
+  background:#fff;
+}
+/* A page written but not drawn has no artwork to show an edge of; it comes
+   through as the blank sheet it is rather than as a hole in the strip. */
+.peek__sheet{inline-size:100%;block-size:100%;background:var(--navy-lift)}
+
 /* pan-y, not none: a horizontal drag is ours, a vertical one belongs to the
    scroller and taking it would trap the page. */
 .reader{touch-action:pan-y}
@@ -1210,6 +1240,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 /* ── the timeline ───────────────────────────────────────── */
 
 .timeline{--film-h:104px}
+/* The chapter's name over its own filmstrip. It carries the title on the
+   phone, where the bar that used to hold it is gone; up here that bar is
+   still the heading and this would be it a second time. */
+.timeline__of{display:none}
 
 /* Always visible, and the only part that is. It reports position on its own
    and doubles as the affordance saying the strip is underneath. */
@@ -1441,7 +1475,23 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-variant-numeric:tabular-nums;
 }
 
-.script__transport{display:flex;gap:.4rem;flex:0 0 auto}
+.script__transport{display:flex;align-items:center;gap:.4rem;flex:0 0 auto}
+/* The picker is the phone's only copy of this control. Above 860px the panel
+   bar still carries one and two would be the same setting twice. */
+.vm--script{display:none}
+@media (max-width:859px){
+  .vm--script{display:inline-flex}
+  .vm--script .vm__open{
+    inline-size:34px;block-size:34px;padding:0;gap:0;
+    display:inline-grid;place-items:center;
+    font-size:0;letter-spacing:0;border-radius:999px;
+  }
+  .vm--script .vm__open svg{inline-size:13px;block-size:13px}
+  /* Opens upward: the transport is pinned to the top of a drawer that is
+     itself at the bottom of the screen, so a panel dropping down would open
+     straight off the end of it. */
+  .vm--script .vm__panel{inset-block-start:auto;inset-block-end:calc(100% + .4rem)}
+}
 .tbtn{
   inline-size:34px;block-size:34px;
   display:grid;place-items:center;
@@ -1905,18 +1955,21 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     block-size:100%;
   }
 
-  /* The top bar retracts when the page is tapped, and comes straight back on
-     the next tap. Translated rather than removed, so nothing reflows and the
-     controls keep their place. */
-  .view--read .panel__bar{
-    flex:0 0 auto;
-    padding:.55rem .7rem;gap:.5rem;
-    border-block-end:3px solid #fff;
-    transition:translate .24s var(--ease);
-  }
-  .view--read[data-bare="on"] .panel__bar{translate:0 -100%;position:absolute;inset-inline:0}
-  .view--read .panel__bar .btn{font-size:.6875rem;padding:.42rem .6rem}
-  .view--read .panel__title{font-size:1rem;letter-spacing:.02em}
+  /* ── one bar, not two ─────────────────────────────────────
+     The header is gone here and the dock at the bottom is the
+     whole of the reader's chrome. Everything the header carried
+     that a reader still needs — the way back to the chapters,
+     the note, read-aloud — is in the dock now; the count was
+     already on both, and the chapter title moved to the top of
+     the filmstrip drawer, which is the chapter.
+
+     It is worth the move twice over. The two bars cost 158px of
+     an 844px screen, and because they sat at opposite ends the
+     page could never be larger than the gap between them. And a
+     bar at the bottom is a bar a thumb can reach: the back
+     button was in the top-left corner, which is the single
+     furthest point on a phone from the hand holding it. */
+  .view--read .panel__bar{display:none}
 
   /* container-type implies `contain: layout`, and layout containment makes an
      element BOTH a stacking context AND the containing block for every
@@ -1935,8 +1988,35 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .view--read .spread{flex:1;min-block-size:0}
   .view--read .reader{
     block-size:100%;
-    padding:.4rem clamp(18px,5.5%,32px);
+    /* The gutters were the flips' room and the flips are gone here, so the
+       page gets it back — about 28px of width on a 390, which is the whole
+       reason for taking the buttons away rather than only hiding them. */
+    padding:.4rem .5rem;
+    /* The neighbours sit a page-width out on either side; without this they
+       would paint over the dock and out past the edge of the screen. */
+    overflow:hidden;
   }
+
+  /* ── the carousel ─────────────────────────────────────────
+     Switched on here and nowhere else. A drag now uncovers the
+     next page rather than pulling this one off into nothing,
+     which is the difference between a page that moves and a
+     reader that knows what is behind it. */
+  .view--read .peek{display:flex}
+  /* The plate spans the frame here instead of shrink-wrapping the page, and
+     that is what keeps the neighbours off screen at rest: they are parked one
+     PLATE-width out, so a plate narrower than the frame parks them inside it.
+     Opening a drawer makes the page height-bound and cost it 59px of width,
+     which is exactly how far the next page leaned into view. Nothing is lost
+     by filling — the flips that wanted the page's own edges are gone here. */
+  .view--read .plate{inline-size:100%;justify-content:center}
+
+  /* The flips go. They are a hover affordance — opacity:0 until the pointer
+     is over the stage — and a phone has no hover to reveal them with, so what
+     a reader actually got was two chevrons sitting on the artwork's edges
+     permanently. The swipe is the gesture here, the filmstrip is the jump,
+     and neither needs a button parked over the drawing. */
+  .view--read .flip{display:none}
   /* The phone rule below caps the page against a chrome height this mode does
      not have — full-screen has a bar and a dock, not a header, a footer and a
      tab bar — so the page takes the room it is actually given. */
@@ -2005,7 +2085,48 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     inline-size:100%;block-size:auto;aspect-ratio:2/3;
   }
 
-  .view--read .script{border-inline-start:0}
+  .view--read .script{
+    border-inline-start:0;
+    /* The drawer IS the scroller, so its own block padding is not a margin
+       around the text — the top edge scrolls away with the first line and the
+       bottom one holds a gap the last line never reaches. Both move onto the
+       content, which scrolls with it. */
+    padding-block:0;
+  }
+  /* …except with nothing to scroll, where the padding is just padding. */
+  .view--read .script--empty{padding-block:clamp(.9rem,2vw,1.3rem)}
+  .view--read .script__lines{padding-block-end:clamp(.9rem,2vw,1.3rem)}
+
+  /* The transport stays put. It scrolled away with the heading before, which
+     meant the one control that stops a voice mid-sentence was reachable only
+     by scrolling back to find it — and it is furthest away at exactly the
+     moment it is most wanted, four beats down a long page.
+
+     It supplies the drawer's top padding rather than sitting inside it. A
+     sticky box whose resting top is ABOVE its own sticky edge gets pushed
+     back down to that edge, and the flow keeps the space it would have taken
+     rather than the space it now occupies — so the padding it was inset by
+     came straight off the first line, which read from under the bar. */
+  .view--read .script__bar{
+    position:sticky;inset-block-start:0;z-index:2;
+    padding-block:clamp(.9rem,2vw,1.3rem) .5rem;
+    background:var(--navy-lift);
+  }
+
+  /* A per-line play button on every line, unhidden because a phone cannot
+     hover — thirteen of them down a 300px drawer, all identical, none of them
+     what anyone came for. The line itself already sets where playback starts
+     when it is tapped, so the buttons are the redundant half. */
+  .view--read .script__cue{display:none}
+  .view--read .script__line{padding-inline-start:.5rem}
+
+  /* Three sentences do not need a transcript's drawer. Still a fixed share
+     rather than a measured one, for the reason the full one is: a height that
+     resolves from content settles a frame after the page above it re-lays
+     out, and the first tap lands where the drawer was. */
+  .view--read .script--empty{
+    flex-basis:min(26dvh,12rem);block-size:min(26dvh,12rem);
+  }
 
 
 
@@ -2014,32 +2135,76 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      intercept a tap. */
 
   .rdock{
-    display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+    display:flex;align-items:center;gap:.35rem;
     /* positioned, so the z-index is not inert: the drawers are fixed at 84 and
        would otherwise paint straight over the controls that opened them */
     position:relative;z-index:86;
     flex:0 0 auto;
-    padding:.5rem .7rem calc(.5rem + env(safe-area-inset-bottom));
+    padding:.45rem .55rem calc(.45rem + env(safe-area-inset-bottom));
     background:var(--navy-lift);
     border-block-start:3px solid #fff;
     transition:translate .24s var(--ease);
   }
   .view--read[data-bare="on"] .rdock{translate:0 100%;position:absolute;inset-inline:0;inset-block-end:0}
+
+  /* The count is the hinge the row balances on: the two drawer buttons sit
+     inboard of it and the three marks — back, describe, note — sit outboard,
+     so the row reads as position-in-the-middle with its controls either side
+     rather than as a queue of six pills. */
+  .rdock__count{
+    margin-inline:auto;
+    font-family:var(--face);font-size:.8125rem;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .rdock__count b{color:#fff;font-weight:700}
+
   .rdock__btn{
-    display:inline-flex;align-items:center;gap:.4rem;
-    padding:.5rem .8rem;border-radius:999px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:.35rem;
+    padding:.45rem .6rem;border-radius:999px;cursor:pointer;
     background:var(--navy);color:#fff;
     border:3px solid #fff;
     font-family:var(--face);font-weight:700;text-transform:uppercase;
-    font-size:.6875rem;letter-spacing:.06em;
+    font-size:.625rem;letter-spacing:.05em;
   }
-  .rdock__btn svg{inline-size:14px;block-size:14px}
+  .rdock__btn svg{inline-size:14px;block-size:14px;flex:0 0 14px}
   .rdock__btn.is-on{background:var(--gold);color:var(--navy);border-color:#fff}
-  .rdock__count{
-    font-family:var(--face);font-size:.8125rem;color:var(--ink-soft);
-    font-variant-numeric:tabular-nums;
+
+  /* ── the marks ────────────────────────────────────────────
+     Back, describe and the note keep their words in the markup
+     — that is what a screen reader announces, and what the tip
+     shows on focus — and lose them to this rule, where the icon
+     is doing the work and six labelled pills would not fit a
+     360px row at all. Each is still a 40px target. */
+  .rdock .btn{
+    inline-size:40px;block-size:40px;flex:0 0 40px;
+    padding:0;gap:0;
+    display:inline-grid;place-items:center;
+    font-size:0;letter-spacing:0;
+    border-radius:999px;
   }
-  .rdock__count b{color:#fff;font-weight:700}
+  .rdock .btn svg{inline-size:15px;block-size:15px}
+
+  /* The voice picker rides along with the Describe button as a fragment. Here
+     it moves to the script drawer's own transport, which is the long read and
+     the place the choice actually pays off — and because the setting is one
+     global, stored value, choosing it there sets it for Describe as well. */
+  .rdock .vm{display:none}
+
+  /* ── the chapter, over its filmstrip ──────────────────────
+     The title the top bar used to carry, in the drawer that
+     lists the chapter's pages, with the standing notice beside
+     it. Met once here, instead of taxing every page turn. */
+  .view--read .timeline__of{
+    display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+    margin:0;padding:.85rem .9rem 0;
+    font-family:var(--face);font-weight:700;
+    font-size:.9375rem;letter-spacing:.01em;color:#fff;
+  }
+  .view--read .timeline__of>span{
+    font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-soft);font-variant-numeric:tabular-nums;
+  }
+  .view--read .filmstrip{padding-block-start:.7rem}
 
   /* The page/cast/status readout is desktop furniture. On a phone it is three
      numbers between the visitor and the comic, and the same counts are on the

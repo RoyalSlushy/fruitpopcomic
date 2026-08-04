@@ -513,7 +513,8 @@ against its edges rather than stranded at the sides of a column a portrait page
 never fills. They stay outside the page border — the chrome stops there, and
 that rule does not get an exception for being convenient. At the ends they dim
 rather than vanish: a handle that disappears reads as a glitch, one that greys
-out reads as the end of the comic.
+out reads as the end of the comic. Below 860px they are `display:none`, and the
+plate fills the frame there instead of shrink-wrapping — see the phone's reader.
 
 Whether there is room for the script column beside the page is a question about
 the panel, not about the viewport — the rail takes 238px off one and not the
@@ -563,11 +564,46 @@ reader controls is ever in the accessibility tree.
 
 | | Desktop | Phone |
 |---|---|---|
+| Chrome | a header bar and a footer row | **one bar**, at the bottom |
 | Page timeline | `Pages`, a strip in flow | `Pages` drawer, a grid |
 | Script | column beside the page | `Script` drawer |
-| Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
-| Chrome | always, or `Cinema` | retracts on a tap on the page |
+| Page turn | flips, arrow keys | arrow keys, **swipe** |
+| Chrome hiding | always, or `Cinema` | retracts on a tap on the page |
 | Zoom | `Zoom`, ctrl-wheel (a trackpad pinch) | **pinch**, then one finger pans |
+
+**One bar, not two.** The phone had a header and a footer, and they cost 158px
+of an 844px screen to say overlapping things — the page count was on both. Worse,
+they bracketed the artwork, so the page could never be larger than the gap
+between them. Below 860px `.panel__bar` is `display:none` and the dock is the
+whole of the reader's chrome: the way back to the chapters, `Pages`, the count,
+`Script`, and read-aloud. That is 57px, and the page grows by the difference.
+
+A bar at the bottom is also a bar a thumb can reach. The back button used to sit
+in the top-left corner, which is the single furthest point on a phone from the
+hand holding it.
+
+Two things moved rather than went, because a phone bar has room for five
+controls and not eight:
+
+- **The chapter title** is now the heading of the `Pages` drawer, which is the
+  chapter. It was a permanent 220px of the widest thing in the bar, taxing every
+  page turn to say something a reader learns once.
+- **The standing notice** (`These are rough drafts…`) went with it, as the same
+  `ⓘ` mark beside that title. It is a fact about the whole comic, so it is met
+  once next to the chapter rather than parked in the chrome of every page.
+- **The voice picker** moved to the script drawer's own transport, which is where
+  read-aloud actually runs long enough for the choice to matter. The setting is
+  one global, stored value, so choosing it there sets it for `Describe` too.
+
+The remaining marks — back and `Describe` — keep their words in the markup, which
+is what a screen reader announces, and lose them to the stylesheet. Each is still
+a 40px target.
+
+**The flips are gone below 860px.** They are a hover affordance — `opacity:0`
+until the pointer is over the stage — and a phone has no hover to reveal them
+with, so what a reader actually got was two chevrons sitting permanently on the
+artwork's edges. Removing them gives the page back the gutter they lived in,
+which is the point: the swipe is the gesture here and the filmstrip is the jump.
 
 **The drawers open in flow, and the page shrinks to make room.** They were
 overlays first — absolutely positioned sheets sliding up over the page, dimming
@@ -584,7 +620,31 @@ drawer never covers the page you are reading, so no scrim is needed either.
 Their height is a **fixed share of the viewport, not a measurement of their own
 content**. Opening one shrinks the page above it, which re-lays out a
 1080 × 1620 image; with the height content-driven that settled a frame late, and
-the first tap after opening landed a row out.
+the first tap after opening landed a row out. A page with no script gets a
+smaller fixed share rather than a measured one for the same reason — three
+sentences do not need a transcript's drawer, but they must not need a reflow to
+find that out either.
+
+Three things about the script drawer specifically, because it is the one that
+scrolls:
+
+- **The transport is sticky.** It scrolled away with the heading before, so the
+  one control that stops a voice mid-sentence was reachable only by scrolling
+  back to find it — and it was furthest away at exactly the moment it was most
+  wanted, four beats down a long page. It also *supplies* the drawer's top
+  padding rather than sitting inside it: a sticky box whose resting top is above
+  its own sticky edge is pushed back down to that edge while the flow keeps the
+  space it *would* have taken, so the padding it was inset by came straight off
+  the first line, which then read from under the bar.
+- **The block padding is on the content, not the box.** The drawer is the
+  scroller, so its own top padding scrolls away with the first line and its
+  bottom padding is a gap the last line never reaches. Moved onto the content,
+  both scroll with it and the script no longer ends flush against the dock with
+  a line sliced through the middle.
+- **The per-line play buttons are hidden.** They are revealed on hover, and
+  `@media (hover:none)` un-hid all of them — thirteen identical circles down a
+  300px drawer. Tapping the line already sets where playback starts, so the
+  buttons were the redundant half.
 
 One thing has to give for the drawers to work at all: `.slab` carries a
 `drop-shadow` filter, and **a filter makes an element the containing block for
@@ -600,6 +660,33 @@ refuses at a chapter's edges: it still moves a little, which is what says there
 is nothing there. Two details make it work at all — `draggable={false}` and
 `-webkit-user-drag:none`, because Chromium starts a native image drag on
 pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+**The drag uncovers the next page, rather than pulling this one off into
+nothing.** The two neighbours are drawn as `.peek` elements parked one plate-width
+out on either side, so the gesture reads as a carousel: you can see what you are
+turning to while you turn to it. A committed swipe carries the plate exactly that
+far and the page changes on the way, in a layout effect rather than in `go()` —
+`setIdx` is not synchronous, so clearing the offset there would put the outgoing
+page back at centre for a frame before the `src` swapped, which is the flash the
+animation exists to remove. `--peek-gap` is a CSS value that Reader.tsx reads
+back, so how far the page travels and where the neighbour is sitting are one
+number rather than two that agree today.
+
+The plate fills the frame here instead of shrink-wrapping the page, and that is
+load-bearing: the neighbours are parked relative to the *plate*, so a plate
+narrower than the frame parks them inside it. Opening a drawer makes the page
+height-bound and costs it about 59px of width, which is exactly how far the next
+page leaned into view before this.
+
+**A turn commits on distance or on speed.** Distance alone is the wrong test for
+a thumb — a flick is short and quick by nature, so a 40px snap was being told it
+had not travelled far enough. The speed is read over a **trailing 120ms window**,
+not between the last two moves: a pointer stream is not evenly spaced and the
+final sample before a release is routinely a long slow frame — 8px over 21ms
+where the four before it were 8px over 8. Off that one sample the flick above
+measures 0.38px/ms and stays put; over the window it is 0.86, which is what the
+thumb did. The threshold is 0.45px/ms, well above a considered drag and well
+below a real flick, so a slow 40px drag still snaps back.
 
 **Pinch to zoom, because a page is 1080px of ink and a phone shows it at about
 a third of that.** The lettering in a corner panel is not readable at the size
