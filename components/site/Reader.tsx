@@ -98,6 +98,10 @@ export function Reader({
   const [held, setHeld] = useState<number | null>(null);  // the held page's menu
   const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
   const [cinema, setCinema] = useState(false);      // the page, and nothing else
+  /* Which pages have actually been opened, by id rather than by index — the
+     editor can reorder the running order underneath this, and a set of
+     positions would then be a set of claims about the wrong pages. */
+  const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set());
 
   const view = useRef<HTMLElement>(null);
   const strip = useRef<HTMLElement>(null);
@@ -299,6 +303,15 @@ export function Reader({
   /* Clamp rather than trust: a page can be deleted under the editor. */
   const at = Math.max(0, Math.min(pages.length - 1, idx));
   const page = pages[at];
+
+  /* Landing on a page is what marks it read. Skipping past it is not: the
+     strip dims by this set, and a reader who jumped from one to eight has not
+     seen the six in between however far behind them they now are. */
+  useEffect(() => {
+    const id = page?.id;
+    if (!id) return;
+    setSeen((s) => (s.has(id) ? s : new Set(s).add(id)));
+  }, [page?.id]);
 
   const sibs = useMemo(() => siblings(chs, pages, at), [chs, pages, at]);
   const pos = sibs.findIndex((p) => p.index === at);
@@ -674,13 +687,17 @@ export function Reader({
                 <Chevron dir="left" />
               </Link>
               <h1 className="panel__title">
-                {chapter?.title ?? 'Read'}
-                {/* Which chapter this is, next to what it is called. The title
-                    is the creator's words and may not carry a number at all —
-                    this one is the running order's, and always does. */}
+                {/* The number leads, and it is only the number. `Chapter 01`
+                    beside a title already called `The drafts` said the word
+                    twice and put the count where it had to be read past; two
+                    digits in front of the name index it the way the shelf and
+                    the filmstrip already do. The title is the creator's words
+                    and may not carry a number at all — this one is the running
+                    order's, and always does. */}
                 {chapterNo > 0 && (
-                  <span className="panel__of">(Chapter {pad(chapterNo - 1)})</span>
+                  <span className="panel__of">{pad(chapterNo - 1)}</span>
                 )}
+                {chapter?.title ?? 'Read'}
               </h1>
               <NoteTip label="About these pages" text={notice} path="about.reader.notice" />
               <Speak text={description} label="Describe" />
@@ -836,8 +853,8 @@ export function Reader({
                     pixels rather than taxing every page turn for it.
                     display:none above 860px, where the bar is still there. */}
                 <p className="timeline__of">
+                  {chapterNo > 0 && <span>{pad(chapterNo - 1)}</span>}
                   {chapter?.title ?? 'Read'}
-                  {chapterNo > 0 && <span>Chapter {pad(chapterNo - 1)}</span>}
                   {/* The standing notice comes with it. It is a fact about the
                       whole comic — these are drafts — which makes it something
                       to meet once beside the chapter, not a button parked in
@@ -854,6 +871,7 @@ export function Reader({
                     <PageRail
                       pages={sibs}
                       at={at}
+                      seen={seen}
                       total={pages.length}
                       onPick={go}
                       stripRef={strip}

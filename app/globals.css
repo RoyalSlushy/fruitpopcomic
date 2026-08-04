@@ -695,7 +695,10 @@ html[data-drawer="open"] .scrim{
 /* the subtitle is small, so it moves off the bright face onto a deep-tone
    readout — the same rule the page counter follows. 4.00 → 7.37. */
 .hero__sub{
-  margin:0;font-size:.875rem;line-height:1.45;font-weight:600;
+  /* 1.3, not 1.45. This is three short lines on a plate, not a paragraph — at
+     the looser setting the lines read as separate statements rather than as one
+     sentence running on, and the plate had to grow to hold the air. */
+  margin:0;font-size:.875rem;line-height:1.3;font-weight:600;
   color:#fff;
   padding:.55rem .8rem;
   background:var(--magenta-dp);
@@ -965,12 +968,20 @@ html[data-drawer="open"] .scrim{
 .panel__bar>*{position:relative;z-index:1}
 .panel__title{
   margin:0;font-weight:700;
-  font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;letter-spacing:.01em;
+  font-size:clamp(1.1875rem,2.2vw,1.5rem);line-height:1;
+  /* Caps, like every other name on this site — the rail's channels, the
+     ribbons, the status labels. A chapter title was the one heading still in
+     sentence case, which read as body copy that happened to be large. Tracked
+     a little wider than the sentence-case setting, because caps set at the
+     same tracking close up. */
+  text-transform:uppercase;letter-spacing:.03em;
   margin-inline-end:auto;
   display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
 }
-/* The chapter's number, beside the creator's name for it. Smaller and quieter:
-   it is the shelf's index into the running order, not part of the title. */
+/* The chapter's number, LEADING the creator's name for it. Smaller and
+   quieter: it is the shelf's index into the running order, not part of the
+   title — and just the digits, since the word `Chapter` beside a title that is
+   already a chapter's name was saying it twice. */
 .panel__of{
   font-size:.6875rem;letter-spacing:.08em;
   color:var(--ch-ink,#fff);opacity:.72;
@@ -1329,15 +1340,19 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .film__grid .thumb__blank{inline-size:100%;aspect-ratio:2/3;display:grid;place-items:center}
 .filmstrip__add{align-self:center}
 
-/* ── how far in you are ─────────────────────────────────────
-   Everything past the page being read is dimmed. The strip is a record of
-   progress as much as it is a way around, and a page nobody has opened should
-   not look the same as one they have read. Decorative only — the label still
-   says which page it is, and aria-current still says which one is open — so it
-   is opacity and nothing that reaches the accessibility tree. */
-.film__grid button[data-ahead="true"]{opacity:.42}
-.film__grid button[data-ahead="true"]:hover,
-.film__grid button[data-ahead="true"]:focus-visible{opacity:1}
+/* ── what has actually been read ────────────────────────────
+   Dimmed until it has been LANDED ON, not until it is behind you. Position is
+   the wrong test: jumping from page one to page eight leaves six pages nobody
+   has seen, and reading the strip off the current index called all six of them
+   read. The reader keeps the set of pages it has actually opened and this
+   follows that, so a skipped page stays dim until it is not skipped.
+
+   Decorative only — the label still says which page it is, and aria-current
+   still says which one is open — so it is opacity and nothing that reaches the
+   accessibility tree. */
+.film__grid button[data-seen="false"]{opacity:.42}
+.film__grid button[data-seen="false"]:hover,
+.film__grid button[data-seen="false"]:focus-visible{opacity:1}
 
 /* ── the dots ───────────────────────────────────────────────
    One per group, and only where there is more than one: a single dot is a
@@ -2374,10 +2389,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
     margin:0;padding:.85rem .9rem 0;
     font-family:var(--face);font-weight:700;
-    font-size:.9375rem;letter-spacing:.01em;color:#fff;
+    font-size:.9375rem;color:#fff;
+    text-transform:uppercase;letter-spacing:.03em;
   }
+  /* The number leads and stays quiet — the shelf's index, not part of the name */
   .view--read .timeline__of>span{
-    font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;
+    font-size:.6875rem;letter-spacing:.08em;
     color:var(--ink-soft);font-variant-numeric:tabular-nums;
   }
   .view--read .filmstrip{padding-block-start:.7rem}
@@ -2471,8 +2488,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     justify-content:flex-end;
     /* a touch past the base clamp's floor — the corner cut just above takes a
        bite out of this same edge, and the extra room keeps it clear of the
-       title rather than sharing a corner with it */
-    padding-block-start:1.4rem;
+       title rather than sharing a corner with it. Raised again with the
+       standfirst's leading: tightening the copy took height out of the box,
+       and the box wanted a little more of it, not less. 2rem only put 4px back
+       on a box the tighter leading had taken 11 off, which is not an increase
+       anyone would see. */
+    padding-block-start:2.75rem;
     /* less than --shelf by the part of the button that hangs below the edge */
     padding-block-end:calc(var(--shelf) - 1.35rem);
     background:linear-gradient(180deg, var(--magenta), var(--peach-dp)) no-repeat;
@@ -2869,7 +2890,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      shorthand here silently puts the block-end back to 1.1rem and drops the
      button out of the shelf it is supposed to be hanging over. Each rule owns
      one edge — the block-end belongs to the shelf. */
-  .hero__body{padding-inline:1.1rem;padding-block-start:1.4rem}
+  .hero__body{padding-inline:1.1rem;padding-block-start:2.75rem}
   .quick{flex-direction:column}
   .quick .nav{display:none}
   .quick__rail{gap:.55rem}

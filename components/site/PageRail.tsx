@@ -35,11 +35,13 @@ const RATIO = 3 / 2;
 /** Never fewer than this, however cramped: one page per swipe is not a group. */
 const FLOOR = 4;
 
-export function PageRail({ pages, at, total, onPick, stripRef }: {
+export function PageRail({ pages, at, seen, total, onPick, stripRef }: {
   /** the chapter's pages, each with its index in the flat running order */
   pages: Placed[];
   /** the flat index of the page being read */
   at: number;
+  /** ids of the pages actually opened this read — see the dim rule below */
+  seen: ReadonlySet<string>;
   /** how many pages the flat list holds, for the editor's empty-state add */
   total: number;
   onPick: (flat: number) => void;
@@ -128,13 +130,15 @@ export function PageRail({ pages, at, total, onPick, stripRef }: {
                       <button
                         type="button"
                         data-i={p.index}
-                        /* Everything past the page being read is dimmed — the
-                           strip is a record of how far in you are, and a
-                           chapter you have not opened yet should not look the
-                           same as one you have read. Decorative only: the
-                           label still says which page it is, and aria-current
-                           still says which one you are on. */
-                        data-ahead={p.index > at ? 'true' : 'false'}
+                        /* Dimmed until it has been LANDED ON, not until it is
+                           behind you: jumping from page one to page eight
+                           leaves six nobody has seen, and reading this off the
+                           current index called all six of them read. The page
+                           being read counts before the effect that records it
+                           has run, so it never flickers dim on arrival.
+                           Decorative only — the label still says which page it
+                           is, and aria-current still says which one is open. */
+                        data-seen={seen.has(p.page.id) || p.index === at ? 'true' : 'false'}
                         aria-label={`Page ${n + 1}`}
                         aria-current={p.index === at ? 'true' : 'false'}
                         /* Both, and deliberately. The drawer is nested several

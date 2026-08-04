@@ -93,6 +93,15 @@ any text is between the two measured values rather than outside them. The inner
 views' header band is the tightest case — navy on gold dotted with `--gold-dp`
 measures **5.46**, against 10.05 for the flat plate.
 
+The hero's standfirst is set at **1.3**, not the 1.45 the rest of the prose
+takes. It is three short lines on a plate rather than a paragraph, and at the
+looser setting they read as three separate statements instead of one sentence
+running on — and the plate had to grow to hold air nobody wanted. The caption
+box was raised by more than the leading gave back: tightening the copy took 11px
+out of it, so `padding-block-start` went to `2.75rem`, which is a net **+16px**
+on the box. A first pass at `2rem` put only 4px back, which is not an increase
+anyone would see.
+
 **The hero body is the one gradient fill on the site**, magenta at the top
 running into peach at the bottom — and it is the DEEP peach, `--peach-dp`, not
 the bright one. White on the bright coral peach measures 2.23, a hard fail even
@@ -158,6 +167,16 @@ when the dashboard went bolder. Prose is capped at 68ch.
 
   The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
   trim.
+- **Chapter names are set in caps, with the number in front.** They were the one
+  heading on the site still in sentence case, which read as body copy that
+  happened to be large — every other name here is tracked caps, from the rail's
+  channels to the status labels. Caps close up at the sentence-case tracking, so
+  it opens to `.03em`. The number leads and is **only the number**: `Chapter 01`
+  beside a title already called `The drafts` said the word twice and put the
+  count where it had to be read past, where two digits in front index it the way
+  the shelf and the filmstrip already do. Three surfaces carry it — the reader's
+  bar, the phone's filmstrip heading, and the chapter shelf — and all three read
+  `01 THE DRAFTS`.
 - **Two cuts are hand-drawn rather than tokenised**, both inside the hero and
   both **below 860px only**: the caption box (`.hero__body`) and the standfirst's
   plate (`.hero__sub`). They were tuned against the phone's boxes, so above the
@@ -484,11 +503,18 @@ either gone for this route or behind a control:
   overstated a row by 9px — the difference between two rows fitting a 199px
   drawer and one. And a leftover `≤620px` rule pinned thumbnails to 44×66,
   so the groups were sized for a 93px row and drawn with a 72px one.
-- **Pages past the one being read are dimmed.** The strip is a record of how far
-  in you are as much as it is a way around, and a page nobody has opened should
-  not look like one they have read. Opacity only — the label still says which
-  page it is and `aria-current` still says which is open — so nothing about it
-  reaches the accessibility tree.
+- **Pages are dimmed until they have been landed on.** Not until they are behind
+  you: position is the wrong test, because jumping from page one to page eight
+  leaves six pages nobody has seen, and reading the strip off the current index
+  called all six of them read. The reader keeps the set of pages it has actually
+  opened — by **id**, not index, since the editor can reorder the running order
+  underneath it and a set of positions would then be a set of claims about the
+  wrong pages — and the strip follows that. The page being read counts before
+  the effect that records it has run, so it never flickers dim on arrival.
+
+  The set is per-visit and not stored; a reload starts it over. Opacity only —
+  the label still says which page it is and `aria-current` still says which is
+  open — so nothing about it reaches the accessibility tree.
 - **The page number is not tipped over the artwork.** It was a corner flag on
   the drawing that said what the bar already said two feet away, and the bar's
   copy is the one that is never in the way.
