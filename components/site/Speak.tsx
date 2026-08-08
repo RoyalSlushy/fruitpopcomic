@@ -23,11 +23,15 @@ import { hydrate, speak, stop, supported, useTts } from '../../lib/tts.ts';
  * that can speak. `owner` is how this button knows the transcript column took
  * the channel from it and renders idle again instead of lying. */
 
-export function Speak({ text, label = 'Listen', className = '' }: {
+export function Speak({ text, label = 'Listen', className = '', picker = true }: {
   /** what to read; nothing renders if it is blank */
   text: string;
   label?: string;
   className?: string;
+  /** whether the voice picker rides along. Off where this button is already
+   *  INSIDE a picker's panel — the reader's dock puts it there, so the panel
+   *  would otherwise offer to open itself. */
+  picker?: boolean;
 }) {
   /* Resolved after mount: `speechSynthesis` cannot be probed on the server, and
      rendering the button unconditionally would mean showing a dead one. */
@@ -64,7 +68,7 @@ export function Speak({ text, label = 'Listen', className = '' }: {
         <Glyph name={mine ? 'stop' : 'speak'} width={4} />
         {mine ? 'Stop' : label}
       </button>
-      <VoiceMenu />
+      {picker && <VoiceMenu />}
     </>
   );
 }

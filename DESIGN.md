@@ -93,6 +93,27 @@ any text is between the two measured values rather than outside them. The inner
 views' header band is the tightest case — navy on gold dotted with `--gold-dp`
 measures **5.46**, against 10.05 for the flat plate.
 
+The hero's standfirst is set at **1.3**, not the 1.45 the rest of the prose
+takes. It is three short lines on a plate rather than a paragraph, and at the
+looser setting they read as three separate statements instead of one sentence
+running on — and the plate had to grow to hold air nobody wanted. The caption
+box was raised by more than the leading gave back: tightening the copy took 11px
+out of it, so `padding-block-start` went to `2.75rem`, which is a net **+16px**
+on the box. A first pass at `2rem` put only 4px back, which is not an increase
+anyone would see.
+
+**The hero body is the one gradient fill on the site**, magenta at the top
+running into peach at the bottom — and it is the DEEP peach, `--peach-dp`, not
+the bright one. White on the bright coral peach measures 2.23, a hard fail even
+at the headline's large size; the deep tone measures 6.67, comfortably past AA
+for text of any size. Reading warmer going down is the same move the halftone
+already made (deep tone screened over bright), just carried into the base fill
+too — and the dot colour follows it: `.hero__body::before`'s screen sits in the
+bottom-left corner, which is where the gradient reads peach, so its dots are
+`--peach-dp` now rather than `--magenta-dp`. A magenta dot in a peach field
+would have been a mismatched hue sitting on the ground rather than a shade of
+it.
+
 Measured on the components this build added:
 
 | Pair | Ratio |
@@ -139,13 +160,42 @@ when the dashboard went bolder. Prose is capped at 68ch.
 
   | Token | Shape | Where |
   |---|---|---|
-  | `--cut-rise` | top edge climbs left to right | `WHAT'S HOT`, `BUILD STATUS` |
+  | `--cut-rise` | top edge climbs left to right | the hero, `BUILD STATUS` |
   | `--cut-fall` | the same wedge mirrored | `THE DRAFTS` |
   | `--cut-nick` | leading corners trimmed off | `START HERE`, every inner view |
   | `--cut-band` | a long banner, both ends chevroned | `QUICK ACCESS` |
 
   The offsets step down at ≤620px — a 20px nick on a 320px panel is a bite, not a
   trim.
+- **Chapter names are set in caps, with the number in front.** They were the one
+  heading on the site still in sentence case, which read as body copy that
+  happened to be large — every other name here is tracked caps, from the rail's
+  channels to the status labels. Caps close up at the sentence-case tracking, so
+  it opens to `.03em`. The number leads and is **only the number**: `Chapter 01`
+  beside a title already called `The drafts` said the word twice and put the
+  count where it had to be read past, where two digits in front index it the way
+  the shelf and the filmstrip already do. Three surfaces carry it — the reader's
+  bar, the phone's filmstrip heading, and the chapter shelf — and all three read
+  `01 THE DRAFTS`.
+- **Two cuts are hand-drawn rather than tokenised**, both inside the hero and
+  both **below 860px only**: the caption box (`.hero__body`) and the standfirst's
+  plate (`.hero__sub`). They were tuned against the phone's boxes, so above the
+  breakpoint the caption box stays square and the plate keeps its original 10px
+  slant. They are set as `clip-path` directly, *not* as `--cut` — that token
+  drives the panel's three copies of one shape (`.ch`, `.ch__in`, the plinth), so
+  setting it here would redraw the frame instead of the box inside it. The
+  caption box borrows the panel's own `--cut-rise` move rather than inventing a
+  new one — top edge climbing left to right — so its corner reads as an echo of
+  the slab's tilt instead of a shape fighting it. A quad only has four corners
+  to move, so the "climb" comes from dropping the left ones in, not from
+  pushing the right ones past the box's own edge, which is already as high as a
+  clip-path can put them.
+
+  The plate's is written in **percentages**, and that is the one thing to keep if
+  it is ever re-tuned. It was drawn against a 342×430 panel and the plate is
+  307×78 — pasted as pixels, the point meant to sit 13% down its edge landed 73%
+  down instead and the wedge cut through the second line of copy. A cut drawn on
+  one box and worn by another has to be proportional or it is not the same shape.
 - **Keyline:** 5px white, and it is **not a border**. A `clip-path` clips a border
   square at the cut corners, so the keyline is the element's own white background
   showing through its padding, with the interior painted inset by exactly that
@@ -199,8 +249,12 @@ still in `globals.css` (`view-transition-name` on `.rail`/`.tabbar`, the
 `::view-transition-*` rules), so restoring it is a small change once a stable API
 lands.
 
-What remains: a single diagonal light sweep across the hero on hover, and the tile
-press. `prefers-reduced-motion` disables the sweep.
+What remains: a single diagonal light sweep across the hero on hover, the tile
+press, and the phone shelf's Ken Burns pan — five moves, assigned by which page
+is showing rather than by which layer is holding it, so one layer never repeats
+a move every other slide. `prefers-reduced-motion` disables the sweep and stops
+the shelf dead; see **Layout** for why stopping it beats letting the global
+reduce rule flatten a pan into a snap between end states.
 
 ## Layout
 
@@ -210,6 +264,21 @@ rail is furniture: fixed at `238px` with `<body>` padded to clear it, so `<body>
 stays the scroll container — a second scroll container would break the starfield,
 which sizes itself from `document.body.scrollHeight`. Between 1024 and 1219px the
 rail narrows to `78px` of glyphs and shows the monogram instead of the wordmark.
+
+**Below 860px the hamburger comes off the strip.** With no ribbon over it, the
+wordmark is the strip's only remaining item, which is what puts it at the
+top-left — a lone flex child in a `space-between` row sits at the start edge
+with no extra rule needed. The burger can't stay on that line without crowding
+back into the logo, so it becomes a fixed button over the corner a thumb
+already rests near instead of a second thing sharing the strip.
+
+It is only on screen for as long as the tab bar is not the answer to "where is
+the nav" — the hero's first screen, before the first scroll — so it mirrors
+that *same* hidden condition rather than inventing a second clock: hidden by
+default, shown only where the tab bar rule says the tab bar is not. Everywhere
+else the tab bar is already up, so the floating burger stays off, and reaching
+`About` — the one nav item the tab bar drops — goes through the footer link
+every page already carries.
 
 **Dashboard.** Laid out as a comic page, not a card grid. Three devices do the
 work, and all three are load-bearing:
@@ -223,10 +292,20 @@ work, and all three are load-bearing:
    between rotated boxes read as a broken grid rather than a spread.
 
 ```
-WHAT'S HOT (1–9)          START HERE (9–13, dropped 1.1rem)
+THE HERO (1–9, no ribbon)  START HERE (9–13, dropped 1.1rem)
 QUICK ACCESS (full width)
-THE DRAFTS (1–8)          BUILD STATUS (8–13, raised 1.8rem)
+THE DRAFTS (1–8)           BUILD STATUS (8–13, raised 1.8rem)
 ```
+
+**The hero is the one panel with no caption box.** Four of the five carry a
+ribbon over their top-left corner, because four of them need saying what they
+are — a ranked list, a shelf, a set of links, a state table. The hero is a
+drawing from the comic with the comic's name on the page above it, and a label
+over the artwork was captioning a picture that captions itself. It is
+`slab--bare`, so the `padding-top` that exists only to hold an overhanging
+ribbon comes off with it and the artwork starts at the panel's own edge. The
+headline lost its eyebrow on the same argument: an uppercase kicker over an
+uppercase headline was two tracked lines saying one thing.
 
 Quick access sits directly under the two top panels because it is the only row
 that is navigation rather than the comic: a visitor who did not come to read
@@ -235,6 +314,133 @@ else. Only which row each panel is in changed — every overlap is the one it ha
 
 One column below 860px, where the panels keep their tilt and still bite into each
 other by `-0.4 × --gap`.
+
+**The phone's first screen is the hero.** Below 860px that panel is sized to the
+TRUE `100dvh`, so the dashboard opens as one full-bleed panel and everything
+under it is a scroll away. Stacked into a single column, six tilted panels
+otherwise arrive as a wall of edges; the panel that is the comic gets the screen
+instead. The panel's height is a `min-block-size` — in landscape the copy is
+taller than what is left of the window, and a hard height would clip it.
+
+**The header comes off the strip and onto the glass, home only.** Everywhere
+else the strip stays exactly what it always was: an in-flow row that reserves
+its own height, because every other route has something real to reserve it
+for — `/cast`'s own bar, `Wiki`'s, `About`'s, all sitting right where the strip
+used to end. Pull the header out of flow there and it does not free any space,
+it just lands on top of that bar. The dashboard is the one route with nothing
+at that y-range to land on — the hero fills the whole window under it — so it
+is the one route where the header can leave.
+
+There, at ≤859px, `.sysbar` becomes an absolutely positioned mark pinned
+`top`/`left` (each axis carrying its own `env(safe-area-inset-*)` term, since a
+notch eats into one edge at a time and never both), laid straight on the
+artwork with **no plate under it**. The burger and the tab bar carry plates
+because they are things you press and have to read as pressable over anything;
+a logo only has to be legible, and its own drop-shadow does that. The mark is
+pale cloud-blue and white in places and the pages under it are white paper, so
+the shadow is not decoration — without it the wordmark loses its own edges.
+
+**Absolute, not fixed.** Fixed would pin it to the *viewport*, so it would
+still be sitting in the corner after the hero scrolled out from under it — a
+mark on the glass rather than a mark on the page, and a second landmark
+competing with the burger's own fixed one. Absolute, against the initial
+containing block (nothing between `.sysbar` and `<html>` is itself
+positioned), anchors it to the same document y-origin the hero panel starts
+at, so the two scroll away together: the mark only ever reads as sitting ON
+the artwork, never as furniture bolted to the screen. It also drops to about
+the burger's own size — it was sized for a strip that ran most of the screen's
+width, and laid bare on the page it wants to be a mark rather than a banner.
+
+**The picture takes the slack; everything else is sized to what it is.** The
+copy is the copy, and the shelf under it has to stay the depth the button hangs
+over — the picture is the only thing on the panel that can be any height without
+something being wrong. So the caption box is sized to exactly what it holds and
+the picture flexes into the rest of the window.
+
+It was pinned to **4:5** for a while, and the reason it is not any more is worth
+keeping. A fixed ratio makes the picture *set* the panel's height rather than
+answer it: picture + copy + shelf is then a sum that has no reason to equal the
+window, and on anything short it overshot. The panel's height is a minimum, so
+nothing overflowed and nothing shrank — the panel simply grew past the fold and
+took the slideshow with it. Measured against the flexed version, the shelf's
+band sat **58.9px below the fold at 360×640** and **78.9px at 320×568**; flexed,
+it clears by 1.7px and 2.0px. A `max-block-size` cap had been holding the worst
+of that back, which is really the tell: a ratio that needs a cap to stay on
+screen is not deciding the layout, it is arguing with it.
+
+What the ratio bought was a picture whose shape did not change with the window,
+and that is a real thing to want back — a page is composed for a frame. If it
+returns it has to come back as something the panel's height is derived *from*
+rather than something added to it.
+
+**The button hangs over the caption box's bottom edge.** The gradient stops
+`--shelf` short of the box's bottom, so the box has an edge inside the panel
+for the button to cross, and what shows under it is the slideshow below.
+
+**Painted short, not sized short.** The shelf is where the slideshow goes, so
+it has to be a fixed depth the band can be positioned into; a box that reserved
+it as real space would hand it to the flex line and let the picture take it
+back. Painting the gradient short leaves the layout untouched and moves only
+the edge — which is also what kept the button exactly where it already was when
+the edge first came up to meet it.
+
+The copy is justified to the box's **bottom** for this, and that half is
+load-bearing. Centred, the button sat on half of whatever slack the window
+happened to leave, so no fixed shelf could be relied on to cross it: at
+390×844 the edge landed mid-button, at 360×640 it cleared the button entirely
+and left it floating on white. Anchored, the button is always the same
+distance off the box's bottom and the edge always cuts the same part of it —
+measured at exactly 50% of the button's height on 390×844, 412×915 and
+360×640 alike.
+
+The shelf's depth is what it is because two things were asked for at once: the
+button not moving, and the box's edge crossing it. The button sat 102px clear
+of the box's bottom, so the edge has to come up at least that far — which
+leaves a band of about the same depth under it. Shrinking `--shelf` closes the
+band but walks the button down the screen with it; the two cannot be traded
+separately.
+
+**The shelf holds the pages, drifting.** `Reel.tsx` owns which page is showing;
+`globals.css` owns the move, because a Ken Burns pan is a transform over time
+and nothing else. It is absolutely positioned into exactly the unpainted shelf,
+so it costs the flow nothing — added as a flex child it would have pushed the
+copy up and moved the button off the edge it was just aligned to — and sits at
+`z-index:0` against the `1` that `.hero__body>*` hands its children, so the
+button paints over the band rather than under it. Page one is skipped: it is
+the artwork directly above, and the same drawing twice on one screen reads as a
+bug rather than a slideshow.
+
+The band is far wider than a page is, so the frame crops hard, and **the pan is
+what makes that a decision rather than a loss**: every move travels *down* its
+page, so the crop reads as reading. `block-size:auto` is what gives it somewhere
+to travel — a layer is a whole page tall (513px against a 124px band, so 389px
+of room) and the band is a window onto it. In the transform, `translateY()`
+comes *before* `scale()`: transforms apply right to left, so that scales about
+the band's top edge first and then pans in the page's own units. The other order
+multiplies the pan by the zoom and walks the later moves off the bottom of the
+page. Each pair keeps `scale − pan` above the band's share of a page height
+(0.26 at the narrowest phone), which is the condition for the window to stay on
+the artwork.
+
+Three things keep it from being a tax on a phone: **two layers, not ten** (a
+slide is a full 1080px page, so the pair double-buffers and the dark one carries
+the next page with a whole interval to load it), it **only ticks while it is on
+screen**, and `prefers-reduced-motion` **stops** it rather than speeding it up —
+the global reduce rule flattens animation durations, which would leave the pan
+snapping between end states, so the tick never starts and the shelf holds one
+still page. The cadence is slow twice over: a Ken Burns pan wants to be barely
+perceptible, and each turn is a full page off the network. Measured at 6.5s a
+slide, that is five page images in twenty seconds.
+
+The **tab bar retracts** while that first screen is showing and rides back in on
+the first scroll — the hero is the whole of the window, so nothing sits over its
+bottom edge. The shell writes `data-scrolled` on `<html>`; the retract is scoped
+to the dashboard at phone widths, because it is the one route guaranteed to be
+taller than the window and a bar that needs a scroll to appear on a page that has
+none is navigation nobody can reach. It hides by `visibility` on a stepped
+transition, the way the drawer does, so it leaves the tab order rather than
+lurking off-screen in it — and a `<noscript>` rule pins it open, since without
+script nothing sets the attribute and the drawer's button does not open either.
 
 A single repeating-conic speed-line burst sits behind the spread, thrown from
 behind the hero and masked to an ellipse. It is the page's one authored flourish;
@@ -279,6 +485,36 @@ either gone for this route or behind a control:
 - **The filmstrip is behind a `Pages` button** rather than opening on hover.
   Parked under the artwork it cost every page a hundred pixels of height, all
   day, to show ten thumbnails of the pages you are not reading.
+- **It is a carousel of screenfuls, not a grid that scrolls.** A chapter is a
+  small, countable thing, and scrolling is the wrong verb for one: grouped, no
+  thumbnail is ever half in view, and the dots underneath are the chapter's
+  length at a glance. How many fit in a group is **measured** — the drawer is a
+  `dvh` share and a thumbnail is a grid cell, so the answer is a division of
+  numbers only the browser knows, and it changes when the phone turns. A
+  `ResizeObserver` does it and the dots come off the same number, so they cannot
+  disagree with the groups they index.
+
+  The arithmetic is the stylesheet's, done twice, rather than a measurement of a
+  rendered cell — asking the DOM how tall a thumbnail is would be circular (its
+  height comes from its width, which comes from the column count, which is what
+  is being solved for) and a measurement that feeds itself oscillates at a
+  boundary. Two things it got wrong first: the keyline is *inside* the cell, so
+  a row is the picture plus its border rather than the whole cell scaled, which
+  overstated a row by 9px — the difference between two rows fitting a 199px
+  drawer and one. And a leftover `≤620px` rule pinned thumbnails to 44×66,
+  so the groups were sized for a 93px row and drawn with a 72px one.
+- **Pages are dimmed until they have been landed on.** Not until they are behind
+  you: position is the wrong test, because jumping from page one to page eight
+  leaves six pages nobody has seen, and reading the strip off the current index
+  called all six of them read. The reader keeps the set of pages it has actually
+  opened — by **id**, not index, since the editor can reorder the running order
+  underneath it and a set of positions would then be a set of claims about the
+  wrong pages — and the strip follows that. The page being read counts before
+  the effect that records it has run, so it never flickers dim on arrival.
+
+  The set is per-visit and not stored; a reload starts it over. Opacity only —
+  the label still says which page it is and `aria-current` still says which is
+  open — so nothing about it reaches the accessibility tree.
 - **The page number is not tipped over the artwork.** It was a corner flag on
   the drawing that said what the bar already said two feet away, and the bar's
   copy is the one that is never in the way.
@@ -326,7 +562,8 @@ against its edges rather than stranded at the sides of a column a portrait page
 never fills. They stay outside the page border — the chrome stops there, and
 that rule does not get an exception for being convenient. At the ends they dim
 rather than vanish: a handle that disappears reads as a glitch, one that greys
-out reads as the end of the comic.
+out reads as the end of the comic. Below 860px they are `display:none`, and the
+plate fills the frame there instead of shrink-wrapping — see the phone's reader.
 
 Whether there is room for the script column beside the page is a question about
 the panel, not about the viewport — the rail takes 238px off one and not the
@@ -376,11 +613,136 @@ reader controls is ever in the accessibility tree.
 
 | | Desktop | Phone |
 |---|---|---|
+| Chrome | a header bar and a footer row | **one bar**, at the bottom |
 | Page timeline | `Pages`, a strip in flow | `Pages` drawer, a grid |
 | Script | column beside the page | `Script` drawer |
-| Page turn | flips, arrow keys | flips, arrow keys, **swipe** |
-| Chrome | always, or `Cinema` | retracts on a tap on the page |
+| Page turn | flips, arrow keys | arrow keys, **swipe** |
+| Chrome hiding | always, or `Cinema` | retracts on a tap on the page |
 | Zoom | `Zoom`, ctrl-wheel (a trackpad pinch) | **pinch**, then one finger pans |
+
+**One bar, not two.** The phone had a header and a footer, and they cost 158px
+of an 844px screen to say overlapping things — the page count was on both. Worse,
+they bracketed the artwork, so the page could never be larger than the gap
+between them. Below 860px `.panel__bar` is `display:none` and the dock is the
+whole of the reader's chrome. That is 57px, and the page grows by the difference.
+
+A bar at the bottom is also a bar a thumb can reach. The back button used to sit
+in the top-left corner, which is the single furthest point on a phone from the
+hand holding it.
+
+Four controls, and the shape of the row is the argument for each:
+
+| | |
+|---|---|
+| `‹` | back to the chapters — **bare**, no pill |
+| `▦ Pages` | the filmstrip drawer, hugging the chevron |
+| `1 / 10` | where you are, taking the space between |
+| `▤ Script` `⚙` | the transcript drawer, hugging the settings |
+
+**The two ends are bare marks and the two middles are pills**, and that is the
+distinction being drawn: the pills change what the bar is *showing*, and the
+marks are the ways out of reading — one leaves the chapter, one opens a panel
+over it. A control that leaves does not look like it belongs to the row.
+
+**Each pill hugs the mark it belongs with** — the way out of the chapter beside
+the way into its pages, the settings beside the text they read aloud — and the
+count takes the gap, being the one thing on the bar that is neither. The `auto`
+margin lives on the *count* rather than on the clusters, because it is the only
+element that still has to centre when the Script button is absent, which it is
+on a page that is its own script. When the count is hidden on a short viewport
+that auto has to move, or the whole bar bunches against the left edge; the right
+cluster takes it over, starting at whichever of the two is actually there.
+
+**The dock carries a halftone**, thrown on the diagonal from the bottom-right —
+the corner the gear sits in and the one a right hand covers last. It was the one
+flat surface left on a site whose first rule is that nothing sits on flat colour.
+It is written out rather than taken from `var(--ht)`, and the reason is a bug
+worth knowing about: **`--ht` is declared on `:root`, and a `var()` inside a
+custom property is substituted against the element that DECLARES it, not the one
+that uses it.** So `--ht-c` set on a consumer never reaches the gradient, and
+every halftone surface on this site — the hero's peach dots, the panel bar's
+channel-deep ones — is actually painting the root default, `rgba(0,0,0,.5)`.
+A dark screen was the one thing the dock's could not be, since the whole point
+of it is a lift, so this one states its own colour.
+
+**One gear, not a speak button and a picker beside it.** Read-aloud is the only
+thing this reader has to set, so the panel *is* the settings and `Describe` — the
+button that starts it — is the first thing inside it, above a rule. The action
+and the preferences it obeys in one place, for the price of one slot in the bar.
+The cog is a real silhouette — eight shallow teeth cut as one closed outline —
+rather than a hub with radial spokes, which at this size closes up and reads as
+a sun.
+
+**The count sits beside the button, and folds into it only when the window is
+short.** Both forms are in the markup and the stylesheet picks one: with room, a
+labelled button and a number are two things doing one job each, which is the
+more legible pair. Under `max-height: 520px` — a phone turned sideways, where
+the dock is a seventh of the window rather than a fifteenth — the labels go and
+the number becomes the button's own label. The drawers give ground at that
+height too: a fixed 40dvh sheet is reasonable over an 844px window and takes a
+third of the page over a 390px one.
+
+Both counts are `aria-hidden` and the button is simply `Pages`. The page number
+is already announced by the live region at the foot of the reader, and saying it
+in two places is how the two get to disagree.
+
+Two more things moved rather than went, because a phone bar has room for four
+controls and not eight:
+
+- **The chapter title** is now the heading of the `Pages` drawer, which is the
+  chapter. It was a permanent 220px of the widest thing in the bar, taxing every
+  page turn to say something a reader learns once.
+- **The standing notice** (`These are rough drafts…`) went with it, as the same
+  `ⓘ` mark beside that title. It is a fact about the whole comic, so it is met
+  once next to the chapter rather than parked in the chrome of every page.
+
+The gear keeps its word in the markup, which is what a screen reader announces,
+and loses it to the stylesheet. It is still a 40px target, and its panel opens
+**upward** — the bar it hangs off is at the bottom of the screen, so a panel
+dropping down would open straight off the end of it.
+
+### Editing, on the reader
+
+The editor had grown three surfaces onto the reader that overlapped or got in
+each other's way. All three are one now.
+
+- **One script, not two.** The script column rendered the parsed transcript
+  *and* a raw dashed edit box under it, so an editor read every page's dialogue
+  twice. The box is gone: `PageTools` — the sheet a tap on the page raises — is
+  a real `<textarea>`, which is the better editor of the two and already existed.
+- **The edit bar is marks.** Save, Discard and Done were three labelled pills
+  floating over the page being edited; they are icons with `data-tip` and an
+  accessible name. Fixing that exposed an older bug in the same bar: it was
+  positioned with `left:50%` and pulled back by a translate, and **a fixed box
+  offset from one edge only has the distance to the other edge as its available
+  width** — so on a 390px phone it laid out in 195px and wrapped to three rows
+  inside a pill that had 366px of room. It uses both insets and a margin now.
+- **The filmstrip lost its per-page buttons.** Three controls on every page is
+  thirty on a ten-page chapter, inside a drawer 300px tall — and they were the
+  wrong three: reordering is what the press-and-hold drag already does better
+  than a pair of arrows, and the two things arrows cannot do were absent.
+
+**So the gesture that reorders also asks.** Hold a page and move, and you are
+dragging it; hold a page and let go, and a menu opens on it — change image and
+script, add a blank page after, delete. Which of the two you meant is decided by
+what you did next, not by aiming at a different target. `ListDragImpl` dispatches
+a bubbling `cms:hold` event rather than taking a callback, so the drag still
+knows how to pick a thing up and nothing about what a thing *is*.
+
+Two things that only showed up once it was built. The bar and the filmstrip
+drawer both live at the bottom of the window, and measured, the bar covered
+**six of ten thumbnails** — survivable while every page carried its own buttons,
+fatal once holding a thumbnail *is* how a page is edited, so the bar moves to the
+top while a reader drawer is open. And `Add blank page after` added a page that
+was not after anything: the list template leaves `chapter` blank, which drops a
+new page into the trailing Unsorted group, where the chapter-scoped strip it was
+added from could not show it at all. It inherits the held page's chapter.
+
+**The flips are gone below 860px.** They are a hover affordance — `opacity:0`
+until the pointer is over the stage — and a phone has no hover to reveal them
+with, so what a reader actually got was two chevrons sitting permanently on the
+artwork's edges. Removing them gives the page back the gutter they lived in,
+which is the point: the swipe is the gesture here and the filmstrip is the jump.
 
 **The drawers open in flow, and the page shrinks to make room.** They were
 overlays first — absolutely positioned sheets sliding up over the page, dimming
@@ -397,7 +759,53 @@ drawer never covers the page you are reading, so no scrim is needed either.
 Their height is a **fixed share of the viewport, not a measurement of their own
 content**. Opening one shrinks the page above it, which re-lays out a
 1080 × 1620 image; with the height content-driven that settled a frame late, and
-the first tap after opening landed a row out.
+the first tap after opening landed a row out. A page with no script gets a
+smaller fixed share rather than a measured one for the same reason — three
+sentences do not need a transcript's drawer, but they must not need a reflow to
+find that out either.
+
+**They grow, and the page above gives way as they do.** Opening used to be a
+`display` swap: the page jumped to its smaller size in one frame and the drawer
+was simply *there*, which reads as a layout bug rather than as something opening.
+The **height** is what animates, so the page shrinking and the sheet arriving are
+one motion rather than two events.
+
+That costs `display:none`, so `visibility` is what now keeps a closed drawer out
+of the tab order — transitioned with a **delay** rather than a duration, since
+visibility is discrete. It flips to visible on the first frame of opening and
+back to hidden only once the sheet has finished closing; without the delay the
+content would vanish immediately on close and the drawer would collapse around
+nothing.
+
+One trap comes with animating to zero: a closed drawer's own **block padding
+survives `block-size:0`**. The empty-script sheet sat 29px tall forever,
+invisible and still taking that room from the page, so its padding is applied
+only while open. (The full script drawer sidesteps this — its block padding is on
+the content rather than the box, for the separate reason below.)
+
+`prefers-reduced-motion` drops the height transition entirely. Someone who has
+asked for less motion gets the drawer, not a 300ms account of it arriving.
+
+Three things about the script drawer specifically, because it is the one that
+scrolls:
+
+- **The transport is sticky.** It scrolled away with the heading before, so the
+  one control that stops a voice mid-sentence was reachable only by scrolling
+  back to find it — and it was furthest away at exactly the moment it was most
+  wanted, four beats down a long page. It also *supplies* the drawer's top
+  padding rather than sitting inside it: a sticky box whose resting top is above
+  its own sticky edge is pushed back down to that edge while the flow keeps the
+  space it *would* have taken, so the padding it was inset by came straight off
+  the first line, which then read from under the bar.
+- **The block padding is on the content, not the box.** The drawer is the
+  scroller, so its own top padding scrolls away with the first line and its
+  bottom padding is a gap the last line never reaches. Moved onto the content,
+  both scroll with it and the script no longer ends flush against the dock with
+  a line sliced through the middle.
+- **The per-line play buttons are hidden.** They are revealed on hover, and
+  `@media (hover:none)` un-hid all of them — thirteen identical circles down a
+  300px drawer. Tapping the line already sets where playback starts, so the
+  buttons were the redundant half.
 
 One thing has to give for the drawers to work at all: `.slab` carries a
 `drop-shadow` filter, and **a filter makes an element the containing block for
@@ -413,6 +821,33 @@ refuses at a chapter's edges: it still moves a little, which is what says there
 is nothing there. Two details make it work at all — `draggable={false}` and
 `-webkit-user-drag:none`, because Chromium starts a native image drag on
 pointerdown and that fires `pointercancel` before the swipe has moved a pixel.
+
+**The drag uncovers the next page, rather than pulling this one off into
+nothing.** The two neighbours are drawn as `.peek` elements parked one plate-width
+out on either side, so the gesture reads as a carousel: you can see what you are
+turning to while you turn to it. A committed swipe carries the plate exactly that
+far and the page changes on the way, in a layout effect rather than in `go()` —
+`setIdx` is not synchronous, so clearing the offset there would put the outgoing
+page back at centre for a frame before the `src` swapped, which is the flash the
+animation exists to remove. `--peek-gap` is a CSS value that Reader.tsx reads
+back, so how far the page travels and where the neighbour is sitting are one
+number rather than two that agree today.
+
+The plate fills the frame here instead of shrink-wrapping the page, and that is
+load-bearing: the neighbours are parked relative to the *plate*, so a plate
+narrower than the frame parks them inside it. Opening a drawer makes the page
+height-bound and costs it about 59px of width, which is exactly how far the next
+page leaned into view before this.
+
+**A turn commits on distance or on speed.** Distance alone is the wrong test for
+a thumb — a flick is short and quick by nature, so a 40px snap was being told it
+had not travelled far enough. The speed is read over a **trailing 120ms window**,
+not between the last two moves: a pointer stream is not evenly spaced and the
+final sample before a release is routinely a long slow frame — 8px over 21ms
+where the four before it were 8px over 8. Off that one sample the flick above
+measures 0.38px/ms and stays put; over the window it is 0.86, which is what the
+thumb did. The threshold is 0.45px/ms, well above a considered drag and well
+below a real flick, so a slow 40px drag still snaps back.
 
 **Pinch to zoom, because a page is 1080px of ink and a phone shows it at about
 a third of that.** The lettering in a corner panel is not readable at the size

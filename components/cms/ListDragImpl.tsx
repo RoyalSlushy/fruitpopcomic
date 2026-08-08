@@ -65,6 +65,10 @@ export default function ListDragImpl({ listPath }: { listPath: string }) {
     let raf = 0;
     let edge = 0;
     let edgeY = 0;
+    /* Whether the pointer actually went anywhere AFTER the lift. A hold that
+       never moved is not a reorder that changed nothing — it is the other
+       gesture: the one that asks what else this item can do. */
+    let travelled = false;
     /* Scroll containers whose touch-action was suspended for the lift. */
     let frozen: { el: HTMLElement; had: string }[] = [];
 
@@ -156,6 +160,7 @@ export default function ListDragImpl({ listPath }: { listPath: string }) {
       originX = e.clientX;
       originY = e.clientY;
       before = -1;
+      travelled = false;
       cancelHold();
       timer = window.setTimeout(lift, HOLD_MS);
     };
@@ -171,6 +176,7 @@ export default function ListDragImpl({ listPath }: { listPath: string }) {
       }
 
       e.preventDefault();
+      if (Math.abs(dx) > SLOP || Math.abs(dy) > SLOP) travelled = true;
       box.style.translate = `${dx}px ${dy}px`;
 
       const boxes = items()
@@ -223,6 +229,11 @@ export default function ListDragImpl({ listPath }: { listPath: string }) {
       edge = 0;
       edgeY = 0;
 
+      /* Held, then let go without going anywhere. Read before the reset below,
+         because `from` is about to be cleared. */
+      const asked = dragging && commit && !travelled;
+      const at = from;
+
       if (dragging) {
         thaw();
         try { list.releasePointerCapture(pointer); } catch { /* already released */ }
@@ -241,6 +252,18 @@ export default function ListDragImpl({ listPath }: { listPath: string }) {
       from = -1;
       before = -1;
       pointer = -1;
+      travelled = false;
+
+      /* The site owns what a hold offers — this file knows how to pick an item
+         up and nothing about what one IS. A bubbling event rather than a
+         callback prop keeps it that way, and keeps the menu's code out of the
+         list's. */
+      if (asked && at >= 0) {
+        list.dispatchEvent(new CustomEvent('cms:hold', {
+          bubbles: true,
+          detail: { listPath, index: at },
+        }));
+      }
     };
 
     const onUp = () => finish(true);

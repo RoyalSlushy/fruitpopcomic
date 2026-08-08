@@ -4,6 +4,7 @@ import { EditableText } from '../components/cms/EditableText.tsx';
 import { EditableImage } from '../components/cms/EditableImage.tsx';
 import { Glyph } from '../components/site/Glyph.tsx';
 import { QuickRail } from '../components/site/QuickRail.tsx';
+import { Reel } from '../components/site/Reel.tsx';
 import { pad, mediaURL } from '../lib/media.ts';
 
 /* The dashboard. A server component: every editable value is passed to a leaf
@@ -24,13 +25,16 @@ export default async function HomePage() {
       <h1 className="sr-only">Fruit Pop Comic</h1>
 
       <div className="dash">
-        {/* WHAT'S HOT */}
+        {/* THE HERO */}
         {/* The channel hue is set on the SLAB, not on the tile inside it. The
             plinth under a cut panel is painted by the slab — a clip-path clips
             a box-shadow away with everything else — so the slab is what has to
-            know which channel it belongs to. */}
-        <div className="slab dash__hot" style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
-          <EditableText as="span" className="ribbon ribbon--wide" path="home.ribbons.hot" value={home.ribbons.hot} />
+            know which channel it belongs to.
+
+            `slab--bare` because this one has no ribbon: the padding-top on a
+            .slab exists only to hold the caption box that overhangs its corner,
+            and without one it is a gap over the artwork. */}
+        <div className="slab slab--bare dash__hot" style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
           <Link className="ch hero" href="/read">
             <EditableText as="span" className="ch__badge" path="home.hero.badge" value={home.hero.badge} />
             {/* .ch__in is the tile's interior. The cut corners live on a clip-path,
@@ -47,10 +51,14 @@ export default async function HomePage() {
                 <span className="ch__scan" aria-hidden="true" />
               </span>
               <span className="hero__body">
-                <EditableText as="span" className="hero__kicker" path="home.hero.kicker" value={home.hero.kicker} />
                 <EditableText as="span" className="hero__title" path="home.hero.title" value={home.hero.title} />
                 <EditableText as="span" className="hero__sub" path="home.hero.sub" value={home.hero.sub} multiline />
                 <EditableText as="span" className="btn btn--solid" path="home.hero.cta" value={home.hero.cta} />
+                {/* The shelf the button hangs over is the pages themselves,
+                    drifting. `slice(1)` because page one is the artwork
+                    directly above it — the same drawing twice on one screen
+                    reads as a bug rather than a slideshow. */}
+                <Reel pages={pages.items.slice(1).map((p) => mediaURL(p.image))} />
               </span>
             </span>
           </Link>

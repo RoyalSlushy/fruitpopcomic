@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCms } from '../../lib/cms-context.tsx';
+import { Glyph } from '../site/Glyph.tsx';
 import type { Sections } from '../../lib/cms.ts';
 import './admin.css';
 
@@ -198,17 +199,54 @@ export default function AdminRoot({ autoFocus = false, onClose }: {
           onClick={() => setSlim((v) => !v)}
         >
           {slim ? '▴' : '▾'}
-          {slim && dirtyCount > 0 && <span className="cms-bar__dot" aria-hidden="true" />}
+          {/* Not only when folded. On a narrow bar the words `3 sections
+              changed` are wider than every control put together and are
+              hidden, so this is the only thing left saying there is unsaved
+              work — and it has to say it whether the bar is folded or not. */}
+          {dirtyCount > 0 && <span className="cms-bar__dot" aria-hidden="true" />}
         </button>
         <span className="cms-bar__tag">Editing</span>
         <span className="cms-bar__count">
           {dirtyCount === 0 ? 'No changes' : `${dirtyCount} section${dirtyCount === 1 ? '' : 's'} changed`}
         </span>
-        <button className="btn btn--solid" type="button" onClick={save} disabled={status === 'saving'}>
-          {status === 'saving' ? 'Saving…' : 'Save'}
+        {/* Marks, not words. This bar floats over the page being edited, and
+            three labelled pills across the bottom of a phone was most of the
+            room the work itself needed. The words stay as the accessible name
+            and as the tip, so nothing is lost to anyone reading it either way.
+
+            Save keeps its word while it is SAVING and only then: that is the
+            one moment the button is reporting rather than offering, and a
+            spinner-less icon cannot say it. */}
+        <button
+          className="cms-act cms-act--go"
+          type="button"
+          onClick={save}
+          disabled={status === 'saving'}
+          aria-label="Save changes"
+          data-tip="Save"
+        >
+          <Glyph name="check" width={6} />
+          {status === 'saving' && <span className="cms-act__word">Saving…</span>}
         </button>
-        <button className="btn" type="button" onClick={discard} disabled={!dirtyCount}>Discard</button>
-        <button className="btn" type="button" onClick={signOut}>Done</button>
+        <button
+          className="cms-act"
+          type="button"
+          onClick={discard}
+          disabled={!dirtyCount}
+          aria-label="Discard all changes"
+          data-tip="Discard"
+        >
+          <Glyph name="undo" width={6} />
+        </button>
+        <button
+          className="cms-act"
+          type="button"
+          onClick={signOut}
+          aria-label="Done editing and sign out"
+          data-tip="Done"
+        >
+          <Glyph name="exit" width={6} />
+        </button>
         {message && (
           <span className={`cms-bar__msg${status === 'error' ? ' cms-bar__msg--bad' : ''}`} role="status">
             {message}

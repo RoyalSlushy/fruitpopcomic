@@ -67,6 +67,28 @@ export function Shell({ site, counts, children }: {
   /* Any navigation closes the drawer. */
   useEffect(() => { setOpen(false); }, [segment]);
 
+  /* The phone's first screen is the hero and nothing else, so the tab bar
+     starts off the bottom of the window and rides in on the first scroll —
+     see the `data-scrolled` rules in globals.css, which apply on the
+     dashboard, at phone widths, and nowhere else. Read on a frame rather
+     than on the event: the listener fires far faster than a paint. */
+  useEffect(() => {
+    const root = document.documentElement;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      root.dataset.scrolled = scrollY > 32 ? 'on' : 'off';
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(read); };
+    read();
+    addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+      delete root.dataset.scrolled;
+    };
+  }, []);
+
   const step = String(site.nav.findIndex((n) => n.id === section) + 1).padStart(2, '0');
   const current = site.nav.find((n) => n.id === section);
 
@@ -155,6 +177,14 @@ export function Shell({ site, counts, children }: {
           <CmsHatch />
         </p>
       </footer>
+
+      {/* The retracted tab bar is a scripted state: the CSS hides it until
+          `data-scrolled` says otherwise, and nothing sets that attribute
+          without script. Where there is none, the bar is the only navigation
+          left — the drawer opens from a button — so it is pinned open. */}
+      <noscript>
+        <style dangerouslySetInnerHTML={{ __html: '.tabbar{translate:none!important;visibility:visible!important}' }} />
+      </noscript>
 
       <nav className="tabbar" aria-label="Quick navigation">
         {site.nav.filter((n) => n.tab).map((item) => (

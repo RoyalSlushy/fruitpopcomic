@@ -12,15 +12,17 @@ export type QuickTile = {
 };
 
 export type HomeContent = {
-  ribbons: { hot: string; start: string; drafts: string; status: string; quick: string };
-  hero: { badge: string; kicker: string; title: string; sub: string; cta: string };
+  /* No `hot`: the hero panel carries no ribbon. It is the only panel whose
+     subject is obvious from the panel, and a caption box over the artwork was
+     labelling a picture that needed no label. */
+  ribbons: { start: string; drafts: string; status: string; quick: string };
+  hero: { badge: string; title: string; sub: string; cta: string };
   startHere: { seeAll: string; count: number };
   quick: QuickTile[];
 };
 
 export const home: HomeContent = {
   ribbons: {
-    hot:    "What's hot",
     start:  'Start here',
     drafts: 'The drafts',
     status: 'Build status',
@@ -28,7 +30,6 @@ export const home: HomeContent = {
   },
   hero: {
     badge:  'Drafts',
-    kicker: 'Page one',
     title:  'Start at the beginning',
     sub:    'Ten rough pages, in the order they were drawn. Arrows, filmstrip, or the keyboard.',
     cta:    'Read now →',

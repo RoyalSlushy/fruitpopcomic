@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Chevron, Glyph } from './Glyph.tsx';
 import { Speak } from './Speak.tsx';
+import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
-import { ListControls, ListAdd } from '../cms/ListControls.tsx';
-import { ListDrag } from '../cms/ListDrag.tsx';
+import { PageRail } from './PageRail.tsx';
 import { PageTools } from '../cms/PageTools.tsx';
+import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
 import { scriptLines } from '../../lib/script.ts';
@@ -37,6 +38,20 @@ function describe(page: ComicPage | undefined, n: number, total: number): string
 
 /** How far a drag has to travel before it counts as a page turn. */
 const swipeThreshold = (w: number) => Math.min(90, Math.max(44, w * 0.18));
+
+/* …or how fast, in px per ms. Distance alone is the wrong test for a thumb: a
+   flick is short and quick by nature, so a reader who snapped the page 40px
+   across in 40ms clearly meant to turn it and was being told they had not
+   travelled far enough. Either test passing turns the page. 0.45px/ms is about
+   450px/s — well above a considered drag, well below a real flick. */
+const FLICK = 0.45;
+
+/* How far back the speed is measured over. Not "between the last two moves":
+   a pointer stream is not evenly spaced, and the final sample before a release
+   is routinely a long slow frame — 8px over 21ms where the four before it were
+   8px over 8. Read off that one sample the flick above came out at 0.38 and the
+   page stayed put. Over a window it is 0.86, which is what the thumb did. */
+const TRAIL = 120;
 
 /* How far in a pinch can go. Four is roughly the point where a 1080px page
    stops holding up on a phone screen; below 1.02 the gesture has effectively
@@ -80,8 +95,13 @@ export function Reader({
   const [drawer, setDrawer] = useState<null | 'pages' | 'script'>(null);
   const [bare, setBare] = useState(false);          // chrome hidden (immersive)
   const [tools, setTools] = useState(false);        // the editor's page sheet
+  const [held, setHeld] = useState<number | null>(null);  // the held page's menu
   const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
   const [cinema, setCinema] = useState(false);      // the page, and nothing else
+  /* Which pages have actually been opened, by id rather than by index — the
+     editor can reorder the running order underneath this, and a set of
+     positions would then be a set of claims about the wrong pages. */
+  const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set());
 
   const view = useRef<HTMLElement>(null);
   const strip = useRef<HTMLElement>(null);
@@ -110,6 +130,26 @@ export function Reader({
     el.style.willChange = 'translate';
     el.style.translate = `${px}px`;
   }, []);
+
+  /* Back to centre with NO animation, for the frame the page actually changes
+     on. `slide(null)` restores the stylesheet's transition, which is right for
+     a drag that snapped back and wrong here: the plate is parked a page-width
+     off to one side at that moment, and letting it ease home would drag the
+     page that just arrived back across the screen from the wrong side. */
+  const recentre = useCallback(() => {
+    const el = plate.current;
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.translate = '';
+    el.style.willChange = '';
+    void el.offsetHeight;                       // flush, so 'none' is observed
+    el.style.transition = '';
+  }, []);
+
+  /* True from the moment a swipe commits until the outgoing page has finished
+     leaving. A second gesture landing inside that window would fight the
+     animation for the same `translate`. */
+  const turning = useRef(false);
 
   /* ── zoom ───────────────────────────────────────────────────
      A comic page is 1080px of ink and the phone shows it at about a third of
@@ -230,8 +270,28 @@ export function Reader({
     setTools(false);
   }, [cinema]);
 
-  /* Stable: the sheet holds a document listener that depends on it. */
+  /* Stable: the sheets hold document listeners that depend on them. */
   const closeTools = useCallback(() => setTools(false), []);
+  const closeHeld = useCallback(() => setHeld(null), []);
+
+  /* A page held in the filmstrip and let go without moving is asking what else
+     it can do — ListDragImpl decides which of the two gestures happened and
+     says so here. The event rather than a prop is what keeps the drag's code
+     free of any idea what an item IS. */
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const onHold = (e: Event) => {
+      const at = (e as CustomEvent<{ listPath: string; index: number }>).detail;
+      if (at?.listPath === 'pages.items') setHeld(at.index);
+    };
+    el.addEventListener('cms:hold', onHold);
+    return () => el.removeEventListener('cms:hold', onHold);
+  }, []);
+
+  /* Leaving edit mode, or paging away, with the menu open would strand it over
+     a page nobody is looking at. */
+  useEffect(() => { if (!editing) setHeld(null); }, [editing]);
 
   /* Leaving edit mode with the sheet open would strand a piece of state
      nobody can see — PageTools renders nothing for a visitor — and the next
@@ -244,6 +304,15 @@ export function Reader({
   const at = Math.max(0, Math.min(pages.length - 1, idx));
   const page = pages[at];
 
+  /* Landing on a page is what marks it read. Skipping past it is not: the
+     strip dims by this set, and a reader who jumped from one to eight has not
+     seen the six in between however far behind them they now are. */
+  useEffect(() => {
+    const id = page?.id;
+    if (!id) return;
+    setSeen((s) => (s.has(id) ? s : new Set(s).add(id)));
+  }, [page?.id]);
+
   const sibs = useMemo(() => siblings(chs, pages, at), [chs, pages, at]);
   const pos = sibs.findIndex((p) => p.index === at);
   const chapter = chapterOf(chs, page);
@@ -251,23 +320,70 @@ export function Reader({
      under "Unsorted", and an unsorted page has no number to give. */
   const chapterNo = chapter ? chs.findIndex((c) => c.id === chapter.id) + 1 : 0;
 
+  /* The page has changed: whatever offset carried it here is spent. Runs after
+     the DOM holds the new page and before anything is painted, so the swap and
+     the return to centre are the same frame. */
+  useLayoutEffect(() => { recentre(); }, [at, recentre]);
+
   const go = useCallback((flat: number) => {
     const i = Math.max(0, Math.min(pages.length - 1, flat));
     setIdx(i);
-    slide(null);
     /* Zoom belongs to the page you were on. It is cleared here rather than in
        an effect on the index because the <img> is the same node either way —
        React swaps the src, not the element — so a transform left on it would
        land the next page already three times life size and off centre. */
     unzoom(false);
     history.replaceState(null, '', `/read/${i + 1}`);
-  }, [pages.length, slide, unzoom]);
+  }, [pages.length, unzoom]);
 
   /* Relative moves walk the CHAPTER, not the whole comic. */
   const step = useCallback((delta: number) => {
     const next = sibs[pos + delta];
     if (next) go(next.index);
   }, [sibs, pos, go]);
+
+  /* ── the turn ───────────────────────────────────────────────
+     A swipe carries the page off and brings its neighbour in from the other
+     side, because the neighbour is already drawn there — see .peek below. The
+     flips and the arrow keys still go straight to go(): a press is a jump, and
+     animating it would put a fifth of a second between the press and the page.
+
+     Falls back to a plain jump wherever the neighbours are not laid out, which
+     is every width above 860px. That check is offsetParent rather than a
+     matchMedia: the stylesheet decides where the carousel exists, and asking
+     the element is how this stays a single source of that truth. */
+  const turn = useCallback((dir: 1 | -1) => {
+    const el = plate.current;
+    const next = sibs[pos + dir];
+    if (!next) { slide(null); return; }
+
+    const peek = el?.querySelector<HTMLElement>(`.peek--${dir > 0 ? 'next' : 'prev'}`);
+    if (!el || !peek?.offsetParent) { go(next.index); return; }
+
+    /* Exactly where the neighbour is sitting, so it lands dead centre rather
+       than near it — the gap is a CSS value and this is it, not a copy. */
+    const gap = parseFloat(getComputedStyle(el).getPropertyValue('--peek-gap')) || 0;
+    const span = el.offsetWidth + gap;
+
+    turning.current = true;
+    el.style.transition = 'translate .28s var(--ease)';
+    el.style.willChange = 'translate';
+    el.style.translate = `${-dir * span}px`;
+
+    let done = false;
+    const land = () => {
+      if (done) return;
+      done = true;
+      el.removeEventListener('transitionend', land);
+      clearTimeout(bail);
+      turning.current = false;
+      go(next.index);                     // the layout effect above recentres
+    };
+    el.addEventListener('transitionend', land);
+    /* transitionend does not fire if the property never actually animates —
+       a reduced-motion override, or a turn queued while the tab is hidden. */
+    const bail = setTimeout(land, 420);
+  }, [sibs, pos, go, slide]);
 
   const canPrev = pos > 0;
   const canNext = pos >= 0 && pos < sibs.length - 1;
@@ -362,6 +478,22 @@ export function Reader({
      10px, so a turn cannot start halfway through a scroll. */
   const drag = useRef({ x: 0, y: 0, t: 0, axis: null as null | 'x' | 'y', on: false });
 
+  /* The tail of the drag, kept so the release can ask how fast the finger was
+     moving rather than only how far it got. Trimmed to TRAIL as it goes, so
+     the answer is always about the end of the gesture — a drag that dawdled
+     and then snapped away is a flick, and one that raced and then stopped
+     dead to look at something is not. */
+  const trail = useRef<{ x: number; t: number }[]>([]);
+
+  const flickSpeed = () => {
+    const tr = trail.current;
+    const last = tr.at(-1);
+    const first = tr[0];
+    if (!last || !first || tr.length < 2) return 0;
+    const dt = last.t - first.t;
+    return dt > 0 ? (last.x - first.x) / dt : 0;
+  };
+
   /* Every finger currently on the page, by id. Two of them is a pinch and one
      of them on a zoomed page is a pan; neither is ever a page turn. */
   const pts = useRef(new Map<number, { x: number; y: number }>());
@@ -379,6 +511,9 @@ export function Reader({
 
   const onDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    /* A page is still on its way out. Taking the plate's translate off it now
+       would strand the outgoing page mid-screen. */
+    if (turning.current) return;
     if (pts.current.size === 0) moved.current = false;
     pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     /* Capture, so a drag that wanders off the page still reports its moves and
@@ -397,6 +532,7 @@ export function Reader({
        starting a gesture, and it must not also flip the chrome away. */
     if (drawer || tools) return;
     drag.current = { x: e.clientX, y: e.clientY, t: Date.now(), axis: null, on: true };
+    trail.current = [{ x: e.clientX, t: performance.now() }];
   };
 
   const onMove = (e: React.PointerEvent) => {
@@ -439,6 +575,15 @@ export function Reader({
       d.axis = Math.abs(ax) > Math.abs(ay) ? 'x' : 'y';
     }
     if (d.axis !== 'x') return;
+
+    const now = performance.now();
+    const tr = trail.current;
+    tr.push({ x: e.clientX, t: now });
+    /* Two samples are the minimum a speed can be read from, so the trim keeps
+       one that has already fallen out of the window rather than emptying the
+       trail on a slow frame. */
+    while (tr.length > 2 && now - (tr[1]?.t ?? now) > TRAIL) tr.shift();
+
     /* Resist at the ends rather than refusing: the page still moves a little,
        which is what tells you there is nothing there. */
     const room = (ax < 0 && !canNext) || (ax > 0 && !canPrev);
@@ -462,10 +607,14 @@ export function Reader({
     const ay = e.clientY - d.y;
 
     if (d.axis === 'x') {
-      if (Math.abs(ax) >= swipeThreshold(reader.current?.clientWidth ?? 360)) {
-        step(ax < 0 ? 1 : -1);
-        return;
-      }
+      const dir = ax < 0 ? 1 : -1;
+      /* Far enough OR fast enough, and the flick only counts when it was still
+         travelling the way the page went — a drag hauled out and thrown back
+         is a change of mind, not a turn. */
+      const far = Math.abs(ax) >= swipeThreshold(reader.current?.clientWidth ?? 360);
+      const v = flickSpeed();
+      const fast = Math.abs(v) >= FLICK && Math.sign(v) === -dir;
+      if (far || fast) { turn(dir); return; }
       slide(null);
       return;
     }
@@ -480,6 +629,23 @@ export function Reader({
     if (editing) setTools(true);
     else setBare((v) => !v);
   };
+
+  /* The two neighbours the carousel shows the edge of. A page that is written
+     but not drawn has no artwork to peek at, so it comes through as a blank
+     sheet rather than as a hole where a page should be. */
+  const peeks = useMemo(() => (
+    ([[-1, 'prev'], [1, 'next']] as const)
+      .map(([d, side]) => {
+        const s = sibs[pos + d];
+        if (!s) return null;
+        return {
+          key: s.page.id,
+          side,
+          image: isScriptPage(s.page) ? '' : mediaURL(s.page.image),
+        };
+      })
+      .filter((p): p is { key: string; side: 'prev' | 'next'; image: string } => p !== null)
+  ), [sibs, pos]);
 
   const total = sibs.length;
   const human = pos + 1;
@@ -521,13 +687,17 @@ export function Reader({
                 <Chevron dir="left" />
               </Link>
               <h1 className="panel__title">
-                {chapter?.title ?? 'Read'}
-                {/* Which chapter this is, next to what it is called. The title
-                    is the creator's words and may not carry a number at all —
-                    this one is the running order's, and always does. */}
+                {/* The number leads, and it is only the number. `Chapter 01`
+                    beside a title already called `The drafts` said the word
+                    twice and put the count where it had to be read past; two
+                    digits in front of the name index it the way the shelf and
+                    the filmstrip already do. The title is the creator's words
+                    and may not carry a number at all — this one is the running
+                    order's, and always does. */}
                 {chapterNo > 0 && (
-                  <span className="panel__of">(Chapter {pad(chapterNo - 1)})</span>
+                  <span className="panel__of">{pad(chapterNo - 1)}</span>
                 )}
+                {chapter?.title ?? 'Read'}
               </h1>
               <NoteTip label="About these pages" text={notice} path="about.reader.notice" />
               <Speak text={description} label="Describe" />
@@ -561,6 +731,31 @@ export function Reader({
                   }}
                 >
                   <div className="plate" ref={plate}>
+                    {/* The pages either side, parked just off the plate's own
+                        edges so a drag reveals them instead of pulling the
+                        current page across empty navy. Decorative and
+                        aria-hidden: the page you are on is the one in the
+                        document, and these are the same two pages the flips
+                        and the filmstrip already reach.
+
+                        display:none above 860px, where the flips live in that
+                        gutter and the reader turns pages by pressing rather
+                        than by dragging. */}
+                    {peeks.map((p) => (
+                      <span
+                        key={p.key}
+                        className={`peek peek--${p.side}`}
+                        aria-hidden="true"
+                      >
+                        {p.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.image} alt="" width={1080} height={1620} draggable={false} />
+                        ) : (
+                          <span className="peek__sheet" />
+                        )}
+                      </span>
+                    ))}
+
                     <button
                       className="flip flip--prev" type="button" aria-label="Previous page"
                       disabled={!canPrev} onClick={() => step(-1)}
@@ -652,60 +847,35 @@ export function Reader({
               </div>
 
               <div className="timeline">
+                {/* Which chapter this strip is of. It is the phone's only copy
+                    of the title now — the top bar that used to carry it has
+                    folded into the dock — and this is where it earns its
+                    pixels rather than taxing every page turn for it.
+                    display:none above 860px, where the bar is still there. */}
+                <p className="timeline__of">
+                  {chapterNo > 0 && <span>{pad(chapterNo - 1)}</span>}
+                  {chapter?.title ?? 'Read'}
+                  {/* The standing notice comes with it. It is a fact about the
+                      whole comic — these are drafts — which makes it something
+                      to meet once beside the chapter, not a button parked in
+                      the chrome of every page for the life of the read. */}
+                  <NoteTip label="About these pages" text={notice} path="about.reader.notice" />
+                </p>
+
                 <div className="timeline__rail" aria-hidden="true">
                   <span style={{ inlineSize: `${(human / Math.max(1, total)) * 100}%` }} />
                 </div>
 
                 <div className="timeline__clip">
-                  <nav className="filmstrip" ref={strip} aria-label="Pages in this chapter">
-                    <ul className="filmstrip__list">
-                      {sibs.map((p, n) => (
-                        <li key={p.page.id}>
-                          <button
-                            type="button"
-                            data-i={p.index}
-                            aria-label={`Page ${n + 1}`}
-                            aria-current={p.index === at ? 'true' : 'false'}
-                            /* Both, and deliberately. The drawer is a fixed
-                               element nested several levels inside the panel,
-                               and Chromium hit-tests the real pointer stream
-                               and the compatibility mouse events it synthesises
-                               after touchend differently: pointerdown/up land
-                               on the thumbnail, the click that follows falls
-                               through to the page behind. onClick alone was
-                               therefore dead to a finger while working from a
-                               keyboard; onPointerUp alone would be dead to a
-                               keyboard. go() is idempotent, so when both do
-                               fire the second is a no-op. */
-                            onPointerUp={() => go(p.index)}
-                            onClick={() => go(p.index)}
-                          >
-                            {isScriptPage(p.page) ? (
-                              <span className="thumb__blank" aria-hidden="true">
-                                <Glyph name="script" width={5} />
-                              </span>
-                            ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={mediaURL(p.page.thumb || p.page.image)}
-                                alt="" width={52} height={78} loading="lazy"
-                              />
-                            )}
-                            <span className="film__n" aria-hidden="true">{pad(n)}</span>
-                          </button>
-                          {/* Reordering moves the page in the FLAT running
-                              order, which is the thing /read/[n] indexes. */}
-                          <ListControls listPath="pages.items" index={p.index} length={pages.length} />
-                        </li>
-                      ))}
-                      <li className="filmstrip__add">
-                        <ListAdd listPath="pages.items" length={pages.length} />
-                      </li>
-                      {/* Adds press-and-hold reordering to the list above it.
-                          Renders nothing for a visitor, and the list needs to
-                          know nothing about it. */}
-                      <ListDrag listPath="pages.items" />
-                    </ul>
+                  <nav className="filmstrip" aria-label="Pages in this chapter">
+                    <PageRail
+                      pages={sibs}
+                      at={at}
+                      seen={seen}
+                      total={pages.length}
+                      onPick={go}
+                      stripRef={strip}
+                    />
                   </nav>
                 </div>
               </div>
@@ -759,20 +929,58 @@ export function Reader({
               </button>
             </div>
 
-            {/* The phone's controls. display:none above 860px, so exactly one
-                set of controls is ever in the accessibility tree. */}
+            {/* The phone's controls — and on a phone this is the ONLY bar.
+                The header above is display:none below 860px, and everything
+                on it that a reader still needs is here instead: the way back
+                to the chapters, the note, and read-aloud.
+
+                Two bars cost 158px of a 844px screen to say the same things
+                twice — the count was on both — and they bracketed the artwork
+                so the page could never be more than the gap between them. One
+                bar, at the end a thumb is already at, is 60px.
+
+                display:none above 860px, so exactly one set of controls is
+                ever in the accessibility tree. */}
             <div className="rdock">
+              {/* Bare: the glyph and nothing round it. Every other mark on
+                  this bar is a pill because pressing it changes what the bar
+                  is showing; this one leaves. A button that goes somewhere
+                  else does not need to look like it belongs to the row. */}
+              <Link
+                className="rdock__back tipped"
+                href="/read"
+                aria-label="To Chapters"
+                data-tip="To Chapters"
+              >
+                <Chevron dir="left" />
+              </Link>
+
+              {/* Both forms of the count are in the markup and the stylesheet
+                  picks one. With room, the word labels the button and the
+                  count stands beside it, which is what the bar has always
+                  said. On a short viewport — a phone turned sideways, where
+                  the bar is a bigger share of what is left — they fold into
+                  one and the number becomes the label.
+
+                  Both are aria-hidden and the button is just `Pages`: the page
+                  number is already announced by the live region at the bottom
+                  of this component, and saying it twice in two places is how
+                  the two get to disagree. */}
               <button
                 type="button"
                 className={`rdock__btn${drawer === 'pages' ? ' is-on' : ''}`}
                 aria-expanded={drawer === 'pages'}
+                aria-label="Pages"
                 onClick={() => setDrawer((d) => (d === 'pages' ? null : 'pages'))}
               >
                 <Glyph name="grid" width={5} />
-                Pages
+                <span className="rdock__label">Pages</span>
+                <span className="rdock__count rdock__count--in" aria-hidden="true">
+                  <b>{human}</b> / {total}
+                </span>
               </button>
 
-              <span className="rdock__count">
+              <span className="rdock__count" aria-hidden="true">
                 <b>{human}</b> / {total}
               </span>
 
@@ -784,15 +992,44 @@ export function Reader({
                   onClick={() => setDrawer((d) => (d === 'script' ? null : 'script'))}
                 >
                   <Glyph name="script" width={5} />
-                  Script
+                  <span className="rdock__label">Script</span>
                 </button>
               )}
+
+              {/* One gear rather than a speak button and a picker beside it.
+                  Read-aloud is the only thing this reader has to set, so the
+                  panel is the settings, and the button that starts it is the
+                  first thing inside — the action and the preferences it obeys
+                  in the same place, for the price of one slot in the bar. */}
+              <VoiceMenu
+                className="vm--dock"
+                glyph="settings"
+                label="Settings"
+                head="Read aloud"
+              >
+                <Speak text={description} label="Describe" picker={false} />
+              </VoiceMenu>
             </div>
 
             {/* The editor's sheet, raised by a tap on the page. Renders nothing
                 for a visitor — the tap toggles the chrome for them and this
                 component is not in their bundle. Keyed by the page, so paging
                 with it open re-reads the page it is now over. */}
+            {/* What a held page offers. `held` is an index into the flat
+                running order, which is what the strip's buttons carry and what
+                the list operations take. */}
+            {held !== null && pages[held] && (
+              <PageMenu
+                key={pages[held].id}
+                listPath="pages.items"
+                index={held}
+                page={sibs.findIndex((s) => s.index === held) + 1 || held + 1}
+                chapter={pages[held].chapter}
+                onEdit={() => { go(held); setTools(true); }}
+                onClose={closeHeld}
+              />
+            )}
+
             {tools && page && (
               <PageTools
                 key={page.id}

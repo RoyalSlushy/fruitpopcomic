@@ -53,13 +53,11 @@ export const LABELS: Record<string, string> = {
   'site.footer.copyright': 'Footer copyright',
   'site.footer.build': 'Footer build note',
 
-  'home.ribbons.hot': 'Hero ribbon',
   'home.ribbons.start': 'Start-here ribbon',
   'home.ribbons.drafts': 'Drafts ribbon',
   'home.ribbons.status': 'Status ribbon',
   'home.ribbons.quick': 'Quick-access ribbon',
   'home.hero.badge': 'Hero badge',
-  'home.hero.kicker': 'Hero kicker',
   'home.hero.title': 'Hero headline',
   'home.hero.sub': 'Hero readout',
   'home.hero.cta': 'Hero button',

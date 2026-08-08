@@ -21,7 +21,18 @@ import { split } from '../../lib/voices.ts';
 
 const PREVIEW = 'The stand is empty, and the sky has gone the wrong colour.';
 
-export function VoiceMenu({ className = '' }: { className?: string }) {
+export function VoiceMenu({ className = '', glyph = 'voice', label = 'Voice', head = 'Read-aloud voice', children }: {
+  className?: string;
+  /** the face it wears. The phone's dock opens the same panel as a settings
+   *  gear, because read-aloud is the only thing the reader has to set. */
+  glyph?: string;
+  label?: string;
+  head?: string;
+  /** anything to offer above the settings themselves — the reader puts its
+   *  read-this-page-aloud button here, so the one panel holds the action and
+   *  the preferences it obeys rather than costing the bar two buttons. */
+  children?: React.ReactNode;
+}) {
   const [ok, setOk] = useState(false);
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -69,12 +80,13 @@ export function VoiceMenu({ className = '' }: { className?: string }) {
         aria-controls={id}
         onClick={() => setOpen((v) => !v)}
       >
-        <Glyph name="voice" width={4} />
-        Voice
+        <Glyph name={glyph} width={4} />
+        {label}
       </button>
 
       <div className="vm__panel" id={id} hidden={!open}>
-        <p className="vm__head">Read-aloud voice</p>
+        {children && <div className="vm__extra">{children}</div>}
+        <p className="vm__head">{head}</p>
 
         <label className="vm__row" htmlFor={`${id}-v`}>
           <span className="vm__label">Voice</span>

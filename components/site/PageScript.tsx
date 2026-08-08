@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
-import { EditableText } from '../cms/EditableText.tsx';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import { scriptLines, speechOf } from '../../lib/script.ts';
 import { pause, resume, speak, stop, supported, useTts } from '../../lib/tts.ts';
@@ -94,8 +93,6 @@ export function PageScript({ index, page, script, isDraft }: {
           the page — it has to be written out by hand. Until it is, this column
           stays empty rather than guessing at it.
         </p>
-        {/* An empty string still needs a target the editor can click into. */}
-        <EditableText as="p" className="script__slot" path={`pages.items.${index}.script`} value={text} multiline />
       </aside>
     );
   }
@@ -182,8 +179,6 @@ export function PageScript({ index, page, script, isDraft }: {
           );
         })}
       </ol>
-
-      <EditableText as="p" className="script__slot" path={`pages.items.${index}.script`} value={text} multiline />
     </aside>
   );
 }
