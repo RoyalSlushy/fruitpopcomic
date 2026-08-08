@@ -6,7 +6,7 @@ import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import {
-  hydrate, pause, playable, play, playingTo, resume, stop, stopIfOwner, unlock, useTts,
+  hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts,
 } from '../../lib/tts.ts';
 import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
@@ -52,14 +52,12 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
      this sheet's own playback is stopped. */
   useEffect(() => () => { stopIfOwner(id); }, [index, id]);
 
-  /* Which part's own button reads as playing — only when the queue is bounded
-     to exactly that part, so the whole-page transport lights nothing up. */
-  const bound = running ? playingTo() : null;
-  const partLive = bound === null ? -1 : sections.findIndex(
-    (sec) => sec.lines.length > 0
-      && tts.block >= sec.from && tts.block < sec.from + sec.lines.length
-      && bound === sec.from + sec.lines.length,
-  );
+  /* The part the live beat is inside. Playback runs on past a panel's edge, so
+     this moves from one part to the next on its own. */
+  const parts = sections.filter((sec) => sec.lines.length > 0);
+  const partLive = running
+    ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
+    : -1;
 
   return (
     <div className="sheet" ref={mediaRef}>
@@ -102,17 +100,17 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
 
       {lines.length > 0 ? (
         <ol className="sheet__lines">
-          {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+          {parts.map((sec, n) => (
             <li className="sheet__part" key={sec.id || n}>
-              {ok && sections.length > 1 && (
+              {ok && parts.length > 1 && (
                 <button
                   type="button"
                   className={`tbtn${partLive === n ? ' is-on' : ''}`}
                   onClick={() => {
                     unlock();
-                    play(id, tracks, sec.from, sec.from + sec.lines.length);
+                    play(id, tracks, sec.from);
                   }}
-                  aria-label={`Play part ${n + 1} of ${sections.length} on its own`}
+                  aria-label={`Play from part ${n + 1} of ${parts.length}`}
                 >
                   <Glyph name="play" width={4} />
                 </button>
@@ -135,7 +133,7 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
               })}
               </ol>
             </li>
-          )))}
+          ))}
         </ol>
       ) : (
         <p className="sheet__none">

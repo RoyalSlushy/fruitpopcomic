@@ -7,7 +7,7 @@ import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
 import {
-  hydrate, pause, playable, play, playingTo, resume, stop, stopIfOwner, unlock, useTts,
+  hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts,
 } from '../../lib/tts.ts';
 import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
@@ -123,15 +123,16 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
 
   const start = () => play(id, tracks, from);
 
-  /* Which part's own button should read as playing. A part is "the one
-     playing" only when the queue is bounded to exactly its range — pressing
-     the main transport plays through everything and must not light one up. */
-  const bound = mine && tts.speaking ? playingTo() : null;
-  const partLive = bound === null ? -1 : sections.findIndex(
-    (sec) => sec.lines.length > 0
-      && tts.block >= sec.from && tts.block < sec.from + sec.lines.length
-      && bound === sec.from + sec.lines.length,
-  );
+  /* The part the live beat is inside, so its button reads as playing while the
+     read passes through it. Playback runs on past the panel's edge, so this
+     moves from one part to the next on its own. */
+  /* Only parts with beats in them are shown — an empty panel is real structure
+     in the editor and nothing at all to a reader. Counting the shown ones is
+     what keeps a lone "Part 1" from appearing next to a panel nobody can see. */
+  const parts = sections.filter((sec) => sec.lines.length > 0);
+  const partLive = mine && tts.speaking
+    ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
+    : -1;
 
   /* Three states, not two. Panels that exist but hold no words are structure
      the creator authored, so saying "no script yet" over them would be false —
@@ -213,32 +214,34 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
           : ''}
       </p>
 
-      {/* Grouped by panel, each with its own play control, so a part can be
-          heard on its own. The panel's NAME is not rendered — it is the
-          creator's scaffolding and readers were never meant to see it — so the
-          control names itself by position instead.
+      {/* Grouped by panel, each with a control that STARTS there — playback
+          runs on through the parts after it rather than stopping at the
+          panel's edge, so pressing one is "read from here", not "read only
+          this". The panel's NAME is not rendered: it is the creator's
+          scaffolding and readers were never meant to see it, so the control
+          names itself by position instead.
 
-          One panel is the whole page, and the transport above already plays
-          that, so the per-part control only appears once there is more than
-          one part to choose between. */}
+          One part is the whole page, and the transport above already plays
+          that, so the control appears only once there is more than one part to
+          choose between. */}
       <ol
         className="script__lines"
         ref={list}
         onPointerUp={onSelect}
         onKeyUp={onSelect}
       >
-        {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+        {parts.map((sec, n) => (
           <li className="script__part" key={sec.id || n}>
-            {ok && sections.length > 1 && (
+            {ok && parts.length > 1 && (
               <button
                 type="button"
                 className={`script__partplay${partLive === n ? ' is-on' : ''}`}
                 onClick={() => {
                   unlock();
                   setFrom(sec.from);
-                  play(id, tracks, sec.from, sec.from + sec.lines.length);
+                  play(id, tracks, sec.from);
                 }}
-                aria-label={`Play part ${n + 1} of ${sections.length} on its own`}
+                aria-label={`Play from part ${n + 1} of ${parts.length}`}
               >
                 <Glyph name="play" width={4} />
                 Part {n + 1}
@@ -287,7 +290,7 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
               })}
             </ol>
           </li>
-        )))}
+        ))}
       </ol>
     </aside>
   );

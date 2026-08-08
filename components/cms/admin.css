@@ -188,6 +188,8 @@
   padding: .25rem .4rem;
 }
 .pgt__panelname:focus { outline: none; border-color: var(--gold) }
+/* Under the last panel, and always present — adding is never withheld. */
+.pgt__addpanel { align-self: flex-start; font-size: .5625rem; padding: .35rem .7rem }
 
 /* The orphan list in the page sheet: takes whose line has been rewritten. */
 .pgt__orphans { display: flex; flex-direction: column; gap: .4rem; margin: 0; padding: 0; list-style: none }

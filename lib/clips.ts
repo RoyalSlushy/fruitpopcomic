@@ -89,19 +89,20 @@ export const withoutClip = (clips: readonly PageClip[], key: string): PageClip[]
 
 /** Flatten a playlist into the steps the player walks.
  *
- *  Everything the queue has to decide lives here: where to start, where to
- *  stop, that a clip plays whole while speech is chunked, and that both carry
- *  the LINE index rather than the step index so the caller can highlight the
- *  right line.
+ *  Everything the queue has to decide lives here: where to start, that a clip
+ *  plays whole while speech is chunked, and that both carry the LINE index
+ *  rather than the step index so the caller can highlight the right line.
  *
- *  `to` is exclusive and bounds playback to one panel. It is a bound rather
- *  than a slice of `tracks` on purpose: slicing would renumber `block` from
- *  zero, and the highlight, the jump-to-line click and `aria-current` all read
- *  that number as an index into the page's whole line list. */
-export function stepsOf(tracks: readonly Track[], from = 0, to = tracks.length): Step[] {
+ *  There is no upper bound, and pressing a part relies on that: it starts
+ *  there and runs on through the rest of the page rather than stopping at the
+ *  panel's edge. `from` is a bound rather than a slice of `tracks` for the
+ *  same reason it always was — slicing would renumber `block` from zero, and
+ *  the highlight, the jump-to-line click and `aria-current` all read that
+ *  number as an index into the page's whole line list. */
+export function stepsOf(tracks: readonly Track[], from = 0): Step[] {
   const out: Step[] = [];
   tracks.forEach((t, block) => {
-    if (block < from || block >= to) return;
+    if (block < from) return;
     if (t.src) {
       out.push({ kind: 'clip', src: t.src, speech: t.speech, block });
       return;

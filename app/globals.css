@@ -1534,7 +1534,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 /* ── the voice picker ───────────────────────────────────── */
 
 .vm{position:relative;display:inline-flex;flex:0 0 auto}
-.vm__open{cursor:pointer;font-family:inherit}
+/* The mark needs a size of its own. Without one it is an unsized replaced
+   element — the browser falls back to its default box, which does not sit on
+   the same centre line as the button's text and pushed the icon off true.
+   Matches .speak svg, because the two sit side by side. */
+.vm__open{cursor:pointer;font-family:inherit;justify-content:center}
+.vm__open svg{width:.95rem;height:.95rem;flex:0 0 auto}
 .vm__open.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 
 .vm__panel{

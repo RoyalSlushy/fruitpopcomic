@@ -112,11 +112,30 @@ export default function PageToolsImpl({
   }, [scriptPath, snippetsPath, write]);
   useEffect(() => commit, [commit]);
 
-  /* Turn the legacy string into the first panel. One deliberate press, with a
-     FIXED id: two devices doing this converge on one item instead of minting
-     two that differ only by which save landed last. */
-  const split = () => {
-    listInsert(snippetsPath, 0, { id: 'legacy', title: '', body: text });
+  /* Add a panel — and, on a page that has never been split, fold the legacy
+     string into a first panel on the way past.
+     Doing both under one button is what makes the plus always available. The
+     fold alone was a separate "Split into panels" press, so a page that had
+     never been split showed no way to add anything, which is precisely the
+     page you most want to add a second panel to. The fold still cannot lose
+     text: it copies the legacy string into panel one and leaves `script`
+     alone. Its id is FIXED so two devices folding the same page converge on
+     one item rather than minting two that differ only by which save landed
+     last; the panels added after it get minted ids from ListControlsImpl. */
+  const addPanel = () => {
+    /* The draft, not `text`: commit() writes through setState, so the value
+       read back here would still be the one from before this keystroke and the
+       fold would copy a stale page into panel one. */
+    const carried = unsplit ? tidy(drafts.legacy ?? text) : '';
+    commit();
+    const at = unsplit
+      ? (listInsert(snippetsPath, 0, { id: 'legacy', title: '', body: carried }), 1)
+      : snips.length;
+    listInsert(snippetsPath, at, {
+      id: `n${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
+      title: '',
+      body: '',
+    });
   };
 
   const pick = async (f: File) => {
@@ -228,72 +247,71 @@ export default function PageToolsImpl({
       <div className="pgt__script">
         <b>Script</b>
         <span className="pgt__meta">
-          {unsplit
-            ? 'One block, as it was written. Split it to work panel by panel.'
+          {snips.length === 0 && !unsplit
+            ? 'Add a panel to start. Prose splits by sentence; "NAME: line" is dialogue.'
             : 'Prose splits by sentence. "NAME: line" for dialogue, (brackets) for a direction.'}
         </span>
 
-        {unsplit ? (
-          <>
+        {snips.map((sn, i) => (
+          <div className="pgt__panel" key={sn.id || i}>
+            <div className="pgt__panelbar">
+              <input
+                className="pgt__panelname"
+                value={sn.title}
+                placeholder={`Panel ${i + 1}`}
+                aria-label={`Name for panel ${i + 1} — for you; readers never see it`}
+                onChange={(e) => write(`${snippetsPath}.${i}.title`, e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+              <ListControlsImpl listPath={snippetsPath} index={i} length={snips.length} />
+            </div>
             <textarea
               className="pgt__text"
-              value={drafts.legacy ?? text}
-              rows={6}
+              value={drafts[sn.id] ?? sn.body}
+              rows={4}
               spellCheck
-              placeholder={'Write the page. Prose splits by sentence.\nNAME: a line of dialogue.'}
-              onChange={(e) => setDraft('legacy', e.target.value)}
+              placeholder={'Prose splits by sentence.\nNAME: a line of dialogue.'}
+              onChange={(e) => setDraft(sn.id, e.target.value)}
               onBlur={commit}
+              /* The reader turns pages on the arrow keys, and the sheet's own
+                 Escape listener sits on the document. Neither may reach a key
+                 pressed inside a text box, so Escape is handled here instead
+                 of doing nothing at all. */
               onKeyDown={(e) => {
                 e.stopPropagation();
                 if (e.key === 'Escape') { commit(); onClose(); }
               }}
             />
-            <button type="button" className="cms-list__add" onClick={() => { commit(); split(); }}>
-              Split into panels
-            </button>
-          </>
-        ) : (
-          <>
-            {snips.map((sn, i) => (
-              <div className="pgt__panel" key={sn.id || i}>
-                <div className="pgt__panelbar">
-                  <input
-                    className="pgt__panelname"
-                    value={sn.title}
-                    placeholder={`Panel ${i + 1}`}
-                    aria-label={`Name for panel ${i + 1} — for you; readers never see it`}
-                    onChange={(e) => write(`${snippetsPath}.${i}.title`, e.target.value)}
-                    onKeyDown={(e) => e.stopPropagation()}
-                  />
-                  <ListControlsImpl listPath={snippetsPath} index={i} length={snips.length} />
-                </div>
-                <textarea
-                  className="pgt__text"
-                  value={drafts[sn.id] ?? sn.body}
-                  rows={4}
-                  spellCheck
-                  placeholder={'Prose splits by sentence.\nNAME: a line of dialogue.'}
-                  onChange={(e) => setDraft(sn.id, e.target.value)}
-                  onBlur={commit}
-                  /* The reader turns pages on the arrow keys, and the sheet's own
-                     Escape listener sits on the document. Neither may reach a key
-                     pressed inside a text box, so Escape is handled here instead
-                     of doing nothing at all. */
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    if (e.key === 'Escape') { commit(); onClose(); }
-                  }}
-                />
-              </div>
-            ))}
-            <ListControlsImpl
-              listPath={snippetsPath}
-              index={snips.length}
-              length={snips.length}
-              addOnly
-            />
-          </>
+          </div>
+        ))}
+
+        {/* The one unsplit page still edits as one box, because that is what it
+            is — but the plus below adds to it rather than being withheld. */}
+        {unsplit && (
+          <textarea
+            className="pgt__text"
+            value={drafts.legacy ?? text}
+            rows={6}
+            spellCheck
+            placeholder={'Write the page. Prose splits by sentence.\nNAME: a line of dialogue.'}
+            onChange={(e) => setDraft('legacy', e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Escape') { commit(); onClose(); }
+            }}
+          />
         )}
+
+        {/* Always here, under the last panel. */}
+        <button
+          type="button"
+          className="cms-list__add pgt__addpanel"
+          onClick={addPanel}
+          aria-label="Add a panel below"
+        >
+          + Add panel
+        </button>
       </div>
 
       {/* Recordings.
