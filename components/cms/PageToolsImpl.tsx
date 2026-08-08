@@ -5,7 +5,12 @@ import { createPortal } from 'react-dom';
 import { useCms, useCmsValue } from '../../lib/cms-context.tsx';
 import { labelFor } from '../../lib/cms-schema.ts';
 import { mediaURL } from '../../lib/media.ts';
-import { folderFor, uploadImage } from './upload.ts';
+import { folderFor, uploadMedia } from './upload.ts';
+import LineAudioImpl from './LineAudioImpl.tsx';
+import { effectiveSnippets, pageLines } from '../../lib/script.ts';
+import { clipSrc, orphanClips, withClip, withoutClip } from '../../lib/clips.ts';
+import ListControlsImpl from './ListControlsImpl.tsx';
+import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* Everything you can change about the page you are looking at, in one sheet.
  *
@@ -30,23 +35,40 @@ import { folderFor, uploadImage } from './upload.ts';
 type Field = 'image' | 'thumb';
 
 export default function PageToolsImpl({
-  index, page, image, thumb, script, onClose,
+  index, page, image, thumb, script, snippets, audio, onClose,
 }: {
   index: number;
   page: number;
   image: string;
   thumb: string;
   script: string;
+  snippets: ScriptSnippet[];
+  audio: PageClip[];
   onClose: () => void;
 }) {
-  const { write } = useCms();
+  const { write, listInsert } = useCms();
   const imagePath = `pages.items.${index}.image`;
   const thumbPath = `pages.items.${index}.thumb`;
   const scriptPath = `pages.items.${index}.script`;
+  const audioPath = `pages.items.${index}.audio`;
+  const snippetsPath = `pages.items.${index}.snippets`;
 
   const src = useCmsValue(imagePath, image);
   const thumbSrc = useCmsValue(thumbPath, thumb);
   const text = useCmsValue(scriptPath, script);
+  const clips: PageClip[] = useCmsValue(audioPath, audio) ?? [];
+  const snips: ScriptSnippet[] = useCmsValue(snippetsPath, snippets) ?? [];
+  const panels = effectiveSnippets(snips, text);
+  /* True while the page still reads from the legacy single string. Splitting is
+     a button, never a side effect of opening this sheet — an implicit migration
+     on focus-and-blur is exactly the half-done state to avoid. */
+  const unsplit = snips.length === 0 && text.trim() !== '';
+
+  /* Read from the SAVED script rather than the textarea draft: a key computed
+     from half-typed words would file a recording under a beat that stops
+     existing the moment the sentence is finished. */
+  const { lines, sections } = pageLines(panels);
+  const orphans = orphanClips(lines, clips);
 
   const sheet = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -54,24 +76,67 @@ export default function PageToolsImpl({
   const [busy, setBusy] = useState<Field | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  /* The script box is a plain textarea rather than the contenteditable the
+  /* The script boxes are plain textareas rather than the contenteditable the
      rest of the CMS uses, and that is the point: this is the phone's editor,
      where a real form control gets a real keyboard, an undo stack and a
-     selection that does not fight the page's own gestures. */
-  const [draft, setDraft] = useState(script);
-  useEffect(() => { setDraft(text); }, [text]);
+     selection that does not fight the page's own gestures.
+
+     ONE map keyed by snippet id rather than one useState per panel — the count
+     is dynamic, so per-panel state cannot be declared. */
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const setDraft = (id: string, v: string) => setDrafts((d) => ({ ...d, [id]: v }));
+
+  const tidy = (v: string) => v.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 
   /* Committed on blur, and again on the way out — dismissing the sheet by
      tapping away unmounts it, and an unmount does not reliably blur. Read
-     through refs so the cleanup cannot commit a stale draft. */
-  const live = useRef({ draft, text });
-  live.current = { draft, text };
+     through a ref so the cleanup cannot commit a stale draft, and flush EVERY
+     panel: with one box it was enough to commit the one that had focus. */
+  const live = useRef({ drafts, panels, snips, unsplit });
+  live.current = { drafts, panels, snips, unsplit };
+
   const commit = useCallback(() => {
-    const { draft: d, text: t } = live.current;
-    const next = d.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-    if (next !== t) write(scriptPath, next);
-  }, [scriptPath, write]);
+    const { drafts: d, panels: p, snips: st, unsplit: u } = live.current;
+    if (u) {
+      /* Still legacy: there is one box and it writes the legacy field. */
+      const next = tidy(d.legacy ?? '');
+      if (d.legacy !== undefined && next !== tidy(p[0]?.body ?? '')) write(scriptPath, next);
+      return;
+    }
+    st.forEach((sn, i) => {
+      const v = d[sn.id];
+      if (v === undefined) return;
+      const next = tidy(v);
+      if (next !== sn.body) write(`${snippetsPath}.${i}.body`, next);
+    });
+  }, [scriptPath, snippetsPath, write]);
   useEffect(() => commit, [commit]);
+
+  /* Add a panel — and, on a page that has never been split, fold the legacy
+     string into a first panel on the way past.
+     Doing both under one button is what makes the plus always available. The
+     fold alone was a separate "Split into panels" press, so a page that had
+     never been split showed no way to add anything, which is precisely the
+     page you most want to add a second panel to. The fold still cannot lose
+     text: it copies the legacy string into panel one and leaves `script`
+     alone. Its id is FIXED so two devices folding the same page converge on
+     one item rather than minting two that differ only by which save landed
+     last; the panels added after it get minted ids from ListControlsImpl. */
+  const addPanel = () => {
+    /* The draft, not `text`: commit() writes through setState, so the value
+       read back here would still be the one from before this keystroke and the
+       fold would copy a stale page into panel one. */
+    const carried = unsplit ? tidy(drafts.legacy ?? text) : '';
+    commit();
+    const at = unsplit
+      ? (listInsert(snippetsPath, 0, { id: 'legacy', title: '', body: carried }), 1)
+      : snips.length;
+    listInsert(snippetsPath, at, {
+      id: `n${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
+      title: '',
+      body: '',
+    });
+  };
 
   const pick = async (f: File) => {
     const field = target.current;
@@ -79,7 +144,7 @@ export default function PageToolsImpl({
     setErr(null);
     const path = field === 'image' ? imagePath : thumbPath;
     try {
-      write(path, await uploadImage(f, folderFor(path)));
+      write(path, await uploadMedia(f, folderFor(path)));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -172,30 +237,165 @@ export default function PageToolsImpl({
         </button>
       </div>
 
-      <label className="pgt__script">
+      {/* The script, as panels.
+
+          A dynamic list, so each box reads its draft out of one keyed map and
+          the add/move/delete buttons are ListControlsImpl — the same control
+          the rest of the CMS uses, which mints the id the merge needs to match
+          a panel across a reorder. The schema label makes its copy read
+          "+ Add panel" without anything here saying so. */}
+      <div className="pgt__script">
         <b>Script</b>
-        {/* The schema's own words for this field, which are a sentence rather
-            than a name — as a heading it wrapped to two lines, as a hint under
-            one it is the instruction it was written to be. */}
-        <span className="pgt__meta">{labelFor(scriptPath)?.replace(/^[^—]*—\s*/, '') ?? 'One beat per line.'}</span>
-        <textarea
-          className="pgt__text"
-          value={draft}
-          rows={6}
-          spellCheck
-          placeholder={'One beat per line.\nNAME: a line of dialogue.'}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          /* The reader turns pages on the arrow keys, and the sheet's own
-             Escape listener sits on the document. Neither may reach a key
-             pressed inside a text box, so Escape is handled here instead of
-             doing nothing at all. */
-          onKeyDown={(e) => {
-            e.stopPropagation();
-            if (e.key === 'Escape') { commit(); onClose(); }
-          }}
-        />
-      </label>
+        <span className="pgt__meta">
+          {snips.length === 0 && !unsplit
+            ? 'Add a panel to start. Prose splits by sentence; "NAME: line" is dialogue.'
+            : 'Prose splits by sentence. "NAME: line" for dialogue, (brackets) for a direction.'}
+        </span>
+
+        {snips.map((sn, i) => (
+          <div className="pgt__panel" key={sn.id || i}>
+            <div className="pgt__panelbar">
+              <input
+                className="pgt__panelname"
+                value={sn.title}
+                placeholder={`Panel ${i + 1}`}
+                aria-label={`Name for panel ${i + 1} — for you; readers never see it`}
+                onChange={(e) => write(`${snippetsPath}.${i}.title`, e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+              <ListControlsImpl listPath={snippetsPath} index={i} length={snips.length} />
+            </div>
+            <textarea
+              className="pgt__text"
+              value={drafts[sn.id] ?? sn.body}
+              rows={4}
+              spellCheck
+              placeholder={'Prose splits by sentence.\nNAME: a line of dialogue.'}
+              onChange={(e) => setDraft(sn.id, e.target.value)}
+              onBlur={commit}
+              /* The reader turns pages on the arrow keys, and the sheet's own
+                 Escape listener sits on the document. Neither may reach a key
+                 pressed inside a text box, so Escape is handled here instead
+                 of doing nothing at all. */
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Escape') { commit(); onClose(); }
+              }}
+            />
+          </div>
+        ))}
+
+        {/* The one unsplit page still edits as one box, because that is what it
+            is — but the plus below adds to it rather than being withheld. */}
+        {unsplit && (
+          <textarea
+            className="pgt__text"
+            value={drafts.legacy ?? text}
+            rows={6}
+            spellCheck
+            placeholder={'Write the page. Prose splits by sentence.\nNAME: a line of dialogue.'}
+            onChange={(e) => setDraft('legacy', e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Escape') { commit(); onClose(); }
+            }}
+          />
+        )}
+
+        {/* Always here, under the last panel. */}
+        <button
+          type="button"
+          className="cms-list__add pgt__addpanel"
+          onClick={addPanel}
+          aria-label="Add a panel below"
+        >
+          + Add panel
+        </button>
+      </div>
+
+      {/* Recordings.
+          The per-line control in the script column is a hover affordance, and
+          the whole reason this sheet exists is that hover affordances do not
+          exist on a phone. So every beat is listed here too — same control,
+          reachable by tap. */}
+      {lines.length > 0 && (
+        <div className="pgt__script">
+          <b>Recordings</b>
+          {/* Grouped by panel. Flat, a six-panel page is forty rows with no
+              sense of where you are, and two panels holding the same beat look
+              like the same row twice. */}
+          {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+            <div key={sec.id || n}>
+              {sections.length > 1 && (
+                <span className="pgt__meta">{sec.title || `Panel ${n + 1}`}</span>
+              )}
+              <ul className="pgt__orphans">
+                {sec.lines.map((l) => (
+                  <li className="pgt__orphan" key={l.key}>
+                    <q>{l.text}</q>
+                    {clipSrc(clips, l.key) !== null && <b aria-hidden="true">●</b>}
+                    <LineAudioImpl
+                      path={audioPath}
+                      clips={clips}
+                      lineKey={l.key}
+                      said={l.speech}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )))}
+        </div>
+      )}
+
+      {/* Takes whose line has since been rewritten. They are kept, named by
+          what they say, and repairable — losing a recording silently because
+          a typo was fixed is not a trade this project makes anywhere else. */}
+      {orphans.length > 0 && (
+        <div className="pgt__script">
+          <b>Recordings with no line</b>
+          <ul className="pgt__orphans">
+            {orphans.map((c) => (
+              <li className="pgt__orphan" key={c.key}>
+                <q>{c.said || 'unnamed'}</q>
+                <select
+                  className="pgt__select"
+                  value=""
+                  aria-label={`Re-attach the recording of "${c.said}" to a line`}
+                  onChange={(e) => {
+                    const to = e.target.value;
+                    if (!to) return;
+                    const line = lines.find((l) => l.key === to);
+                    if (!line) return;
+                    write(audioPath,
+                      withClip(withoutClip(clips, c.key), line.key, c.src, line.speech));
+                  }}
+                >
+                  <option value="">Re-attach to…</option>
+                  {/* Grouped, because two panels can hold the same beat and
+                      the options would otherwise be indistinguishable — same
+                      words, differing only in a value nobody can see. */}
+                  {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+                    <optgroup key={sec.id || n} label={sec.title || `Panel ${n + 1}`}>
+                      {sec.lines.map((l) => (
+                        <option key={l.key} value={l.key}>{l.text}</option>
+                      ))}
+                    </optgroup>
+                  )))}
+                </select>
+                <button
+                  type="button"
+                  className="cms-clip__btn cms-clip__btn--off"
+                  onClick={() => write(audioPath, withoutClip(clips, c.key))}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {err && <p className="pgt__err" role="alert">{err}</p>}
       <p className="pgt__note">Held as a draft until you press Save on the editor bar.</p>

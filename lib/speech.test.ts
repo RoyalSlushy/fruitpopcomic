@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { chunk, toSpeech, passage, MAX_CHUNK } from './speech.ts';
+import { chunk, sentences, toSpeech, passage, MAX_CHUNK } from './speech.ts';
 
 describe('chunk', () => {
   test('blank text yields nothing to say', () => {
@@ -92,4 +92,46 @@ describe('passage', () => {
   test('nothing to say is the empty string', () => {
     assert.equal(passage('', undefined), '');
   });
+});
+
+/* ── sentences ────────────────────────────────────────────────
+   Extracted out of chunk() so the site has one sentence rule. It matters more
+   than it used to: a beat in a script is now a sentence, so a bad split is a
+   visible line with its own highlight and its own recording slot, not just an
+   inaudible utterance boundary. */
+
+test('a paragraph splits one entry per sentence', () => {
+  assert.deepEqual(
+    sentences('Sparks fell. She looked up! Was it over?'),
+    ['Sparks fell.', 'She looked up!', 'Was it over?'],
+  );
+});
+
+test('an abbreviation does not end a sentence', () => {
+  assert.deepEqual(sentences('Mrs. Park went home.'), ['Mrs. Park went home.']);
+  assert.deepEqual(sentences('Dr. Vance and Mr. Roe left.'), ['Dr. Vance and Mr. Roe left.']);
+  assert.deepEqual(sentences('She met J. Roe today.'), ['She met J. Roe today.']);
+});
+
+test('a decimal point is not a sentence end', () => {
+  assert.deepEqual(sentences('It cost 3.5 credits.'), ['It cost 3.5 credits.']);
+});
+
+test('a sentence longer than the chunk budget is still ONE sentence', () => {
+  const long = `${'and on '.repeat(60)}end.`;
+  const out = sentences(long);
+  assert.equal(out.length, 1, 'the length budget belongs to chunk(), not here');
+  assert.ok(out[0]!.length > MAX_CHUNK);
+});
+
+test('blank and whitespace-only text yields nothing', () => {
+  assert.deepEqual(sentences(''), []);
+  assert.deepEqual(sentences('   \n\t '), []);
+});
+
+test('chunk still honours its budget now that it shares the sentence rule', () => {
+  const long = `${'and on '.repeat(60)}end.`;
+  for (const c of chunk(long)) assert.ok(c.length <= MAX_CHUNK, c);
+  /* and the ordinary case is untouched */
+  assert.deepEqual(chunk('One. Two. Three.'), ['One. Two. Three.']);
 });

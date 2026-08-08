@@ -147,6 +147,26 @@ export function VoiceMenu({ className = '', glyph = 'voice', label = 'Voice', he
           <output className="vm__out" htmlFor={`${id}-p`}>{settings.pitch.toFixed(1)}</output>
         </label>
 
+        {/* Some script beats are recorded in the creator's own voice. Those
+            ignore everything above except speed, and a page that is only
+            part-recorded switches between the two mid-scene. Anyone who would
+            rather have one consistent voice than a better one can say so. */}
+        <label className="vm__row vm__row--check" htmlFor={`${id}-c`}>
+          <span className="vm__label">Recorded lines</span>
+          <input
+            id={`${id}-c`}
+            type="checkbox"
+            checked={settings.clips}
+            onChange={(e) => setSettings({ clips: e.target.checked })}
+          />
+          <span className="vm__out">{settings.clips ? 'On' : 'Off'}</span>
+        </label>
+
+        <p className="vm__note">
+          Where the creator has recorded a line, it plays in their voice and only
+          Speed applies to it. Every other line uses the voice above.
+        </p>
+
         <div className="vm__foot">
           <button type="button" className="btn btn--solid" onClick={() => sample(PREVIEW)}>
             <Glyph name="play" width={4} />
@@ -160,6 +180,7 @@ export function VoiceMenu({ className = '', glyph = 'voice', label = 'Voice', he
               settings.voiceURI === null
               && settings.rate === DEFAULTS.rate
               && settings.pitch === DEFAULTS.pitch
+              && settings.clips === DEFAULTS.clips
             }
           >
             Reset

@@ -1506,6 +1506,28 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .sheet__lines li[data-kind="note"]{font-style:italic;color:#4A5468}
 .sheet__none{margin:auto 0;color:#5A6478;font-size:.875rem;line-height:1.5}
 
+/* The tag and the transport share a row. A script page is the one page that is
+   entirely text, so it is the one page worth playing straight through.
+   `margin-inline-end:auto` rather than `flex:1` on the tag — it is a clipped
+   chip sized to its words, and stretching it would pull the cut corner off. */
+.sheet__bar{display:flex;align-items:center;gap:.6rem}
+.sheet__bar .sheet__tag{margin-inline-end:auto}
+
+/* One rule carries both signals, so they cannot fight: transparent by default,
+   magenta where the creator has recorded the line, and filled while it plays.
+   On this pale sheet that reads as the same idea as the gold dot in the dark
+   transcript column, in the other key. */
+.sheet__part{
+  list-style:none;display:flex;flex-direction:column;gap:.5rem;
+  padding-inline-start:0;border:0;cursor:pointer;border-radius:5px;
+}
+.sheet__part + .sheet__part{margin-block-start:.3rem}
+.sheet__part:hover{background:rgba(27,34,51,.05)}
+.sheet__part.is-live{background:rgba(214,51,132,.07)}
+.sheet__lines li{padding-inline-start:.5rem;border-inline-start:2px solid transparent}
+.sheet__lines li[data-clip]{border-inline-start-color:var(--magenta-dp)}
+.sheet__lines li.is-live{background:rgba(214,51,132,.12);border-inline-start-color:var(--magenta)}
+
 .thumb__blank{
   display:grid;place-items:center;
   inline-size:52px;block-size:78px;
@@ -1516,7 +1538,12 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 /* ── the voice picker ───────────────────────────────────── */
 
 .vm{position:relative;display:inline-flex;flex:0 0 auto}
-.vm__open{cursor:pointer;font-family:inherit}
+/* The mark needs a size of its own. Without one it is an unsized replaced
+   element — the browser falls back to its default box, which does not sit on
+   the same centre line as the button's text and pushed the icon off true.
+   Matches .speak svg, because the two sit side by side. */
+.vm__open{cursor:pointer;font-family:inherit;justify-content:center}
+.vm__open svg{width:.95rem;height:.95rem;flex:0 0 auto}
 .vm__open.is-on{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 var(--gold-dp)}
 
 .vm__panel{
@@ -1555,6 +1582,14 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-variant-numeric:tabular-nums;
   min-inline-size:2.5rem;text-align:end;
 }
+.vm__row--check input{
+  inline-size:16px;block-size:16px;justify-self:start;
+  accent-color:var(--gold);cursor:pointer;
+}
+/* Why the rows above do not govern a recorded line. Kept as a note rather than
+   disabling the controls: they still apply to every UNRECORDED line on the
+   same page, so greying them out would be a lie. */
+.vm__note{margin:0;font-size:.6875rem;line-height:1.45;color:var(--ink-soft)}
 .vm__foot{display:flex;gap:.5rem;margin-block-start:.15rem}
 .vm__none{margin:0;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
 
@@ -1576,12 +1611,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-size:.8125rem;letter-spacing:.08em;color:var(--gold);
 }
 .script__head svg{inline-size:16px;block-size:16px;flex:0 0 16px}
-.script__page{
-  margin-inline-start:auto;
-  font-size:.6875rem;letter-spacing:.06em;color:var(--ink-soft);
-  font-variant-numeric:tabular-nums;
-}
-
 .script__transport{display:flex;align-items:center;gap:.4rem;flex:0 0 auto}
 .tbtn{
   inline-size:34px;block-size:34px;
@@ -1649,6 +1678,44 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .script__cue:hover{color:#fff;border-color:#fff}
 .script__line.is-live .script__cue{opacity:1;border-color:var(--gold);color:var(--gold)}
 @media (hover:none){.script__cue{opacity:1}}
+
+/* A line the creator has actually recorded.
+   Its job is to explain a voice change BEFORE it happens: on a page that is
+   part recorded and part synthesised the switch is otherwise indistinguishable
+   from something being broken. Deliberately quiet — it marks provenance, it is
+   not a control, and it must not outrank `is-live`. */
+.script__line[data-clip]::after{
+  content:'';position:absolute;inset-inline-end:.45rem;inset-block-start:.78rem;
+  inline-size:5px;block-size:5px;border-radius:999px;
+  background:var(--gold);opacity:.5;
+}
+.script__line[data-clip].is-live::after{opacity:1}
+
+/* A part — one panel's worth of beats, and itself the control that plays them.
+   No label and no button: the words are the target, so the only thing marking
+   a part is the small step between one and the next. They sit close together
+   because a script reads as continuous prose; the gap is a breath, not a rule. */
+.script__part{
+  list-style:none;display:flex;flex-direction:column;gap:.15rem;
+  cursor:pointer;border-radius:5px;
+  transition:background .14s var(--ease);
+}
+.script__part + .script__part{margin-block-start:.22rem}
+.script__part:hover{background:rgba(159,179,217,.06)}
+.script__part.is-live{background:rgba(252,176,64,.06)}
+
+/* Where "Draft 08" was. */
+.script__theatre{
+  display:inline-flex;align-items:center;gap:.3rem;flex:0 0 auto;cursor:pointer;
+  padding:.26rem .55rem;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.09em;
+  border:2px solid var(--gold);border-radius:999px;
+  background:transparent;color:var(--gold);
+  transition:background .14s,color .14s;
+}
+.script__theatre svg{inline-size:9px;block-size:9px}
+.script__theatre:hover{background:var(--gold);color:var(--navy)}
 
 .script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
 .script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}
@@ -2952,4 +3019,95 @@ html[data-vt="lateral"]::view-transition-new(root){animation:.24s .04s both fp-i
     transition-duration:.01ms!important;
   }
   .ch__scan{display:none}
+}
+
+
+/* ── theatre ─────────────────────────────────────────────────
+   The page and its words, and nothing else. Fixed over everything, its own
+   stacking context, and deliberately without a permanent bar: a show with
+   chrome on it is not a show. */
+.theatre{
+  position:fixed;inset:0;z-index:120;
+  display:grid;grid-template-rows:1fr auto;
+  background:#05070E;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+.theatre__stage{
+  min-block-size:0;display:grid;place-items:center;
+  padding:clamp(.5rem,2vw,1.4rem);
+}
+.theatre__art{
+  max-inline-size:100%;max-block-size:100%;
+  object-fit:contain;
+  user-select:none;-webkit-user-drag:none;
+}
+.theatre__undrawn{
+  margin:0;font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.12em;color:var(--ink-soft);
+}
+
+/* The words.
+   No rule between them and the page: the two are one thing being read, and a
+   line across the middle made it a caption bar. The words are bounded instead
+   — a part gets a share of the screen, not whatever it asks for — and the type
+   shrinks to fit that share rather than being cut off. Nothing scrolls: a show
+   should not have to be scrolled. */
+.theatre__words{
+  cursor:pointer;user-select:none;
+  display:grid;place-items:center;
+  max-block-size:38dvh;overflow:hidden;
+  padding:clamp(.9rem,3vw,1.5rem) clamp(1rem,5vw,3rem) clamp(1.4rem,4vw,2rem);
+}
+.theatre__part{
+  margin:0;max-inline-size:46rem;
+  font-size:clamp(1rem,2.4vw,1.375rem);line-height:1.5;
+  color:var(--ink-soft);text-wrap:pretty;
+  animation:theatre-part .34s var(--ease) both;
+}
+.theatre__part span{transition:color .18s var(--ease)}
+.theatre__part span.is-live{color:#fff}
+.theatre__part--none{font-style:italic;opacity:.6}
+
+/* One part gives way to the next: out of the way, in from below, quickly
+   enough that it never delays the voice already speaking the new one. */
+@keyframes theatre-part{
+  from{opacity:0;transform:translateY(.5rem)}
+  to{opacity:1;transform:none}
+}
+
+/* Hugging the left, away from the thumb that swipes pages. */
+.theatre__chrome{
+  position:absolute;inset-inline-start:0;inset-block-start:0;
+  display:flex;align-items:center;gap:.6rem;
+  padding:.7rem .9rem;
+  opacity:0;visibility:hidden;
+  transition:opacity .2s var(--ease),visibility .2s;
+}
+.theatre__chrome.is-on{opacity:1;visibility:visible}
+.theatre__exit{
+  inline-size:38px;block-size:38px;display:grid;place-items:center;cursor:pointer;
+  padding:0;border:2px solid rgba(255,255,255,.5);border-radius:999px;
+  background:rgba(5,7,14,.72);color:#fff;
+}
+.theatre__exit svg{inline-size:14px;block-size:14px}
+.theatre__exit:hover{border-color:#fff;background:var(--magenta-dp)}
+.theatre__count{
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.1em;color:var(--ink-soft);
+  background:rgba(5,7,14,.72);padding:.3rem .5rem;border-radius:999px;
+}
+
+/* Wide enough to sit side by side: the artwork keeps the height it has and the
+   words take a column beside it rather than a strip beneath. */
+@media (min-width:900px) and (orientation:landscape){
+  .theatre{grid-template-rows:1fr;grid-template-columns:1fr minmax(18rem,26rem)}
+  /* Beside the page rather than under it, so the ceiling is the whole height. */
+  .theatre__words{max-block-size:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .theatre__chrome{transition:none}
+  .theatre__part{animation:none}
+  .theatre__part span{transition:none}
 }

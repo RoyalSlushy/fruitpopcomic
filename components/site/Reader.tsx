@@ -7,12 +7,14 @@ import { Speak } from './Speak.tsx';
 import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
+import { ScriptSheet } from './ScriptSheet.tsx';
+import { Theatre } from './Theatre.tsx';
 import { PageRail } from './PageRail.tsx';
 import { PageTools } from '../cms/PageTools.tsx';
 import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
-import { scriptLines } from '../../lib/script.ts';
+import { effectiveSnippets, hasScript, pageLines } from '../../lib/script.ts';
 import { mediaURL, pad } from '../../lib/media.ts';
 import type { Chapter, ComicPage } from '../../content/pages.ts';
 
@@ -26,12 +28,15 @@ function describe(page: ComicPage | undefined, n: number, total: number): string
   if (!page) return '';
   if (page.alt) return page.alt;
   const head = `Page ${n} of ${total}${page.isDraft ? ' — rough draft' : ''}.`;
+  /* Beats, not panels: a page of empty headings has nothing to read aloud, so
+     it must still describe itself as unwritten. */
+  const written = hasScript(pageLines(effectiveSnippets(page.snippets, page.script)));
   if (isScriptPage(page)) {
-    return page.script.trim()
+    return written
       ? `${head} Not drawn yet — this page is its script.`
       : `${head} Blank: no drawing and no script yet.`;
   }
-  return page.script.trim()
+  return written
     ? `${head} Dialogue is lettered into the artwork; the script for this page is in the Script column.`
     : `${head} Dialogue is lettered into the artwork and cannot be read as text.`;
 }
@@ -98,6 +103,7 @@ export function Reader({
   const [held, setHeld] = useState<number | null>(null);  // the held page's menu
   const [zoomed, setZoomed] = useState(false);      // pinched in past 1×
   const [cinema, setCinema] = useState(false);      // the page, and nothing else
+  const [theatre, setTheatre] = useState(false);    // the page, its words, read straight through
   /* Which pages have actually been opened, by id rather than by index — the
      editor can reorder the running order underneath this, and a set of
      positions would then be a set of claims about the wrong pages. */
@@ -336,11 +342,18 @@ export function Reader({
     history.replaceState(null, '', `/read/${i + 1}`);
   }, [pages.length, unzoom]);
 
-  /* Relative moves walk the CHAPTER, not the whole comic. */
-  const step = useCallback((delta: number) => {
+  /* Relative moves walk the CHAPTER, not the whole comic.
+     Reports whether it actually moved, which is how theatre mode knows the
+     show has reached the end of the chapter rather than silently replaying
+     the last page. */
+  const stepTo = useCallback((delta: number) => {
     const next = sibs[pos + delta];
-    if (next) go(next.index);
+    if (!next) return false;
+    go(next.index);
+    return true;
   }, [sibs, pos, go]);
+
+  const step = useCallback((delta: number) => { stepTo(delta); }, [stepTo]);
 
   /* ── the turn ───────────────────────────────────────────────
      A swipe carries the page off and brings its neighbour in from the other
@@ -391,6 +404,8 @@ export function Reader({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /* Theatre mode is a room of its own and handles its own keys. */
+      if (theatre) return;
       const t = e.target as HTMLElement | null;
       if (t?.isContentEditable) return;              // never steal keys mid-edit
       if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
@@ -413,7 +428,7 @@ export function Reader({
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
-  }, [step, go, sibs, drawer, unzoom, cinema]);
+  }, [step, go, sibs, drawer, unzoom, cinema, theatre]);
 
   /* A trackpad pinch reaches the page as a wheel event with ctrlKey set, which
      is also how a browser is asked to zoom the whole document — so this is the
@@ -650,10 +665,6 @@ export function Reader({
   const total = sibs.length;
   const human = pos + 1;
   const description = describe(page, human, total);
-  const lines = useMemo(
-    () => (page && isScriptPage(page) ? scriptLines(page.script) : []),
-    [page],
-  );
 
   return (
     <section
@@ -777,29 +788,15 @@ export function Reader({
                         />
                       )}
 
-                      {/* A page that is written but not drawn. It is laid out as
-                          a page rather than as a gap, because that is what it is
-                          in the running order — the chapter can be built before
-                          it is drawn. */}
                       {page && isScriptPage(page) && (
-                        <div className="sheet" ref={(el) => { media.current = el; }}>
-                          <p className="sheet__tag">Not drawn yet</p>
-                          {lines.length > 0 ? (
-                            <ol className="sheet__lines">
-                              {lines.map((l) => (
-                                <li key={l.i} data-kind={l.kind}>
-                                  {l.who && <b>{l.who}</b>}
-                                  <span>{l.text}</span>
-                                </li>
-                              ))}
-                            </ol>
-                          ) : (
-                            <p className="sheet__none">
-                              This page is blank. No drawing, and no script written
-                              for it yet.
-                            </p>
-                          )}
-                        </div>
+                        <ScriptSheet
+                          key={page.id}
+                          index={at}
+                          script={page.script}
+                          snippets={page.snippets ?? []}
+                          audio={page.audio ?? []}
+                          mediaRef={(el) => { media.current = el; }}
+                        />
                       )}
 
                       {/* No caption. The page number was tipped over the top
@@ -839,9 +836,10 @@ export function Reader({
                   <PageScript
                     key={page.id}
                     index={at}
-                    page={human}
                     script={page.script}
-                    isDraft={page.isDraft}
+                    snippets={page.snippets ?? []}
+                    audio={page.audio ?? []}
+                    onTheatre={() => setTheatre(true)}
                   />
                 )}
               </div>
@@ -1038,6 +1036,8 @@ export function Reader({
                 image={page.image}
                 thumb={page.thumb}
                 script={page.script}
+                snippets={page.snippets ?? []}
+                audio={page.audio ?? []}
                 onClose={closeTools}
               />
             )}
@@ -1052,6 +1052,17 @@ export function Reader({
           </div>
         </div>
       </div>
+
+      {/* Fixed over everything, and mounted last so it needs no z-index race
+          with the drawers it covers. */}
+      {theatre && (
+        <Theatre
+          pages={sibs.map((sb) => sb.page)}
+          at={pos}
+          onPage={stepTo}
+          onClose={() => setTheatre(false)}
+        />
+      )}
     </section>
   );
 }

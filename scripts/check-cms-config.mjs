@@ -55,6 +55,27 @@ if (problems.length === 0) {
   console.warn('');
 }
 
+/* Where the BROWSER will look for uploaded media. Checked apart from the write
+   credentials because it fails apart from them, and far more confusingly: with
+   only SUPABASE_URL set the editor signs in, saves and uploads perfectly, and
+   then every uploaded image renders broken while every recording silently falls
+   back to the synthesiser. next.config.ts defaults one from the other, so this
+   line exists to say which value actually got inlined. */
+const mediaBase = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
+if (mediaBase) {
+  let host = mediaBase;
+  try { host = new URL(mediaBase).hostname; } catch { /* report it as given */ }
+  console.log(`✓ Uploaded media will be served from ${host}`);
+} else {
+  console.warn('');
+  console.warn('⚠ UPLOADED MEDIA WILL NOT LOAD — neither NEXT_PUBLIC_SUPABASE_URL');
+  console.warn('  nor SUPABASE_URL is set, so the browser has no address for the');
+  console.warn('  storage bucket. Images uploaded in the CMS render broken, and');
+  console.warn('  recorded script lines fall back to the synthesised voice.');
+  console.warn('  Anything committed under public/ is unaffected.');
+  console.warn('');
+}
+
 if (writeProblems.length === 0) {
   console.log('✓ Supabase write credentials present — the editor will be able to save');
 } else {
