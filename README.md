@@ -184,7 +184,8 @@ Two things follow from this that are worth knowing:
 
 A page's script is a list of **panels** — named, reorderable sections you write
 and record separately. The page still reads straight through them as one
-performance. Inside a panel, dialogue and directions are one beat per line, and
+performance, and each part also carries a control to play just itself. Panel
+names are yours: they organise the writing and are never shown to a reader. Inside a panel, dialogue and directions are one beat per line, and
 prose splits by sentence, so a paragraph is a run of beats rather than one
 unhighlightable block.
 

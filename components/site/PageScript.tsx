@@ -6,7 +6,9 @@ import { LineAudio } from '../cms/LineAudio.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
-import { hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts } from '../../lib/tts.ts';
+import {
+  hydrate, pause, playable, play, playingTo, resume, stop, stopIfOwner, unlock, useTts,
+} from '../../lib/tts.ts';
 import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* The written side of a page.
@@ -51,9 +53,9 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
   const text = useCmsValue(`pages.items.${index}.script`, script);
   const snips = useCmsValue(`pages.items.${index}.snippets`, snippets);
   const clips = useCmsValue(`pages.items.${index}.audio`, audio);
-  /* Snippet titles are the creator's own scaffolding and are NOT rendered —
-     the transcript stays one continuous list of beats, exactly as it read
-     before a page could be split up. `sections` is for the editor. */
+  /* A panel's NAME is the creator's own scaffolding and is never rendered, but
+     the GROUPING is, so that a part can carry a control to play just itself.
+     `lines` stays the flat list every index below refers to. */
   const { lines, sections } = useMemo(
     () => pageLines(effectiveSnippets(snips, text)), [snips, text],
   );
@@ -120,6 +122,16 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
   }, [jump]);
 
   const start = () => play(id, tracks, from);
+
+  /* Which part's own button should read as playing. A part is "the one
+     playing" only when the queue is bounded to exactly its range — pressing
+     the main transport plays through everything and must not light one up. */
+  const bound = mine && tts.speaking ? playingTo() : null;
+  const partLive = bound === null ? -1 : sections.findIndex(
+    (sec) => sec.lines.length > 0
+      && tts.block >= sec.from && tts.block < sec.from + sec.lines.length
+      && bound === sec.from + sec.lines.length,
+  );
 
   /* Three states, not two. Panels that exist but hold no words are structure
      the creator authored, so saying "no script yet" over them would be false —
@@ -201,52 +213,81 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
           : ''}
       </p>
 
+      {/* Grouped by panel, each with its own play control, so a part can be
+          heard on its own. The panel's NAME is not rendered — it is the
+          creator's scaffolding and readers were never meant to see it — so the
+          control names itself by position instead.
+
+          One panel is the whole page, and the transport above already plays
+          that, so the per-part control only appears once there is more than
+          one part to choose between. */}
       <ol
         className="script__lines"
         ref={list}
         onPointerUp={onSelect}
         onKeyUp={onSelect}
       >
-        {lines.map((l) => {
-          const live = mine && tts.speaking && tts.block === l.i;
-          const recorded = tracks[l.i]?.src != null;
-          return (
-            <li
-              key={l.i}
-              data-line={l.i}
-              data-kind={l.kind}
-              /* Marks a line the creator has recorded. Its job is to explain
-                 the voice change before it happens rather than after: on a
-                 part-recorded page the switch between a real take and the
-                 synthesiser is otherwise indistinguishable from a fault. */
-              data-clip={recorded ? '' : undefined}
-              /* `is-from` marks where the next Play will start, so it only
-                 means anything once the reader has actually moved it. Showing
-                 it on line one by default would highlight a choice nobody
-                 made. */
-              className={`script__line${live ? ' is-live' : ''}${!live && from > 0 && from === l.i ? ' is-from' : ''}`}
-              aria-current={live ? 'true' : undefined}
-            >
-              {ok && (
-                <button
-                  type="button"
-                  className="script__cue"
-                  onClick={() => { unlock(); play(id, tracks, l.i); }}
-                  aria-label={
-                    `Play from line ${l.i + 1}${l.who ? `, ${l.who}` : ''}`
-                    + `${recorded ? ' — recorded' : ''}`
-                  }
-                >
-                  <Glyph name="play" width={4} />
-                </button>
-              )}
-              {l.who && <b className="script__who">{l.who}</b>}
-              <span className="script__said">{l.text}</span>
-              <LineAudio path={`pages.items.${index}.audio`} clips={clips ?? []}
-                lineKey={l.key} said={l.speech} />
-            </li>
-          );
-        })}
+        {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+          <li className="script__part" key={sec.id || n}>
+            {ok && sections.length > 1 && (
+              <button
+                type="button"
+                className={`script__partplay${partLive === n ? ' is-on' : ''}`}
+                onClick={() => {
+                  unlock();
+                  setFrom(sec.from);
+                  play(id, tracks, sec.from, sec.from + sec.lines.length);
+                }}
+                aria-label={`Play part ${n + 1} of ${sections.length} on its own`}
+              >
+                <Glyph name="play" width={4} />
+                Part {n + 1}
+              </button>
+            )}
+            <ol className="script__lines">
+              {sec.lines.map((l) => {
+                const live = mine && tts.speaking && tts.block === l.i;
+                const recorded = tracks[l.i]?.src != null;
+                return (
+                  <li
+                    key={l.i}
+                    data-line={l.i}
+                    data-kind={l.kind}
+                    /* Marks a line the creator has recorded. Its job is to explain
+                       the voice change before it happens rather than after: on a
+                       part-recorded page the switch between a real take and the
+                       synthesiser is otherwise indistinguishable from a fault. */
+                    data-clip={recorded ? '' : undefined}
+                    /* `is-from` marks where the next Play will start, so it only
+                       means anything once the reader has actually moved it. Showing
+                       it on line one by default would highlight a choice nobody
+                       made. */
+                    className={`script__line${live ? ' is-live' : ''}${!live && from > 0 && from === l.i ? ' is-from' : ''}`}
+                    aria-current={live ? 'true' : undefined}
+                  >
+                    {ok && (
+                      <button
+                        type="button"
+                        className="script__cue"
+                        onClick={() => { unlock(); play(id, tracks, l.i); }}
+                        aria-label={
+                          `Play from line ${l.i + 1}${l.who ? `, ${l.who}` : ''}`
+                          + `${recorded ? ' — recorded' : ''}`
+                        }
+                      >
+                        <Glyph name="play" width={4} />
+                      </button>
+                    )}
+                    {l.who && <b className="script__who">{l.who}</b>}
+                    <span className="script__said">{l.text}</span>
+                    <LineAudio path={`pages.items.${index}.audio`} clips={clips ?? []}
+                      lineKey={l.key} said={l.speech} />
+                  </li>
+                );
+              })}
+            </ol>
+          </li>
+        )))}
       </ol>
     </aside>
   );

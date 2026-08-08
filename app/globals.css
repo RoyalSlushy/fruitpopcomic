@@ -1517,6 +1517,9 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    magenta where the creator has recorded the line, and filled while it plays.
    On this pale sheet that reads as the same idea as the gold dot in the dark
    transcript column, in the other key. */
+.sheet__part{list-style:none;display:flex;flex-direction:column;gap:.5rem;padding-inline-start:0;border:0}
+.sheet__part + .sheet__part{margin-block-start:.6rem}
+.sheet__part > .tbtn{align-self:flex-start}
 .sheet__lines li{padding-inline-start:.5rem;border-inline-start:2px solid transparent}
 .sheet__lines li[data-clip]{border-inline-start-color:var(--magenta-dp)}
 .sheet__lines li.is-live{background:rgba(214,51,132,.12);border-inline-start-color:var(--magenta)}
@@ -1684,6 +1687,28 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   background:var(--gold);opacity:.5;
 }
 .script__line[data-clip].is-live::after{opacity:1}
+
+/* A part — one panel's worth of beats, with a control to play just it.
+   The panel's NAME is not shown: it is the creator's own scaffolding, so the
+   button names itself by position and the group reads as a rule, not a
+   heading. */
+.script__part{list-style:none;display:flex;flex-direction:column;gap:.15rem}
+.script__part + .script__part{
+  margin-block-start:.5rem;padding-block-start:.5rem;
+  border-block-start:1px solid var(--navy-line);
+}
+.script__partplay{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:.3rem;
+  margin-block-end:.1rem;padding:.16rem .45rem;cursor:pointer;
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.08em;
+  border:2px solid var(--navy-line);border-radius:999px;
+  background:transparent;color:var(--ink-soft);
+  transition:color .14s,border-color .14s,background .14s;
+}
+.script__partplay svg{inline-size:8px;block-size:8px}
+.script__partplay:hover{color:#fff;border-color:#fff}
+.script__partplay.is-on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
 
 .script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
 .script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}

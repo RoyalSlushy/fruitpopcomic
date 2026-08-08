@@ -15,7 +15,21 @@ export function mediaURL(path: string): string {
     return path;
   }
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-  if (!base) return path;
+  if (!base) {
+    /* Nothing correct can be returned here — the object key alone is not a
+       URL. Returning it used to produce a PAGE-RELATIVE link that 404s
+       differently on every route, which is how a whole deployment's uploaded
+       images and recordings failed while every configuration check passed.
+       next.config.ts now defaults this from SUPABASE_URL so it should be
+       unreachable; if it ever fires again, say so where someone will see it. */
+    if (typeof console !== 'undefined') {
+      console.error(
+        '[media] NEXT_PUBLIC_SUPABASE_URL is unset, so uploaded media cannot be '
+        + `addressed. "${path}" will not load. Set it (or SUPABASE_URL) and redeploy.`,
+      );
+    }
+    return '';
+  }
   return `${base}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
 }
 

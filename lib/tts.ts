@@ -96,7 +96,7 @@ let run = 0;
 
 /* What the current owner handed over, so a settings change can restart from
    the line being played rather than throwing the visitor back to the top. */
-let current: { owner: string; tracks: Track[] } | null = null;
+let current: { owner: string; tracks: Track[]; to: number } | null = null;
 
 export const supported = () =>
   typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -180,7 +180,7 @@ export function setSettings(patch: Partial<TtsSettings>) {
   /* Turning recordings on or off changes which engine each line uses, so the
      queue has to be rebuilt either way. */
   if (settings.clips !== before.clips) {
-    play(current.owner, current.tracks, state.block);
+    play(current.owner, current.tracks, state.block, current.to);
     return;
   }
 
@@ -194,8 +194,9 @@ export function setSettings(patch: Partial<TtsSettings>) {
 
   /* Changing the voice while it is talking should be audible immediately, and
      from where the listener actually is — restarting at the top would punish
-     them for adjusting it. */
-  play(current.owner, current.tracks, state.block);
+     them for adjusting it. The panel bound rides along, or adjusting a slider
+     mid-panel would quietly turn it into "play the rest of the page". */
+  play(current.owner, current.tracks, state.block, current.to);
 }
 
 /** The voice a new utterance will use, resolved against what is installed. */
@@ -235,22 +236,24 @@ function upcoming(steps: Step[], n: number): string | null {
   return null;
 }
 
-/** Play `tracks` from `from` onward, reporting which block is live.
+/** Play `tracks` from `from` up to `to` (exclusive), reporting which block is
+ *  live. `to` defaults to the end, so leaving it off plays the rest of the
+ *  page; passing it plays one panel and stops there.
  *
  *  Must be reached from a user gesture the first time on a page, or recordings
  *  will not be allowed to start. Callers press it from a click handler and
  *  unlock() below does the rest. */
-export function play(owner: string, tracks: Track[], from = 0) {
+export function play(owner: string, tracks: Track[], from = 0, to = tracks.length) {
   if (!playable()) return;
 
   const mine = ++run;
   cancelAll();
-  current = { owner, tracks };
+  current = { owner, tracks, to };
 
   /* With recordings off, every line takes the synthesis path. Dropping `src`
      here rather than branching in the walker keeps the queue one shape. */
   const list = state.settings.clips ? tracks : tracks.map((t) => ({ ...t, src: null }));
-  const steps = stepsOf(list, from);
+  const steps = stepsOf(list, from, to);
 
   const head = steps[0];
   if (!head) { current = null; set(IDLE); return; }
@@ -287,9 +290,15 @@ export function play(owner: string, tracks: Track[], from = 0) {
         rate: state.settings.rate,
         onEnd: () => next(n + 1),
         /* A dead object, a codec the browser refuses, or a blocked autoplay.
-           The line still has words; say them rather than stopping the page. */
+           The line still has words; say them rather than stopping the page.
+
+           Reported, not swallowed. Falling back silently is right for a
+           visitor and wrong for whoever made the recording: an unreachable
+           clip is indistinguishable from one that was never attached, and
+           read-aloud simply looks like it is ignoring the upload. */
         onFail: () => {
           if (mine !== run) return;
+          console.warn(`[tts] recording did not play, speaking instead: ${step.src}`);
           set({ kind: 'speech' });
           talk(chunk(step.speech), 0, () => next(n + 1));
         },
@@ -308,6 +317,10 @@ export function play(owner: string, tracks: Track[], from = 0) {
 export function speak(owner: string, blocks: string[], from = 0) {
   play(owner, blocks.map((speech) => ({ speech, src: null })), from);
 }
+
+/** Where playback is bounded to, so a per-panel button can show its OWN state
+ *  instead of every panel lighting up whenever anything is playing. */
+export const playingTo = (): number | null => (current && state.speaking ? current.to : null);
 
 /** One line, out of band — the voice picker's preview. Does not touch state. */
 export function sample(text: string) {

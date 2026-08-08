@@ -5,7 +5,9 @@ import { Glyph } from './Glyph.tsx';
 import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
 import { useCmsValue } from '../../lib/cms-context.tsx';
-import { hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts } from '../../lib/tts.ts';
+import {
+  hydrate, pause, playable, play, playingTo, resume, stop, stopIfOwner, unlock, useTts,
+} from '../../lib/tts.ts';
 import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* A page that exists in the running order but has not been drawn.
@@ -50,6 +52,15 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
      this sheet's own playback is stopped. */
   useEffect(() => () => { stopIfOwner(id); }, [index, id]);
 
+  /* Which part's own button reads as playing — only when the queue is bounded
+     to exactly that part, so the whole-page transport lights nothing up. */
+  const bound = running ? playingTo() : null;
+  const partLive = bound === null ? -1 : sections.findIndex(
+    (sec) => sec.lines.length > 0
+      && tts.block >= sec.from && tts.block < sec.from + sec.lines.length
+      && bound === sec.from + sec.lines.length,
+  );
+
   return (
     <div className="sheet" ref={mediaRef}>
       <div className="sheet__bar">
@@ -91,21 +102,40 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
 
       {lines.length > 0 ? (
         <ol className="sheet__lines">
-          {lines.map((l) => {
-            const live = running && tts.block === l.i;
-            return (
-              <li
-                key={l.i}
-                data-kind={l.kind}
-                data-clip={tracks[l.i]?.src != null ? '' : undefined}
-                className={live ? 'is-live' : undefined}
-                aria-current={live ? 'true' : undefined}
-              >
-                {l.who && <b>{l.who}</b>}
-                <span>{l.text}</span>
-              </li>
-            );
-          })}
+          {sections.map((sec, n) => (sec.lines.length === 0 ? null : (
+            <li className="sheet__part" key={sec.id || n}>
+              {ok && sections.length > 1 && (
+                <button
+                  type="button"
+                  className={`tbtn${partLive === n ? ' is-on' : ''}`}
+                  onClick={() => {
+                    unlock();
+                    play(id, tracks, sec.from, sec.from + sec.lines.length);
+                  }}
+                  aria-label={`Play part ${n + 1} of ${sections.length} on its own`}
+                >
+                  <Glyph name="play" width={4} />
+                </button>
+              )}
+              <ol className="sheet__lines">
+              {sec.lines.map((l) => {
+                const live = running && tts.block === l.i;
+                return (
+                  <li
+                    key={l.i}
+                    data-kind={l.kind}
+                    data-clip={tracks[l.i]?.src != null ? '' : undefined}
+                    className={live ? 'is-live' : undefined}
+                    aria-current={live ? 'true' : undefined}
+                  >
+                    {l.who && <b>{l.who}</b>}
+                    <span>{l.text}</span>
+                  </li>
+                );
+              })}
+              </ol>
+            </li>
+          )))}
         </ol>
       ) : (
         <p className="sheet__none">

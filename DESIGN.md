@@ -1051,6 +1051,21 @@ Added with the reader rebuild:
     reordering those panels swaps their keys. Both recorded, that is inaudible.
     Only one recorded, the take moves onto the other occurrence — and nothing
     can detect it, because duplicates say the same thing by definition.
+  - **A part can be played on its own.** `stepsOf` takes an exclusive upper
+    bound rather than a slice of the track list: slicing would renumber the
+    block index, and the highlight, the jump-to-line click and `aria-current`
+    all read that number as an index into the page's whole line list. A panel's
+    name stays unrendered, so the control names itself by position.
+  - **Uploaded media is addressed by a NEXT_PUBLIC_ variable, and that is a
+    trap worth knowing about.** `mediaURL()` runs in the browser, so setting
+    only `SUPABASE_URL` left signing in, saving and uploading all working —
+    they are server-side — while every uploaded image resolved to a bare object
+    key, which a browser reads as a path relative to the current page. Images
+    broke visibly; recordings 404'd and fell back to the synthesiser, so
+    read-aloud looked like it was ignoring the upload rather than failing to
+    fetch it. `next.config.ts` now defaults one variable from the other, the
+    build prints which host media will come from, and a clip that will not play
+    says so in the console instead of silently becoming a robot voice.
   - **Prose is split by sentence; everything else is one beat per line.** The
     first real script written here was six hundred characters with no line
     breaks in it. As a single beat the highlight could not move and "record this

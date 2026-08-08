@@ -115,3 +115,32 @@ test('long speech is chunked, and every chunk reports the same line', () => {
 test('an empty line contributes no step at all', () => {
   assert.deepEqual(stepsOf([{ speech: '   ', src: null }]), []);
 });
+
+/* ── playing one part ─────────────────────────────────────── */
+
+test('`to` bounds playback without renumbering the blocks', () => {
+  const tracks = tracksOf(lines(), []);
+  const steps = stepsOf(tracks, 1, 2);
+  assert.ok(steps.length > 0);
+  assert.ok(steps.every((s) => s.block === 1),
+    'block stays an index into the PAGE, or the highlight points at the wrong line');
+});
+
+test('`to` defaults to the end, so an unbounded call is unchanged', () => {
+  const tracks = tracksOf(lines(), []);
+  assert.deepEqual(stepsOf(tracks, 0), stepsOf(tracks, 0, tracks.length));
+});
+
+test('an empty or inverted range plays nothing rather than everything', () => {
+  const tracks = tracksOf(lines(), []);
+  assert.deepEqual(stepsOf(tracks, 1, 1), []);
+  assert.deepEqual(stepsOf(tracks, 2, 1), []);
+});
+
+test('a bounded range still plays a recording where one exists', () => {
+  const tracks = tracksOf(lines(), [clipFor('The stand is empty.')]);
+  const steps = stepsOf(tracks, 2, 3);
+  assert.equal(steps.length, 1);
+  assert.equal(steps[0]?.kind, 'clip');
+  assert.equal(steps[0]?.block, 2);
+});
