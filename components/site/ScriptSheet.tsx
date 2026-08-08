@@ -2,11 +2,11 @@
 
 import { useEffect, useId, useMemo, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
-import { scriptLines } from '../../lib/script.ts';
+import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
 import { useCmsValue } from '../../lib/cms-context.tsx';
 import { hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts } from '../../lib/tts.ts';
-import type { PageClip } from '../../content/pages.ts';
+import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* A page that exists in the running order but has not been drawn.
  *
@@ -19,16 +19,21 @@ import type { PageClip } from '../../content/pages.ts';
  * transport at all. It has the same one now, over the same queue, so a page
  * being undrawn no longer means it is unreadable by ear.
  */
-export function ScriptSheet({ index, script, audio, mediaRef }: {
+export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
   index: number;
+  /** the legacy single-string script; read when `snippets` is empty */
   script: string;
+  snippets: ScriptSnippet[];
   audio: PageClip[];
   /** the reader's zoom target — the sheet stands in for the <img> here */
   mediaRef: (el: HTMLElement | null) => void;
 }) {
   const text = useCmsValue(`pages.items.${index}.script`, script);
+  const snips = useCmsValue(`pages.items.${index}.snippets`, snippets);
   const clips = useCmsValue(`pages.items.${index}.audio`, audio);
-  const lines = useMemo(() => scriptLines(text), [text]);
+  const { lines, sections } = useMemo(
+    () => pageLines(effectiveSnippets(snips, text)), [snips, text],
+  );
   const tracks = useMemo(() => tracksOf(lines, clips ?? []), [lines, clips]);
 
   const id = useId();
@@ -104,8 +109,9 @@ export function ScriptSheet({ index, script, audio, mediaRef }: {
         </ol>
       ) : (
         <p className="sheet__none">
-          This page is blank. No drawing, and no script written
-          for it yet.
+          {sections.length > 0
+            ? 'The panels are laid out; nothing is written in them yet.'
+            : 'This page is blank. No drawing, and no script written for it yet.'}
         </p>
       )}
     </div>

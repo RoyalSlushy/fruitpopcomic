@@ -13,6 +13,7 @@ import { PageTools } from '../cms/PageTools.tsx';
 import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
+import { effectiveSnippets, hasScript, pageLines } from '../../lib/script.ts';
 import { mediaURL, pad } from '../../lib/media.ts';
 import type { Chapter, ComicPage } from '../../content/pages.ts';
 
@@ -26,12 +27,15 @@ function describe(page: ComicPage | undefined, n: number, total: number): string
   if (!page) return '';
   if (page.alt) return page.alt;
   const head = `Page ${n} of ${total}${page.isDraft ? ' — rough draft' : ''}.`;
+  /* Beats, not panels: a page of empty headings has nothing to read aloud, so
+     it must still describe itself as unwritten. */
+  const written = hasScript(pageLines(effectiveSnippets(page.snippets, page.script)));
   if (isScriptPage(page)) {
-    return page.script.trim()
+    return written
       ? `${head} Not drawn yet — this page is its script.`
       : `${head} Blank: no drawing and no script yet.`;
   }
-  return page.script.trim()
+  return written
     ? `${head} Dialogue is lettered into the artwork; the script for this page is in the Script column.`
     : `${head} Dialogue is lettered into the artwork and cannot be read as text.`;
 }
@@ -778,6 +782,7 @@ export function Reader({
                           key={page.id}
                           index={at}
                           script={page.script}
+                          snippets={page.snippets ?? []}
                           audio={page.audio ?? []}
                           mediaRef={(el) => { media.current = el; }}
                         />
@@ -823,6 +828,7 @@ export function Reader({
                     page={human}
                     script={page.script}
                     isDraft={page.isDraft}
+                    snippets={page.snippets ?? []}
                     audio={page.audio ?? []}
                   />
                 )}
@@ -1020,6 +1026,7 @@ export function Reader({
                 image={page.image}
                 thumb={page.thumb}
                 script={page.script}
+                snippets={page.snippets ?? []}
                 audio={page.audio ?? []}
                 onClose={closeTools}
               />

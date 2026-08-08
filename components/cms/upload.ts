@@ -16,8 +16,25 @@ export async function uploadMedia(file: File, folder: string): Promise<string> {
   body.append('file', file);
   body.append('folder', folder);
   const res = await fetch('/api/cms/upload', { method: 'POST', body });
-  const json = (await res.json()) as { path?: string; error?: string };
-  if (!res.ok || !json.path) throw new Error(json.error || `HTTP ${res.status}`);
+
+  /* NOT `await res.json()` unconditionally.
+   *
+   * The host rejects an oversized request body at the edge, before the route
+   * runs at all, and answers with an HTML error page. Parsing that as JSON
+   * throws a SyntaxError, and the editor then showed the creator
+   * "Unexpected token '<'" — for the one failure whose real cause is the most
+   * obvious thing in the world. Whatever the route says about a 413 is
+   * invisible from here, because the route never saw the request. */
+  const json = await res.json().catch(() => null) as { path?: string; error?: string } | null;
+
+  if (!res.ok || !json?.path) {
+    throw new Error(
+      json?.error
+      || (res.status === 413
+        ? 'That file is too large to upload. Recordings should be a line or two, not a whole page.'
+        : `Upload failed (HTTP ${res.status}).`),
+    );
+  }
   return json.path;
 }
 

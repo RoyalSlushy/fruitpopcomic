@@ -6,7 +6,11 @@ import { uploadObject, serviceProblems, SupabaseWriteError } from '../../../../l
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const MAX_UPLOAD = 8 * 1024 * 1024;
+/* 4 MB, not 8. A serverless request body is capped near 4.5 MB by the platform,
+   so an 8 MB limit here was unreachable: a file between the two died upstream
+   with nothing from us at all. Refusing at 4 MB is a limit that can actually
+   speak. A per-line recording is seconds long and nowhere near it. */
+const MAX_UPLOAD = 4 * 1024 * 1024;
 
 const ascii = (b: Uint8Array, o: number, n: number) =>
   String.fromCharCode(...Array.from(b.subarray(o, o + n)));
@@ -57,6 +61,8 @@ const SNIFF: Sniff[] = [
     test: (b) => ascii(b, 0, 3) === 'ID3' || (b[0] === 0xff && ((b[1] ?? 0) & 0xe0) === 0xe0) },
 ];
 
+const TOO_LARGE = `Too large — the limit is ${MAX_UPLOAD / (1024 * 1024)} MB.`;
+
 const ACCEPTED = 'JPEG, PNG, WebP, GIF or AVIF images, and MP3, M4A, WAV, OGG or WebM audio';
 
 export async function POST(req: Request) {
@@ -68,8 +74,8 @@ export async function POST(req: Request) {
   }
   if (badOrigin(req)) return NextResponse.json({ error: 'Bad origin' }, { status: 403 });
 
-  /* Same pair of variables the save path needs — checked before reading an 8 MB
-     body that has nowhere to go. See app/api/cms/save/route.ts. */
+  /* Same pair of variables the save path needs — checked before reading a
+     multi-megabyte body that has nowhere to go. See app/api/cms/save/route.ts. */
   const unconfigured = serviceProblems();
   if (unconfigured.length) {
     console.error(`[cms] upload refused — ${unconfigured.join('; ')}`);
@@ -81,14 +87,14 @@ export async function POST(req: Request) {
 
   const declared = Number(req.headers.get('content-length') ?? NaN);
   if (Number.isFinite(declared) && declared > MAX_UPLOAD + 8192) {
-    return NextResponse.json({ error: 'Too large' }, { status: 413 });
+    return NextResponse.json({ error: TOO_LARGE }, { status: 413 });
   }
 
   const form = await req.formData();
   const file = form.get('file');
   if (!(file instanceof File)) return NextResponse.json({ error: 'No file' }, { status: 400 });
   if (file.size === 0 || file.size > MAX_UPLOAD) {
-    return NextResponse.json({ error: 'Too large' }, { status: 413 });
+    return NextResponse.json({ error: TOO_LARGE }, { status: 413 });
   }
 
   const folder = String(form.get('folder') ?? 'uploads')
@@ -96,7 +102,7 @@ export async function POST(req: Request) {
     .slice(0, 24) || 'uploads';
 
   const buf = new Uint8Array(await file.arrayBuffer());
-  if (buf.byteLength > MAX_UPLOAD) return NextResponse.json({ error: 'Too large' }, { status: 413 });
+  if (buf.byteLength > MAX_UPLOAD) return NextResponse.json({ error: TOO_LARGE }, { status: 413 });
 
   const hit = SNIFF.find((s) => s.test(buf));
   if (!hit) {
@@ -117,14 +123,36 @@ export async function POST(req: Request) {
   try {
     await uploadObject(key, buf.buffer as ArrayBuffer, mime);
   } catch (e) {
-    /* See the save route: a refused key is the one failure worth naming. */
+    /* Same policy as the save route: log the upstream text, return one of our
+       own fixed strings rather than anything Supabase said — its errors echo
+       hostnames and bucket names.
+
+       What changed is how many of those fixed strings there are. Everything
+       that was not a 401/403 used to collapse to the literal "Upload failed",
+       and that cost a real debugging session: the bucket's allowed_mime_types
+       listed images only, so every recording came back 400 `invalid_mime_type`
+       and the editor reported a shrug. The failure was diagnosable from the
+       first byte and the message said nothing.
+
+       So the mime rejection gets named. It is the one failure that is a pure
+       configuration mismatch — the bucket's allow-list and SNIFF above are two
+       halves of one contract, and nothing in code review can catch them
+       drifting apart. The upstream text still never leaves the server. */
     console.error('[cms] upload failed', e);
-    const rejected = e instanceof SupabaseWriteError && (e.status === 401 || e.status === 403);
-    return NextResponse.json({
-      error: rejected
-        ? 'Upload failed: the storage API rejected the service key. Check SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or publishable key cannot write.'
-        : 'Upload failed',
-    }, { status: 500 });
+    const err = e instanceof SupabaseWriteError ? e : null;
+    const mimeRejected = !!err && err.status === 400 && /mime|content.?type/i.test(err.message);
+
+    let error = 'Upload failed. The exact reason is in the server log.';
+    if (err && (err.status === 401 || err.status === 403)) {
+      error = 'Upload failed: the storage API rejected the service key. Check '
+        + 'SUPABASE_SERVICE_ROLE_KEY holds the service_role key — an anon or '
+        + 'publishable key cannot write.';
+    } else if (mimeRejected) {
+      error = `Upload failed: the storage bucket does not accept ${mime} files. `
+        + "Add it to the bucket's allowed MIME types — that list and this "
+        + 'route are two halves of one contract.';
+    }
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, path: key });

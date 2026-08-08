@@ -255,3 +255,56 @@ describe('per-line audio clips', () => {
     assert.deepEqual(out.items[10]?.audio, [], 'from TEMPLATES["pages.items.*"]');
   });
 });
+
+/* ── script snippets ──────────────────────────────────────────
+   A page's script became a LIST, additively. `script` stayed a string on both
+   sides so the scripts already in the database merge straight through — the
+   whole reason the change is shaped this way. */
+
+describe('script snippets', () => {
+  const snip = (id: string, body = 'Hi', title = '') => ({ id, title, body });
+
+  test('a legacy page keeps its script and gains an empty snippet list', () => {
+    /* The live-data guarantee, asserted rather than reasoned about: three real
+       pages hold a `script` string and no `snippets` key. */
+    const items = structuredClone(DEFAULTS.pages.items).map(
+      ({ snippets, ...rest }) => rest,
+    ) as never;
+    (items as { script: string }[])[0]!.script = 'Sparks fell.';
+
+    const out = mergeSection('pages', { items });
+    assert.equal(out.items[0]?.script, 'Sparks fell.', 'the creator\'s text survives');
+    assert.deepEqual(out.items[0]?.snippets, [], 'and the new key arrives from code');
+  });
+
+  test('stored snippets round-trip and merge over the template', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.snippets = [snip('s1', 'One.'), snip('s2', 'Two.', 'Panel 2')];
+    const out = mergeSection('pages', { items });
+    assert.deepEqual(out.items[0]?.snippets, [
+      { id: 's1', title: '', body: 'One.' },
+      { id: 's2', title: 'Panel 2', body: 'Two.' },
+    ]);
+  });
+
+  test('a snippet missing a field gets it from the template, not from a neighbour', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.snippets = [{ id: 's1', body: 'One.' } as never];
+    const out = mergeSection('pages', { items });
+    assert.deepEqual(out.items[0]?.snippets[0], { id: 's1', title: '', body: 'One.' });
+  });
+
+  test('an unknown key inside a snippet is dropped', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.snippets = [{ ...snip('s1'), rogue: 1 } as never];
+    const out = quiet(() => mergeSection('pages', { items }));
+    assert.deepEqual(Object.keys(out.items[0]!.snippets[0]!).sort(), ['body', 'id', 'title']);
+  });
+
+  test('a page added past the code defaults gets a snippet list too', () => {
+    const items = [...structuredClone(DEFAULTS.pages.items), { id: 'p99', script: 'x' }];
+    const out = mergeSection('pages', { items } as never);
+    assert.deepEqual(out.items[10]?.snippets, []);
+    assert.equal(out.items[10]?.script, 'x');
+  });
+});

@@ -166,6 +166,29 @@
 .cms-clip__btn:disabled { opacity: .5; cursor: progress }
 .cms-clip__err { font-size: .625rem; color: #fff; background: var(--magenta-dp); padding: .1rem .3rem }
 
+/* Panels — the script split into ordered sections. */
+.pgt__panel {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .4rem;
+  border: 2px solid var(--navy-line);
+  border-radius: var(--r-sm);
+}
+.pgt__panelbar { display: flex; align-items: center; gap: .4rem }
+.pgt__panelname {
+  flex: 1;
+  min-inline-size: 0;
+  font: inherit;
+  font-size: .75rem;
+  color: #fff;
+  background: var(--navy);
+  border: 2px solid var(--navy-line);
+  border-radius: var(--r-sm);
+  padding: .25rem .4rem;
+}
+.pgt__panelname:focus { outline: none; border-color: var(--gold) }
+
 /* The orphan list in the page sheet: takes whose line has been rewritten. */
 .pgt__orphans { display: flex; flex-direction: column; gap: .4rem; margin: 0; padding: 0; list-style: none }
 .pgt__orphan { display: flex; gap: .4rem; align-items: center; font-size: .75rem }

@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
 import { LineAudio } from '../cms/LineAudio.tsx';
-import { useCmsValue } from '../../lib/cms-context.tsx';
-import { scriptLines } from '../../lib/script.ts';
+import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
+import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
 import { hydrate, pause, playable, play, resume, stop, stopIfOwner, unlock, useTts } from '../../lib/tts.ts';
-import type { PageClip } from '../../content/pages.ts';
+import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* The written side of a page.
  *
@@ -35,19 +35,28 @@ import type { PageClip } from '../../content/pages.ts';
  * The line being spoken is marked with aria-current, so following along works
  * by eye and by screen reader both. */
 
-export function PageScript({ index, page, script, isDraft, audio }: {
+export function PageScript({ index, page, script, isDraft, snippets, audio }: {
   /** page index, for the CMS path and the heading */
   index: number;
   /** 1-based page number as shown to the reader */
   page: number;
+  /** the legacy single-string script; read when `snippets` is empty */
   script: string;
   isDraft: boolean;
+  /** the script split into ordered sections */
+  snippets: ScriptSnippet[];
   /** recordings for individual beats; most pages have none */
   audio: PageClip[];
 }) {
   const text = useCmsValue(`pages.items.${index}.script`, script);
+  const snips = useCmsValue(`pages.items.${index}.snippets`, snippets);
   const clips = useCmsValue(`pages.items.${index}.audio`, audio);
-  const lines = useMemo(() => scriptLines(text), [text]);
+  /* Snippet titles are the creator's own scaffolding and are NOT rendered —
+     the transcript stays one continuous list of beats, exactly as it read
+     before a page could be split up. `sections` is for the editor. */
+  const { lines, sections } = useMemo(
+    () => pageLines(effectiveSnippets(snips, text)), [snips, text],
+  );
   /* One track per line, in line order — so `tts.block` stays the line index
      and every highlight and jump path below is untouched by recordings. */
   const tracks = useMemo(() => tracksOf(lines, clips ?? []), [lines, clips]);
@@ -55,6 +64,7 @@ export function PageScript({ index, page, script, isDraft, audio }: {
   const id = useId();
   const tts = useTts();
   const mine = tts.owner === id;
+  const editing = useEditMode();
 
   /* Where the next Play starts. Moved by clicking a line, by selecting text
      inside one, or reset when the page changes. */
@@ -74,6 +84,22 @@ export function PageScript({ index, page, script, isDraft, audio }: {
     setFrom(0);
     return () => { stopIfOwner(id); };
   }, [index, id]);
+
+  /* Rewriting the script under a running read.
+     `lib/tts.ts` walks a queue it snapshotted, so a reorder leaves the audio
+     playing the old order while `tts.block` indexes it — the highlight would
+     land on the wrong beat. Stopping is the truthful answer to "you just
+     changed what I was reading"; a highlight that lies is not.
+
+     Keyed on STRUCTURE, not on text, or it would stop on every keystroke. And
+     gated on edit mode, because only an editor can reorder — a visitor must
+     never pay for this. */
+  const shape = editing ? `${sections.map((x) => x.id).join('|')}:${lines.length}` : '';
+  useEffect(() => {
+    if (!editing) return;
+    stopIfOwner(id);
+    setFrom(0);
+  }, [shape, editing, id]);
 
   const jump = useCallback((i: number) => {
     setFrom(i);
@@ -95,7 +121,11 @@ export function PageScript({ index, page, script, isDraft, audio }: {
 
   const start = () => play(id, tracks, from);
 
+  /* Three states, not two. Panels that exist but hold no words are structure
+     the creator authored, so saying "no script yet" over them would be false —
+     someone did start. */
   if (!lines.length) {
+    const started = sections.length > 0;
     return (
       <aside className="script script--empty" aria-labelledby={`${id}-h`}>
         <h2 className="script__head" id={`${id}-h`}>
@@ -103,12 +133,14 @@ export function PageScript({ index, page, script, isDraft, audio }: {
           Script
         </h2>
         <p className="script__none">
-          No script for this page yet.
+          {started ? 'Nothing written in this page\u2019s panels yet.' : 'No script for this page yet.'}
         </p>
         <p className="script__why">
-          The dialogue is lettered into the drawing, so it cannot be read out of
-          the page — it has to be written out by hand. Until it is, this column
-          stays empty rather than guessing at it.
+          {started
+            ? 'The panels are laid out; the words have still to be typed into them.'
+            : 'The dialogue is lettered into the drawing, so it cannot be read out of '
+              + 'the page — it has to be written out by hand. Until it is, this column '
+              + 'stays empty rather than guessing at it.'}
         </p>
       </aside>
     );

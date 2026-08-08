@@ -973,7 +973,8 @@ These are design decisions, not copy suggestions.
   as one, since the template ships a blank image — and a script page does not
   also get the script column beside it, because it already is the script.
 - **The script column ships empty too, and that is the point.** Every page now
-  carries a `script` field, one beat per line, rendered beside the artwork as
+  carries a script — a list of named **panels**, ordered, written and recorded
+  separately but read straight through as one performance — rendered beside the artwork as
   attributed dialogue. It is blank on all ten pages and must stay blank until
   the creator writes one out. The lettering is drawn into the drawing; there is
   nothing to extract, so anything in that column that the creator did not type
@@ -1035,11 +1036,28 @@ Added with the reader rebuild:
 
   Four things are load-bearing:
 
-  - **A recording is keyed to what the line SAYS, not to where it sits.**
+  - **A recording is keyed to what the beat SAYS, not to where it sits.**
     `lib/script.ts` hashes each beat's spoken text; clips are filed under that.
     Insert a line above and nothing moves; reorder and nothing moves. Rewrite a
     line and its recording detaches — correct, because the take no longer says
     what the line says.
+
+    A page's panels are parsed as ONE script for this reason. Per-panel parsing
+    would restart the beat index, which the highlight and the queue both use as
+    a flat index, and would give two panels that repeat a line the same key —
+    and `clipSrc` is first-match-wins, so one take would play under both. The
+    cost of parsing page-wide is narrow but real and has no repair path: where
+    the same beat appears twice, the pair is told apart only by order, so
+    reordering those panels swaps their keys. Both recorded, that is inaudible.
+    Only one recorded, the take moves onto the other occurrence — and nothing
+    can detect it, because duplicates say the same thing by definition.
+  - **Prose is split by sentence; everything else is one beat per line.** The
+    first real script written here was six hundred characters with no line
+    breaks in it. As a single beat the highlight could not move and "record this
+    line" meant recording the whole page. A cue, a direction and a slug stay
+    whole however many sentences they hold — they are already the unit somebody
+    says, and cutting `RONNIE: Get down. Now.` in two invents a pause the writer
+    did not write.
   - **A detached take is never silently dropped.** Each clip stores the words it
     was recorded against, so the editor can show an orphan, name it, and offer
     to re-attach it. Losing a recording because a typo was fixed is not a trade

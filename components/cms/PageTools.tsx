@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEditMode } from '../../lib/cms-context.tsx';
-import type { PageClip } from '../../content/pages.ts';
+import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
 
 /* The reader's own editing surface. Renders nothing at all for visitors, so
    the markup they receive is unchanged by the CMS existing — same split as
@@ -18,6 +18,7 @@ export type PageToolsProps = {
   image: string;
   thumb: string;
   script: string;
+  snippets: ScriptSnippet[];
   audio: PageClip[];
   onClose: () => void;
 };

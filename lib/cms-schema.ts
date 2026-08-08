@@ -23,8 +23,15 @@ export const TEMPLATES: Record<string, unknown> = {
      drawing is uploaded onto it. */
   'pages.items.*': {
     id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '',
-    chapter: '', script: '', audio: [],
+    chapter: '', script: '', snippets: [], audio: [],
   },
+
+  /* Same load-bearing role as the audio template below: page defaults carry
+     `snippets: []`, so EVERY stored snippet is past the end of the defaults
+     and merges over this rather than over a positional default. Without it
+     `mergeArray` warns and passes the row through unmerged, and new code
+     fields never appear on snippets that already exist. */
+  'pages.items.*.snippets.*': { id: '', title: '', body: '' },
 
   /* Without this, a stored clip has no template to merge over: `mergeArray`
      falls through to its warn-and-pass-unmerged branch, so the row keeps
@@ -77,7 +84,11 @@ export const LABELS: Record<string, string> = {
   'pages.items.*.chapter': 'Chapter id — must match one in the chapter list',
   'pages.items.*.stage': 'Pencil stage',
   'pages.items.*.alt': 'Alt text',
-  'pages.items.*.script': 'Page script — one beat per line, "NAME: line" for dialogue',
+  /* Drives ListControlsImpl's button copy: "+ Add panel", "Delete this panel?" */
+  'pages.items.*.snippets.*': 'panel',
+  'pages.items.*.snippets.*.title': 'Panel name — for you; readers never see it',
+  'pages.items.*.snippets.*.body': 'Panel script — prose splits by sentence, "NAME: line" for dialogue',
+  'pages.items.*.script': 'Page script (legacy) — superseded by panels',
   'pages.items.*.image': 'Page image',
   'pages.items.*.thumb': 'Thumbnail',
   'pages.items.*.audio': 'Line recordings',

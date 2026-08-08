@@ -57,7 +57,8 @@ everything about the page you are looking at:
 |---|---|
 | **Page image** | the drawing. Uploading one onto a page that has none is what turns a script page into a drawn page |
 | **Thumbnail** | what the strip shows; empty falls back to the page image |
-| **Script** | one beat per line, `NAME: line` for dialogue |
+| **Script** | the page's words, split into **panels** you can name, reorder and record separately. Prose splits into beats by sentence; `NAME: line` is dialogue and stays whole; `(brackets)` or an ALL-CAPS line is a direction. A page written before panels existed shows one box and a **Split into panels** button |
+| **Recordings** | one per beat, in your own voice. A beat with no recording is read by the browser's synthesiser instead, so recording one line at a time is worth doing |
 
 Tap the page again, tap outside the sheet, or press Escape to put it away.
 Nothing is written until **Save** on the editor bar, the same as everywhere else.
