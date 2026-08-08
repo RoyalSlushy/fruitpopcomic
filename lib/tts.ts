@@ -96,7 +96,13 @@ let run = 0;
 
 /* What the current owner handed over, so a settings change can restart from
    the line being played rather than throwing the visitor back to the top. */
-let current: { owner: string; tracks: Track[] } | null = null;
+let current: {
+  owner: string;
+  tracks: Track[];
+  /* Carried so a settings change can restart without dropping it. Theatre mode
+     turns the page from here, and a nudged slider must not end the show. */
+  onEnd?: () => void;
+} | null = null;
 
 export const supported = () =>
   typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -180,7 +186,7 @@ export function setSettings(patch: Partial<TtsSettings>) {
   /* Turning recordings on or off changes which engine each line uses, so the
      queue has to be rebuilt either way. */
   if (settings.clips !== before.clips) {
-    play(current.owner, current.tracks, state.block);
+    play(current.owner, current.tracks, state.block, current.onEnd);
     return;
   }
 
@@ -195,7 +201,7 @@ export function setSettings(patch: Partial<TtsSettings>) {
   /* Changing the voice while it is talking should be audible immediately, and
      from where the listener actually is — restarting at the top would punish
      them for adjusting it. */
-  play(current.owner, current.tracks, state.block);
+  play(current.owner, current.tracks, state.block, current.onEnd);
 }
 
 /** The voice a new utterance will use, resolved against what is installed. */
@@ -240,12 +246,12 @@ function upcoming(steps: Step[], n: number): string | null {
  *  Must be reached from a user gesture the first time on a page, or recordings
  *  will not be allowed to start. Callers press it from a click handler and
  *  unlock() below does the rest. */
-export function play(owner: string, tracks: Track[], from = 0) {
+export function play(owner: string, tracks: Track[], from = 0, onEnd?: () => void) {
   if (!playable()) return;
 
   const mine = ++run;
   cancelAll();
-  current = { owner, tracks };
+  current = { owner, tracks, onEnd };
 
   /* With recordings off, every line takes the synthesis path. Dropping `src`
      here rather than branching in the walker keeps the queue one shape. */
@@ -253,13 +259,19 @@ export function play(owner: string, tracks: Track[], from = 0) {
   const steps = stepsOf(list, from);
 
   const head = steps[0];
-  if (!head) { current = null; set(IDLE); return; }
+  if (!head) { current = null; set(IDLE); onEnd?.(); return; }
 
   set({ owner, speaking: true, paused: false, block: head.block, kind: head.kind });
 
-  const finish = () => {
+  /* `done` separates "the queue ran out" from "something went wrong", because
+     only the first should carry on to whatever comes next. Theatre mode reads
+     it to turn the page; a failure must leave the reader where they are rather
+     than sliding them somewhere new with nothing playing. stop() does not come
+     through here at all, so pressing stop never advances anything. */
+  const finish = (done: boolean) => {
     current = null;
     set({ owner: null, speaking: false, paused: false, block: -1, kind: null });
+    if (done) onEnd?.();
   };
 
   /* Speak one block's words as chunks, then continue. Used both for ordinary
@@ -271,14 +283,14 @@ export function play(owner: string, tracks: Track[], from = 0) {
     if (!supported()) { done(); return; }
     const u = say(text);
     u.onend = () => talk(parts, k + 1, done);
-    u.onerror = () => { if (mine === run) finish(); };
+    u.onerror = () => { if (mine === run) finish(false); };
     speechSynthesis.speak(u);
   };
 
   const next = (n: number) => {
     if (mine !== run) return;
     const step = steps[n];
-    if (!step) { finish(); return; }
+    if (!step) { finish(true); return; }
     set({ block: step.block, kind: step.kind });
 
     if (step.kind === 'clip') {

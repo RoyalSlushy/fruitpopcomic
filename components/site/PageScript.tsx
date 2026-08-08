@@ -37,18 +37,17 @@ import type { PageClip, ScriptSnippet } from '../../content/pages.ts';
  * The line being spoken is marked with aria-current, so following along works
  * by eye and by screen reader both. */
 
-export function PageScript({ index, page, script, isDraft, snippets, audio }: {
+export function PageScript({ index, script, snippets, audio, onTheatre }: {
   /** page index, for the CMS path and the heading */
   index: number;
-  /** 1-based page number as shown to the reader */
-  page: number;
   /** the legacy single-string script; read when `snippets` is empty */
   script: string;
-  isDraft: boolean;
   /** the script split into ordered sections */
   snippets: ScriptSnippet[];
   /** recordings for individual beats; most pages have none */
   audio: PageClip[];
+  /** enter theatre mode; absent where the reader cannot offer it */
+  onTheatre?: () => void;
 }) {
   const text = useCmsValue(`pages.items.${index}.script`, script);
   const snips = useCmsValue(`pages.items.${index}.snippets`, snippets);
@@ -72,6 +71,7 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
      inside one, or reset when the page changes. */
   const [from, setFrom] = useState(0);
   const list = useRef<HTMLOListElement>(null);
+  const livePart = useRef<HTMLLIElement>(null);
 
   const [ok, setOk] = useState(false);
   /* Also hydrate here: this column can be the only thing on the page that
@@ -134,6 +134,18 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
     ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
     : -1;
 
+  /* Follow the read. The column is a drawer on a phone and a short column on a
+     desktop, so a part four screens down is otherwise reached by hand while
+     the words for it are already playing. Scoped to the column's own scroll
+     box — `block:'nearest'` moves it only when the part is actually out of
+     view, so a part already on screen does not jitter every time the beat
+     changes. */
+  useEffect(() => {
+    if (partLive < 0) return;
+    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [partLive]);
+
+
   /* Three states, not two. Panels that exist but hold no words are structure
      the creator authored, so saying "no script yet" over them would be false —
      someone did start. */
@@ -165,8 +177,24 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
         <h2 className="script__head" id={`${id}-h`}>
           <Glyph name="script" width={5} />
           Script
-          <span className="script__page">{isDraft ? 'Draft' : 'Page'} {String(page).padStart(2, '0')}</span>
         </h2>
+
+        {/* Where "Draft 08" used to sit — outside the heading, because a
+            control is not part of a heading's text. The page number was
+            already on the artwork's corner and again in the bar, so this slot
+            was its third copy, and the one place in the column with room for
+            the control that matters. */}
+        {ok && onTheatre && (
+          <button
+            type="button"
+            className="script__theatre"
+            onClick={() => { unlock(); onTheatre(); }}
+            aria-label="Theatre mode — the page and its words, read straight through"
+          >
+            <Glyph name="play" width={4} />
+            Theatre
+          </button>
+        )}
 
         {ok && (
           <span className="script__transport">
@@ -231,22 +259,25 @@ export function PageScript({ index, page, script, isDraft, snippets, audio }: {
         onKeyUp={onSelect}
       >
         {parts.map((sec, n) => (
-          <li className="script__part" key={sec.id || n}>
-            {ok && parts.length > 1 && (
-              <button
-                type="button"
-                className={`script__partplay${partLive === n ? ' is-on' : ''}`}
-                onClick={() => {
-                  unlock();
-                  setFrom(sec.from);
-                  play(id, tracks, sec.from);
-                }}
-                aria-label={`Play from part ${n + 1} of ${parts.length}`}
-              >
-                <Glyph name="play" width={4} />
-                Part {n + 1}
-              </button>
-            )}
+          <li
+            className={`script__part${partLive === n ? ' is-live' : ''}`}
+            key={sec.id || n}
+            ref={partLive === n ? livePart : undefined}
+            /* The whole part is the target, not a button inside it. A part is
+               a block of prose and the obvious thing to press is the words,
+               so a separate control beside them was one target too many.
+               Ignored when the press was a selection or landed on a control
+               of its own — selecting text inside a line already means "start
+               here", and it must not also mean "start the part". */
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest('button,a,input,select,textarea')) return;
+              if (!getSelection()?.isCollapsed) return;
+              unlock();
+              setFrom(sec.from);
+              play(id, tracks, sec.from);
+            }}
+            aria-label={parts.length > 1 ? `Part ${n + 1} of ${parts.length}` : undefined}
+          >
             <ol className="script__lines">
               {sec.lines.map((l) => {
                 const live = mine && tts.speaking && tts.block === l.i;

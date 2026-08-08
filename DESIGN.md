@@ -1051,11 +1051,21 @@ Added with the reader rebuild:
     reordering those panels swaps their keys. Both recorded, that is inaudible.
     Only one recorded, the take moves onto the other occurrence — and nothing
     can detect it, because duplicates say the same thing by definition.
-  - **A part can be played on its own.** `stepsOf` takes an exclusive upper
-    bound rather than a slice of the track list: slicing would renumber the
-    block index, and the highlight, the jump-to-line click and `aria-current`
-    all read that number as an index into the page's whole line list. A panel's
-    name stays unrendered, so the control names itself by position.
+  - **A part is its own control.** Pressing the words starts the read there and
+    carries on through the parts after it — there is no button beside them,
+    because a block of prose is the obvious thing to press and a second target
+    next to it was one too many. The column follows the read with
+    `block:'nearest'`, which moves only when the live part is actually off
+    screen, so a part already in view does not jitter on every beat.
+  - **Theatre mode is a separate component, not another mode flag on the
+    reader.** It shares almost none of the reader's behaviour: paging is driven
+    by the QUEUE rather than by the visitor — a page turns when its last beat
+    ends — and every one of the reader's gestures means something else there.
+    That is also why `play()` reports a natural end separately from a stop:
+    pressing pause must not turn the page. Its gesture state lives in a ref
+    rather than a closure, because playback re-renders the component on every
+    beat and a re-render between pointerdown and pointerup would otherwise drop
+    the swipe.
   - **Uploaded media is addressed by a NEXT_PUBLIC_ variable, and that is a
     trap worth knowing about.** `mediaURL()` runs in the browser, so setting
     only `SUPABASE_URL` left signing in, saving and uploading all working —

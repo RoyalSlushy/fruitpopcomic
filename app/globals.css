@@ -1517,9 +1517,13 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    magenta where the creator has recorded the line, and filled while it plays.
    On this pale sheet that reads as the same idea as the gold dot in the dark
    transcript column, in the other key. */
-.sheet__part{list-style:none;display:flex;flex-direction:column;gap:.5rem;padding-inline-start:0;border:0}
-.sheet__part + .sheet__part{margin-block-start:.6rem}
-.sheet__part > .tbtn{align-self:flex-start}
+.sheet__part{
+  list-style:none;display:flex;flex-direction:column;gap:.5rem;
+  padding-inline-start:0;border:0;cursor:pointer;border-radius:5px;
+}
+.sheet__part + .sheet__part{margin-block-start:.3rem}
+.sheet__part:hover{background:rgba(27,34,51,.05)}
+.sheet__part.is-live{background:rgba(214,51,132,.07)}
 .sheet__lines li{padding-inline-start:.5rem;border-inline-start:2px solid transparent}
 .sheet__lines li[data-clip]{border-inline-start-color:var(--magenta-dp)}
 .sheet__lines li.is-live{background:rgba(214,51,132,.12);border-inline-start-color:var(--magenta)}
@@ -1607,12 +1611,6 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-size:.8125rem;letter-spacing:.08em;color:var(--gold);
 }
 .script__head svg{inline-size:16px;block-size:16px;flex:0 0 16px}
-.script__page{
-  margin-inline-start:auto;
-  font-size:.6875rem;letter-spacing:.06em;color:var(--ink-soft);
-  font-variant-numeric:tabular-nums;
-}
-
 .script__transport{display:flex;align-items:center;gap:.4rem;flex:0 0 auto}
 .tbtn{
   inline-size:34px;block-size:34px;
@@ -1693,27 +1691,31 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .script__line[data-clip].is-live::after{opacity:1}
 
-/* A part — one panel's worth of beats, with a control to play just it.
-   The panel's NAME is not shown: it is the creator's own scaffolding, so the
-   button names itself by position and the group reads as a rule, not a
-   heading. */
-.script__part{list-style:none;display:flex;flex-direction:column;gap:.15rem}
-.script__part + .script__part{
-  margin-block-start:.5rem;padding-block-start:.5rem;
-  border-block-start:1px solid var(--navy-line);
+/* A part — one panel's worth of beats, and itself the control that plays them.
+   No label and no button: the words are the target, so the only thing marking
+   a part is the small step between one and the next. They sit close together
+   because a script reads as continuous prose; the gap is a breath, not a rule. */
+.script__part{
+  list-style:none;display:flex;flex-direction:column;gap:.15rem;
+  cursor:pointer;border-radius:5px;
+  transition:background .14s var(--ease);
 }
-.script__partplay{
-  align-self:flex-start;display:inline-flex;align-items:center;gap:.3rem;
-  margin-block-end:.1rem;padding:.16rem .45rem;cursor:pointer;
+.script__part + .script__part{margin-block-start:.22rem}
+.script__part:hover{background:rgba(159,179,217,.06)}
+.script__part.is-live{background:rgba(252,176,64,.06)}
+
+/* Where "Draft 08" was. */
+.script__theatre{
+  display:inline-flex;align-items:center;gap:.3rem;flex:0 0 auto;cursor:pointer;
+  padding:.26rem .55rem;
   font-family:var(--face);font-weight:700;text-transform:uppercase;
-  font-size:.5625rem;letter-spacing:.08em;
-  border:2px solid var(--navy-line);border-radius:999px;
-  background:transparent;color:var(--ink-soft);
-  transition:color .14s,border-color .14s,background .14s;
+  font-size:.5625rem;letter-spacing:.09em;
+  border:2px solid var(--gold);border-radius:999px;
+  background:transparent;color:var(--gold);
+  transition:background .14s,color .14s;
 }
-.script__partplay svg{inline-size:8px;block-size:8px}
-.script__partplay:hover{color:#fff;border-color:#fff}
-.script__partplay.is-on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.script__theatre svg{inline-size:9px;block-size:9px}
+.script__theatre:hover{background:var(--gold);color:var(--navy)}
 
 .script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
 .script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}
@@ -3017,4 +3019,85 @@ html[data-vt="lateral"]::view-transition-new(root){animation:.24s .04s both fp-i
     transition-duration:.01ms!important;
   }
   .ch__scan{display:none}
+}
+
+
+/* ── theatre ─────────────────────────────────────────────────
+   The page and its words, and nothing else. Fixed over everything, its own
+   stacking context, and deliberately without a permanent bar: a show with
+   chrome on it is not a show. */
+.theatre{
+  position:fixed;inset:0;z-index:120;
+  display:grid;grid-template-rows:1fr auto;
+  background:#05070E;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+.theatre__stage{
+  min-block-size:0;display:grid;place-items:center;
+  padding:clamp(.5rem,2vw,1.4rem);
+}
+.theatre__art{
+  max-inline-size:100%;max-block-size:100%;
+  object-fit:contain;
+  user-select:none;-webkit-user-drag:none;
+}
+.theatre__undrawn{
+  margin:0;font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.6875rem;letter-spacing:.12em;color:var(--ink-soft);
+}
+
+/* The words. Pressing them plays or pauses, so they carry the affordance:
+   a hairline that fills while it is reading. */
+.theatre__words{
+  cursor:pointer;user-select:none;
+  padding:clamp(.9rem,3vw,1.5rem) clamp(1rem,5vw,3rem) clamp(1.4rem,4vw,2rem);
+  border-block-start:2px solid rgba(159,179,217,.14);
+  background:linear-gradient(180deg,rgba(159,179,217,.05),transparent);
+}
+.theatre__words.is-live{border-block-start-color:var(--gold)}
+.theatre__part{
+  margin:0 auto;max-inline-size:46rem;
+  font-size:clamp(1rem,2.4vw,1.375rem);line-height:1.5;
+  color:var(--ink-soft);text-wrap:pretty;
+}
+.theatre__part span.is-live{color:#fff}
+.theatre__part--none{font-style:italic;opacity:.6}
+
+/* Hugging the left, away from the thumb that swipes pages. */
+.theatre__chrome{
+  position:absolute;inset-inline-start:0;inset-block-start:0;
+  display:flex;align-items:center;gap:.6rem;
+  padding:.7rem .9rem;
+  opacity:0;visibility:hidden;
+  transition:opacity .2s var(--ease),visibility .2s;
+}
+.theatre__chrome.is-on{opacity:1;visibility:visible}
+.theatre__exit{
+  inline-size:38px;block-size:38px;display:grid;place-items:center;cursor:pointer;
+  padding:0;border:2px solid rgba(255,255,255,.5);border-radius:999px;
+  background:rgba(5,7,14,.72);color:#fff;
+}
+.theatre__exit svg{inline-size:14px;block-size:14px}
+.theatre__exit:hover{border-color:#fff;background:var(--magenta-dp)}
+.theatre__count{
+  font-family:var(--face);font-weight:700;text-transform:uppercase;
+  font-size:.5625rem;letter-spacing:.1em;color:var(--ink-soft);
+  background:rgba(5,7,14,.72);padding:.3rem .5rem;border-radius:999px;
+}
+
+/* Wide enough to sit side by side: the artwork keeps the height it has and the
+   words take a column beside it rather than a strip beneath. */
+@media (min-width:900px) and (orientation:landscape){
+  .theatre{grid-template-rows:1fr;grid-template-columns:1fr minmax(18rem,26rem)}
+  .theatre__words{
+    border-block-start:0;border-inline-start:2px solid rgba(159,179,217,.14);
+    display:grid;align-content:center;
+    background:linear-gradient(90deg,rgba(159,179,217,.05),transparent);
+  }
+  .theatre__words.is-live{border-block-start:0;border-inline-start-color:var(--gold)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .theatre__chrome{transition:none}
 }

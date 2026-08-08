@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
 import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
@@ -59,6 +59,13 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
     ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
     : -1;
 
+  /* Follow the read, so a long sheet does not need scrolling by hand. */
+  const livePart = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (partLive < 0) return;
+    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [partLive]);
+
   return (
     <div className="sheet" ref={mediaRef}>
       <div className="sheet__bar">
@@ -101,20 +108,19 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
       {lines.length > 0 ? (
         <ol className="sheet__lines">
           {parts.map((sec, n) => (
-            <li className="sheet__part" key={sec.id || n}>
-              {ok && parts.length > 1 && (
-                <button
-                  type="button"
-                  className={`tbtn${partLive === n ? ' is-on' : ''}`}
-                  onClick={() => {
-                    unlock();
-                    play(id, tracks, sec.from);
-                  }}
-                  aria-label={`Play from part ${n + 1} of ${parts.length}`}
-                >
-                  <Glyph name="play" width={4} />
-                </button>
-              )}
+            <li
+              className={`sheet__part${partLive === n ? ' is-live' : ''}`}
+              key={sec.id || n}
+              ref={partLive === n ? livePart : undefined}
+              /* The words are the target, as in the transcript column. */
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button,a,input,select,textarea')) return;
+                if (!getSelection()?.isCollapsed) return;
+                unlock();
+                play(id, tracks, sec.from);
+              }}
+              aria-label={parts.length > 1 ? `Part ${n + 1} of ${parts.length}` : undefined}
+            >
               <ol className="sheet__lines">
               {sec.lines.map((l) => {
                 const live = running && tts.block === l.i;
