@@ -134,15 +134,15 @@ export function PageScript({ index, script, snippets, audio, onTheatre }: {
     ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
     : -1;
 
-  /* Follow the read. The column is a drawer on a phone and a short column on a
-     desktop, so a part four screens down is otherwise reached by hand while
-     the words for it are already playing. Scoped to the column's own scroll
-     box — `block:'nearest'` moves it only when the part is actually out of
-     view, so a part already on screen does not jitter every time the beat
-     changes. */
+  /* Follow the read, and put the live part in the MIDDLE of the column rather
+     than merely on screen. A part scrolled just into view sits at an edge with
+     everything still to come hidden below it, which reads as the end of the
+     script rather than the middle of it.
+     This fires on the PART changing, not on the beat, so centring costs one
+     movement per part instead of one per sentence. */
   useEffect(() => {
     if (partLive < 0) return;
-    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [partLive]);
 
 

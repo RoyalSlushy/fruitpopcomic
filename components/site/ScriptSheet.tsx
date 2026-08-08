@@ -59,11 +59,12 @@ export function ScriptSheet({ index, script, snippets, audio, mediaRef }: {
     ? parts.findIndex((sec) => tts.block >= sec.from && tts.block < sec.from + sec.lines.length)
     : -1;
 
-  /* Follow the read, so a long sheet does not need scrolling by hand. */
+  /* Follow the read, centred — see PageScript for why the middle rather than
+     merely on screen. */
   const livePart = useRef<HTMLLIElement>(null);
   useEffect(() => {
     if (partLive < 0) return;
-    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    livePart.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [partLive]);
 
   return (

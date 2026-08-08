@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
 import { effectiveSnippets, pageLines } from '../../lib/script.ts';
 import { tracksOf } from '../../lib/clips.ts';
@@ -39,6 +39,13 @@ import type { ComicPage } from '../../content/pages.ts';
    width-proportional threshold because it drags the page with the thumb; here
    nothing moves until the gesture is over, so a fixed distance is honest. */
 const SWIPE = 48;
+
+/* Breathing room kept below the text so the last line never touches the edge
+   of its box, and the floor the type is allowed to shrink to. Below about half
+   the base size the words stop being a performance and start being a footnote;
+   past that a part is genuinely too long for one screen and should be split. */
+const PAD = 8;
+const MIN_FIT = 0.55;
 
 export function Theatre({ pages, at, onPage, onClose }: {
   pages: ComicPage[];
@@ -140,6 +147,77 @@ export function Theatre({ pages, at, onPage, onClose }: {
     if (running && target) play(id, tracks, target.from, advance);
   };
 
+  /* Shrink the words until they fit the room they have.
+   *
+   * The words sit in a box with a ceiling — a part is allowed a share of the
+   * screen, not whatever it wants — so a long part would otherwise be cut off
+   * mid-sentence with no sign that anything was missing. Rather than scroll it
+   * (a show should not ask to be scrolled) the type steps down until the whole
+   * part is on screen.
+   *
+   * A loop rather than arithmetic because the text WRAPS: halving the size does
+   * not halve the height, it changes how many lines there are, and the only
+   * honest way to know whether it fits is to lay it out and look. Six per cent
+   * a step, down to 55%, is at most ten passes on a text node with no children
+   * — cheap enough to run on every part and every resize.
+   *
+   * Layout effect, not effect: measuring after paint would show one frame of
+   * the wrong size on every part change. */
+  const words = useRef<HTMLDivElement>(null);
+  const partBox = useRef<HTMLParagraphElement>(null);
+
+  const fit = useCallback(() => {
+    const box = words.current;
+    const el = partBox.current;
+    if (!box || !el) return;
+
+    /* Back to the stylesheet's size before measuring, or each pass would
+       measure the size the previous one left behind and ratchet downward. */
+    el.style.fontSize = '';
+
+    const boxStyle = getComputedStyle(box);
+
+    /* The CEILING, not the current height.
+       The words box grows with its content up to a cap, so measuring what it
+       happens to be right now always reports "content, near enough" — and the
+       loop below would then shrink every part, however short, all the way to
+       the floor. `max-block-size` is the number that actually constrains it.
+       Beside the page rather than under it there is no cap and the box is
+       stretched by its grid row, so its own height is the ceiling. */
+    const cap = parseFloat(boxStyle.maxBlockSize);
+    const ceiling = Number.isFinite(cap) ? cap : box.clientHeight;
+
+    /* Padding is inside that ceiling, so it has to come off: left in, the text
+       is allowed to grow under the padding and gets cut by the overflow rule
+       that is supposed to be unreachable. */
+    const room = ceiling
+      - parseFloat(boxStyle.paddingTop || '0')
+      - parseFloat(boxStyle.paddingBottom || '0')
+      - PAD;
+    if (!(room > 0)) return;
+
+    const base = parseFloat(getComputedStyle(el).fontSize);
+    if (!Number.isFinite(base) || base <= 0) return;
+
+    let k = 1;
+    while (el.scrollHeight > room && k > MIN_FIT) {
+      k = Math.max(MIN_FIT, k - 0.06);
+      el.style.fontSize = `${base * k}px`;
+    }
+  }, []);
+
+  useLayoutEffect(fit, [fit, shown, at, parts.length]);
+
+  useEffect(() => {
+    const onResize = () => fit();
+    addEventListener('resize', onResize);
+    addEventListener('orientationchange', onResize);
+    return () => {
+      removeEventListener('resize', onResize);
+      removeEventListener('orientationchange', onResize);
+    };
+  }, [fit]);
+
   /* One pointer handler per region. Both measure the same way and differ only
      in what a horizontal swipe means, which is the point: the artwork is the
      page, the words are the parts.
@@ -186,6 +264,7 @@ export function Theatre({ pages, at, onPage, onClose }: {
       {/* The words. Its own region, so a swipe here moves through the parts
           rather than through the pages under them. */}
       <div
+        ref={words}
         className={`theatre__words${running && !tts.paused ? ' is-live' : ''}`}
         {...swipe(() => toPart(1), () => toPart(-1), toggle)}
         role="button"
@@ -198,7 +277,10 @@ export function Theatre({ pages, at, onPage, onClose }: {
         }}
       >
         {part ? (
-          <p className="theatre__part">
+          /* Keyed by part, so React replaces the node and the entry animation
+             runs again. Keying by index rather than by id because a page with
+             one unsplit script has no ids to key by. */
+          <p className="theatre__part" key={`${at}-${shown}`} ref={partBox}>
             {part.lines.map((l) => (
               <span
                 key={l.i}

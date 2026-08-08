@@ -3047,22 +3047,34 @@ html[data-vt="lateral"]::view-transition-new(root){animation:.24s .04s both fp-i
   font-size:.6875rem;letter-spacing:.12em;color:var(--ink-soft);
 }
 
-/* The words. Pressing them plays or pauses, so they carry the affordance:
-   a hairline that fills while it is reading. */
+/* The words.
+   No rule between them and the page: the two are one thing being read, and a
+   line across the middle made it a caption bar. The words are bounded instead
+   — a part gets a share of the screen, not whatever it asks for — and the type
+   shrinks to fit that share rather than being cut off. Nothing scrolls: a show
+   should not have to be scrolled. */
 .theatre__words{
   cursor:pointer;user-select:none;
+  display:grid;place-items:center;
+  max-block-size:38dvh;overflow:hidden;
   padding:clamp(.9rem,3vw,1.5rem) clamp(1rem,5vw,3rem) clamp(1.4rem,4vw,2rem);
-  border-block-start:2px solid rgba(159,179,217,.14);
-  background:linear-gradient(180deg,rgba(159,179,217,.05),transparent);
 }
-.theatre__words.is-live{border-block-start-color:var(--gold)}
 .theatre__part{
-  margin:0 auto;max-inline-size:46rem;
+  margin:0;max-inline-size:46rem;
   font-size:clamp(1rem,2.4vw,1.375rem);line-height:1.5;
   color:var(--ink-soft);text-wrap:pretty;
+  animation:theatre-part .34s var(--ease) both;
 }
+.theatre__part span{transition:color .18s var(--ease)}
 .theatre__part span.is-live{color:#fff}
 .theatre__part--none{font-style:italic;opacity:.6}
+
+/* One part gives way to the next: out of the way, in from below, quickly
+   enough that it never delays the voice already speaking the new one. */
+@keyframes theatre-part{
+  from{opacity:0;transform:translateY(.5rem)}
+  to{opacity:1;transform:none}
+}
 
 /* Hugging the left, away from the thumb that swipes pages. */
 .theatre__chrome{
@@ -3090,14 +3102,12 @@ html[data-vt="lateral"]::view-transition-new(root){animation:.24s .04s both fp-i
    words take a column beside it rather than a strip beneath. */
 @media (min-width:900px) and (orientation:landscape){
   .theatre{grid-template-rows:1fr;grid-template-columns:1fr minmax(18rem,26rem)}
-  .theatre__words{
-    border-block-start:0;border-inline-start:2px solid rgba(159,179,217,.14);
-    display:grid;align-content:center;
-    background:linear-gradient(90deg,rgba(159,179,217,.05),transparent);
-  }
-  .theatre__words.is-live{border-block-start:0;border-inline-start-color:var(--gold)}
+  /* Beside the page rather than under it, so the ceiling is the whole height. */
+  .theatre__words{max-block-size:none}
 }
 
 @media (prefers-reduced-motion:reduce){
   .theatre__chrome{transition:none}
+  .theatre__part{animation:none}
+  .theatre__part span{transition:none}
 }
