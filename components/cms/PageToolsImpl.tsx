@@ -5,7 +5,11 @@ import { createPortal } from 'react-dom';
 import { useCms, useCmsValue } from '../../lib/cms-context.tsx';
 import { labelFor } from '../../lib/cms-schema.ts';
 import { mediaURL } from '../../lib/media.ts';
-import { folderFor, uploadImage } from './upload.ts';
+import { folderFor, uploadMedia } from './upload.ts';
+import LineAudioImpl from './LineAudioImpl.tsx';
+import { scriptLines } from '../../lib/script.ts';
+import { clipSrc, orphanClips, withClip, withoutClip } from '../../lib/clips.ts';
+import type { PageClip } from '../../content/pages.ts';
 
 /* Everything you can change about the page you are looking at, in one sheet.
  *
@@ -30,23 +34,32 @@ import { folderFor, uploadImage } from './upload.ts';
 type Field = 'image' | 'thumb';
 
 export default function PageToolsImpl({
-  index, page, image, thumb, script, onClose,
+  index, page, image, thumb, script, audio, onClose,
 }: {
   index: number;
   page: number;
   image: string;
   thumb: string;
   script: string;
+  audio: PageClip[];
   onClose: () => void;
 }) {
   const { write } = useCms();
   const imagePath = `pages.items.${index}.image`;
   const thumbPath = `pages.items.${index}.thumb`;
   const scriptPath = `pages.items.${index}.script`;
+  const audioPath = `pages.items.${index}.audio`;
 
   const src = useCmsValue(imagePath, image);
   const thumbSrc = useCmsValue(thumbPath, thumb);
   const text = useCmsValue(scriptPath, script);
+  const clips: PageClip[] = useCmsValue(audioPath, audio) ?? [];
+
+  /* Read from the SAVED script rather than the textarea draft: a key computed
+     from half-typed words would file a recording under a beat that stops
+     existing the moment the sentence is finished. */
+  const lines = scriptLines(text);
+  const orphans = orphanClips(lines, clips);
 
   const sheet = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -79,7 +92,7 @@ export default function PageToolsImpl({
     setErr(null);
     const path = field === 'image' ? imagePath : thumbPath;
     try {
-      write(path, await uploadImage(f, folderFor(path)));
+      write(path, await uploadMedia(f, folderFor(path)));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -196,6 +209,72 @@ export default function PageToolsImpl({
           }}
         />
       </label>
+
+      {/* Recordings.
+          The per-line control in the script column is a hover affordance, and
+          the whole reason this sheet exists is that hover affordances do not
+          exist on a phone. So every beat is listed here too — same control,
+          reachable by tap. */}
+      {lines.length > 0 && (
+        <div className="pgt__script">
+          <b>Recordings</b>
+          <ul className="pgt__orphans">
+            {lines.map((l) => (
+              <li className="pgt__orphan" key={l.key}>
+                <q>{l.text}</q>
+                {clipSrc(clips, l.key) !== null && <b aria-hidden="true">●</b>}
+                <LineAudioImpl
+                  path={audioPath}
+                  clips={clips}
+                  lineKey={l.key}
+                  said={l.speech}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Takes whose line has since been rewritten. They are kept, named by
+          what they say, and repairable — losing a recording silently because
+          a typo was fixed is not a trade this project makes anywhere else. */}
+      {orphans.length > 0 && (
+        <div className="pgt__script">
+          <b>Recordings with no line</b>
+          <ul className="pgt__orphans">
+            {orphans.map((c) => (
+              <li className="pgt__orphan" key={c.key}>
+                <q>{c.said || 'unnamed'}</q>
+                <select
+                  className="pgt__select"
+                  value=""
+                  aria-label={`Re-attach the recording of "${c.said}" to a line`}
+                  onChange={(e) => {
+                    const to = e.target.value;
+                    if (!to) return;
+                    const line = lines.find((l) => l.key === to);
+                    if (!line) return;
+                    write(audioPath,
+                      withClip(withoutClip(clips, c.key), line.key, c.src, line.speech));
+                  }}
+                >
+                  <option value="">Re-attach to…</option>
+                  {lines.map((l) => (
+                    <option key={l.key} value={l.key}>{l.text}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="cms-clip__btn cms-clip__btn--off"
+                  onClick={() => write(audioPath, withoutClip(clips, c.key))}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {err && <p className="pgt__err" role="alert">{err}</p>}
       <p className="pgt__note">Held as a draft until you press Save on the editor bar.</p>

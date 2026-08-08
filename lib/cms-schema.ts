@@ -23,8 +23,15 @@ export const TEMPLATES: Record<string, unknown> = {
      drawing is uploaded onto it. */
   'pages.items.*': {
     id: '', image: '', thumb: '', stage: 'blue', isDraft: true, alt: '',
-    chapter: '', script: '',
+    chapter: '', script: '', audio: [],
   },
+
+  /* Without this, a stored clip has no template to merge over: `mergeArray`
+     falls through to its warn-and-pass-unmerged branch, so the row keeps
+     whatever shape the database happened to hold. The page defaults all carry
+     `audio: []`, so EVERY clip is past the end of the defaults and takes that
+     path — this template is the only shape enforcement clips ever get. */
+  'pages.items.*.audio.*': { key: '', src: '', said: '' },
 
   'pages.chapters.*': { id: '', title: 'New chapter', blurb: '' },
 
@@ -73,6 +80,7 @@ export const LABELS: Record<string, string> = {
   'pages.items.*.script': 'Page script — one beat per line, "NAME: line" for dialogue',
   'pages.items.*.image': 'Page image',
   'pages.items.*.thumb': 'Thumbnail',
+  'pages.items.*.audio': 'Line recordings',
 
   'sheets.items.*.description': 'Description (also the alt text)',
   'sheets.items.*.name': 'Name — leave blank unless it is genuinely known',

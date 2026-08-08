@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useCms } from '../../lib/cms-context.tsx';
 import { labelFor } from '../../lib/cms-schema.ts';
 import { mediaURL } from '../../lib/media.ts';
-import { folderFor, uploadImage } from './upload.ts';
+import { folderFor, uploadMedia } from './upload.ts';
 
 /* Click to replace. The file goes to /api/cms/upload, which is the only thing
    holding a service-role key; the returned object key is written into the
@@ -28,7 +28,7 @@ export default function EditableImageImpl({
     setBusy(true);
     setErr(null);
     try {
-      write(path, await uploadImage(file, folderFor(path)));
+      write(path, await uploadMedia(file, folderFor(path)));
     } catch (e) {
       setErr((e as Error).message);
     } finally {

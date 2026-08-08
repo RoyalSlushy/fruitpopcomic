@@ -1506,6 +1506,21 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .sheet__lines li[data-kind="note"]{font-style:italic;color:#4A5468}
 .sheet__none{margin:auto 0;color:#5A6478;font-size:.875rem;line-height:1.5}
 
+/* The tag and the transport share a row. A script page is the one page that is
+   entirely text, so it is the one page worth playing straight through.
+   `margin-inline-end:auto` rather than `flex:1` on the tag — it is a clipped
+   chip sized to its words, and stretching it would pull the cut corner off. */
+.sheet__bar{display:flex;align-items:center;gap:.6rem}
+.sheet__bar .sheet__tag{margin-inline-end:auto}
+
+/* One rule carries both signals, so they cannot fight: transparent by default,
+   magenta where the creator has recorded the line, and filled while it plays.
+   On this pale sheet that reads as the same idea as the gold dot in the dark
+   transcript column, in the other key. */
+.sheet__lines li{padding-inline-start:.5rem;border-inline-start:2px solid transparent}
+.sheet__lines li[data-clip]{border-inline-start-color:var(--magenta-dp)}
+.sheet__lines li.is-live{background:rgba(214,51,132,.12);border-inline-start-color:var(--magenta)}
+
 .thumb__blank{
   display:grid;place-items:center;
   inline-size:52px;block-size:78px;
@@ -1555,6 +1570,14 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   font-variant-numeric:tabular-nums;
   min-inline-size:2.5rem;text-align:end;
 }
+.vm__row--check input{
+  inline-size:16px;block-size:16px;justify-self:start;
+  accent-color:var(--gold);cursor:pointer;
+}
+/* Why the rows above do not govern a recorded line. Kept as a note rather than
+   disabling the controls: they still apply to every UNRECORDED line on the
+   same page, so greying them out would be a lie. */
+.vm__note{margin:0;font-size:.6875rem;line-height:1.45;color:var(--ink-soft)}
 .vm__foot{display:flex;gap:.5rem;margin-block-start:.15rem}
 .vm__none{margin:0;font-size:.75rem;line-height:1.45;color:var(--ink-soft)}
 
@@ -1649,6 +1672,18 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .script__cue:hover{color:#fff;border-color:#fff}
 .script__line.is-live .script__cue{opacity:1;border-color:var(--gold);color:var(--gold)}
 @media (hover:none){.script__cue{opacity:1}}
+
+/* A line the creator has actually recorded.
+   Its job is to explain a voice change BEFORE it happens: on a page that is
+   part recorded and part synthesised the switch is otherwise indistinguishable
+   from something being broken. Deliberately quiet — it marks provenance, it is
+   not a control, and it must not outrank `is-live`. */
+.script__line[data-clip]::after{
+  content:'';position:absolute;inset-inline-end:.45rem;inset-block-start:.78rem;
+  inline-size:5px;block-size:5px;border-radius:999px;
+  background:var(--gold);opacity:.5;
+}
+.script__line[data-clip].is-live::after{opacity:1}
 
 .script__none{margin:0;font-weight:700;color:#fff;font-size:.9375rem;line-height:1.35}
 .script__why{margin:0;font-size:.8125rem;line-height:1.5;color:var(--ink-soft)}

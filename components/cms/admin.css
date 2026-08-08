@@ -136,6 +136,53 @@
   padding: .2rem .4rem;
 }
 
+/* ── line recordings ─────────────────────────────────────── */
+
+/* Sits at the end of a script line, in flow rather than absolutely placed: the
+   line is a wrapping paragraph and a floating control would land on top of the
+   words at some width. Visible without hover, because the same control has to
+   work on a phone — see PageToolsImpl for the rest of that argument. */
+.cms-clip {
+  display: inline-flex;
+  gap: .25rem;
+  align-items: center;
+  margin-inline-start: .4rem;
+  vertical-align: middle;
+}
+.cms-clip__btn {
+  cursor: pointer;
+  font-family: var(--face);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .5rem;
+  letter-spacing: .06em;
+  padding: .18rem .4rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy);
+  border: 2px solid transparent;
+}
+.cms-clip__btn--off { background: transparent; color: var(--gold); border-color: currentColor }
+.cms-clip__btn:disabled { opacity: .5; cursor: progress }
+.cms-clip__err { font-size: .625rem; color: #fff; background: var(--magenta-dp); padding: .1rem .3rem }
+
+/* The orphan list in the page sheet: takes whose line has been rewritten. */
+.pgt__orphans { display: flex; flex-direction: column; gap: .4rem; margin: 0; padding: 0; list-style: none }
+.pgt__orphan { display: flex; gap: .4rem; align-items: center; font-size: .75rem }
+.pgt__orphan q { flex: 1; min-inline-size: 0; color: var(--ink-soft); font-style: italic;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.pgt__orphan b { color: var(--gold) }
+.pgt__select {
+  max-inline-size: 9rem;
+  font: inherit;
+  font-size: .6875rem;
+  padding: .2rem .3rem;
+  border-radius: var(--r-sm);
+  background: var(--navy);
+  color: #fff;
+  border: 2px solid var(--navy-line);
+}
+
 /* ── list controls ───────────────────────────────────────── */
 
 .cms-list { display: inline-flex; gap: .25rem; margin-inline-start: .4rem; vertical-align: middle }

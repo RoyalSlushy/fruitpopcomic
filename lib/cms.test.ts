@@ -212,3 +212,46 @@ describe('merge — the load-bearing behaviour', () => {
     assert.ok(!isSectionKey(1));
   });
 });
+
+/* ── line recordings ──────────────────────────────────────────
+   Clips are the first list stored UNDER a list item, and every page default
+   holds an empty one — so every clip that exists is past the end of its
+   defaults and merges over the template rather than over a positional
+   default. That is the path these cover. */
+
+describe('per-line audio clips', () => {
+  const clip = (key: string, src = 'pages/a.mp3') => ({ key, src, said: 'a line' });
+
+  test('clips round-trip through the merge intact', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.audio = [clip('abc'), clip('def', 'pages/b.mp3')];
+    const out = mergeSection('pages', { items });
+    assert.deepEqual(out.items[0]?.audio, [clip('abc'), clip('def', 'pages/b.mp3')]);
+  });
+
+  test('a key the code does not define is dropped from a clip', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.audio = [{ ...clip('abc'), rogue: 1 } as never];
+    const out = quiet(() => mergeSection('pages', { items }));
+    assert.deepEqual(Object.keys(out.items[0]!.audio[0]!).sort(), ['key', 'said', 'src']);
+  });
+
+  test('a clip missing a field gets it from the template rather than vanishing', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.audio = [{ key: 'abc', src: 'pages/a.mp3' } as never];
+    const out = mergeSection('pages', { items });
+    assert.deepEqual(out.items[0]?.audio[0], { key: 'abc', src: 'pages/a.mp3', said: '' });
+  });
+
+  test('emptying the list means empty, not "fall back to the defaults"', () => {
+    const items = structuredClone(DEFAULTS.pages.items);
+    items[0]!.audio = [];
+    assert.deepEqual(mergeSection('pages', { items }).items[0]?.audio, []);
+  });
+
+  test('a page added past the code defaults still gets an audio list', () => {
+    const items = [...structuredClone(DEFAULTS.pages.items), { id: 'p99', script: 'x' }];
+    const out = mergeSection('pages', { items } as never);
+    assert.deepEqual(out.items[10]?.audio, [], 'from TEMPLATES["pages.items.*"]');
+  });
+});

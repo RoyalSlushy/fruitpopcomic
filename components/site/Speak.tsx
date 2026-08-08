@@ -3,9 +3,14 @@
 import { useEffect, useId, useState } from 'react';
 import { Glyph } from './Glyph.tsx';
 import { VoiceMenu } from './VoiceMenu.tsx';
-import { hydrate, speak, stop, supported, useTts } from '../../lib/tts.ts';
+import { hydrate, speak, stop, stopIfOwner, supported, useTts } from '../../lib/tts.ts';
 
 /* Read a block of text aloud, using the browser's own speech synthesiser.
+ *
+ * This is the PROSE path — an About paragraph, a wiki entry, a page
+ * description. There is nothing to record here and nothing recorded, so it is
+ * synthesis only; the reader's script column is the surface where a beat can
+ * carry the creator's own voice. Both go through the one queue in lib/tts.ts.
  *
  * The Web Speech API rather than a paid voice service: no key, no server hop,
  * no per-character bill, and nothing to keep running. That used to mean
@@ -42,8 +47,11 @@ export function Speak({ text, label = 'Listen', className = '', picker = true }:
   const tts = useTts();
   const mine = tts.owner === id;
 
-  /* Navigating away mid-sentence should not keep talking over the next page. */
-  useEffect(() => () => { stop(); }, []);
+  /* Navigating away mid-sentence should not keep talking over the next page —
+     but only this button's own speech is stopped. Stopping unconditionally
+     silenced whoever else held the channel, which was harmless only for as
+     long as every speaking component unmounted at the same moment. */
+  useEffect(() => () => { stopIfOwner(id); }, [id]);
 
   /* A text change under a running utterance — paging the reader — should read
      the new text, not finish the old. */

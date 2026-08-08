@@ -7,12 +7,12 @@ import { Speak } from './Speak.tsx';
 import { VoiceMenu } from './VoiceMenu.tsx';
 import { NoteTip } from './NoteTip.tsx';
 import { PageScript } from './PageScript.tsx';
+import { ScriptSheet } from './ScriptSheet.tsx';
 import { PageRail } from './PageRail.tsx';
 import { PageTools } from '../cms/PageTools.tsx';
 import { PageMenu } from '../cms/PageMenu.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { chapterOf, isScriptPage, siblings } from '../../lib/chapters.ts';
-import { scriptLines } from '../../lib/script.ts';
 import { mediaURL, pad } from '../../lib/media.ts';
 import type { Chapter, ComicPage } from '../../content/pages.ts';
 
@@ -650,10 +650,6 @@ export function Reader({
   const total = sibs.length;
   const human = pos + 1;
   const description = describe(page, human, total);
-  const lines = useMemo(
-    () => (page && isScriptPage(page) ? scriptLines(page.script) : []),
-    [page],
-  );
 
   return (
     <section
@@ -777,29 +773,14 @@ export function Reader({
                         />
                       )}
 
-                      {/* A page that is written but not drawn. It is laid out as
-                          a page rather than as a gap, because that is what it is
-                          in the running order — the chapter can be built before
-                          it is drawn. */}
                       {page && isScriptPage(page) && (
-                        <div className="sheet" ref={(el) => { media.current = el; }}>
-                          <p className="sheet__tag">Not drawn yet</p>
-                          {lines.length > 0 ? (
-                            <ol className="sheet__lines">
-                              {lines.map((l) => (
-                                <li key={l.i} data-kind={l.kind}>
-                                  {l.who && <b>{l.who}</b>}
-                                  <span>{l.text}</span>
-                                </li>
-                              ))}
-                            </ol>
-                          ) : (
-                            <p className="sheet__none">
-                              This page is blank. No drawing, and no script written
-                              for it yet.
-                            </p>
-                          )}
-                        </div>
+                        <ScriptSheet
+                          key={page.id}
+                          index={at}
+                          script={page.script}
+                          audio={page.audio ?? []}
+                          mediaRef={(el) => { media.current = el; }}
+                        />
                       )}
 
                       {/* No caption. The page number was tipped over the top
@@ -842,6 +823,7 @@ export function Reader({
                     page={human}
                     script={page.script}
                     isDraft={page.isDraft}
+                    audio={page.audio ?? []}
                   />
                 )}
               </div>
@@ -1038,6 +1020,7 @@ export function Reader({
                 image={page.image}
                 thumb={page.thumb}
                 script={page.script}
+                audio={page.audio ?? []}
                 onClose={closeTools}
               />
             )}

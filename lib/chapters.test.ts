@@ -7,6 +7,7 @@ const ch = (id: string, title = id): Chapter => ({ id, title, blurb: '' });
 
 const pg = (id: string, chapter: string, image = `/${id}.jpg`): ComicPage => ({
   id, image, thumb: '', stage: 'blue', isDraft: true, alt: '', chapter, script: '',
+  audio: [],
 });
 
 test('chapters come back in declared order, pages in running order', () => {

@@ -1021,11 +1021,44 @@ Added with the reader rebuild:
   inside a field or a `contenteditable`, so they never fight the editor.
 - The spoken line carries `aria-current`, and a second live region names it, so
   following along works by eye and by screen reader both.
-- One speech queue for the whole page (`lib/tts.ts`). `speechSynthesis` is a
+- One playback queue for the whole page (`lib/tts.ts`). `speechSynthesis` is a
   single global device, so two components each holding their own `speaking`
   state would leave the loser's button stuck reading "Stop" for audio that had
   already been cancelled. `owner` is what makes the other one render idle
   without being told.
+- **There are two engines behind that one queue.** A script beat the creator has
+  recorded plays their own voice through an `<audio>` element; every other beat
+  is synthesised. They share the queue rather than sitting beside it, because a
+  second player would mean two `speaking` flags, two transports, and a Stop
+  button that only stopped half of what was audible. Every entry point goes
+  through one `cancelAll()` that silences both.
+
+  Four things are load-bearing:
+
+  - **A recording is keyed to what the line SAYS, not to where it sits.**
+    `lib/script.ts` hashes each beat's spoken text; clips are filed under that.
+    Insert a line above and nothing moves; reorder and nothing moves. Rewrite a
+    line and its recording detaches — correct, because the take no longer says
+    what the line says.
+  - **A detached take is never silently dropped.** Each clip stores the words it
+    was recorded against, so the editor can show an orphan, name it, and offer
+    to re-attach it. Losing a recording because a typo was fixed is not a trade
+    made anywhere else in this project.
+  - **The gesture is spent before it is needed.** A browser only lets an
+    `<audio>` element play later if it was first played inside a real click.
+    Waiting for the first clip is not good enough: on a page whose first line is
+    unrecorded, the click is spent on the synthesiser and the clip four lines
+    down finds a cold element. So the transport blesses it with a silent source
+    on the way past, whatever the queue does next.
+  - **Mixed pages are marked, not hidden.** A page that is part recorded and
+    part synthesised switches voice mid-scene, which is indistinguishable from a
+    fault unless it is explained first. Recorded lines carry a mark, the live
+    region says "recorded", and anyone who would rather have one consistent
+    voice than a better one can turn recordings off in the picker.
+
+  A recording is atomic; synthesised speech is still chunked around Chrome's
+  utterance limit. Both report the LINE index, so the highlight, the jump-to-line
+  click and `aria-current` never learned that recordings exist.
 - **The voice is chosen, not accepted.** Read-aloud is only as good as the voice
   it is handed, and the one a browser hands you by default is usually the oldest
   synth installed. Every current platform ships something genuinely good —
@@ -1129,15 +1162,22 @@ that lazy-loads its implementation, and the build fails if that stops being true
 - The Adobe Fonts kit is a third-party dependency on a domain-locked resource, and
   it is now the site's single largest availability risk: an unregistered domain
   degrades every surface at once. Self-hosting is not permitted by the licence.
-- Read-aloud quality is bounded by what the visitor's device happens to have
-  installed. The picker gets the best of those to the top, which is a large
-  improvement over the default and costs nothing, but it cannot conjure a good
-  voice onto a device with none. A hosted neural voice would remove that
-  variance and make every visitor hear the same thing; it would also mean an API
-  key, a per-character bill, and a third-party runtime dependency on the read
-  path. It slots into one function — `say()` in `lib/tts.ts` — if that trade is
-  ever worth making. It has not been abstracted ahead of time, because there is
-  no second engine to abstract over yet.
+- Synthesised read-aloud quality is still bounded by what the visitor's device
+  happens to have installed. The picker gets the best of those to the top, which
+  is a large improvement over the default and costs nothing, but it cannot
+  conjure a good voice onto a device with none. **The route taken out of this
+  was recording rather than better synthesis** — see the read-aloud section
+  above. A hosted neural voice remains the other option and is still unbuilt: it
+  would make every visitor hear the same thing without anyone having to record
+  anything, at the price of an API key, a per-character bill, and a third-party
+  runtime dependency on the read path. It now has a real seam to land in —
+  `stepsOf` in `lib/clips.ts` already describes a step the player does not
+  synthesise itself.
+- **Every page still has no script and no recordings.** The transcript column,
+  the per-line player and the recording UI are all built and all empty. None of
+  it does anything until the creator types a script out by hand, and that rule
+  has not moved: the lettering is drawn into the artwork, and an invented
+  transcript would be invented dialogue.
 - The Supabase project is shared with an unrelated site. The comic's tables live
   in their own `fruitpop` schema and writes are gated on an explicit editor
   allowlist rather than on `authenticated`, because auth is shared. A dedicated

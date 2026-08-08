@@ -131,6 +131,10 @@ lib/
   cms-context.tsx     drafts, baseline, dirty set
   supabase.ts         server-only REST; holds the service-role key
   speech.ts           read-aloud text prep: chunking, HTML → spoken text
+  script.ts           page-script parsing; each beat gets a content key
+  clips.ts            pairing recordings to beats, and the playlist
+  tts.ts              the one playback queue — synthesis and recordings
+  audio.ts            the shared <audio> element, and the autoplay unlock
 components/
   site/               the site itself; Speak.tsx is the read-aloud button
   cms/                editable primitives; every *Impl is lazy-loaded
@@ -176,8 +180,27 @@ Two things follow from this that are worth knowing:
   the artwork and still un-transcribed — see the note on access on the About page.
   This reads the site's own prose, not the comic.
 
-`lib/speech.ts` holds the text preparation (chunking, HTML stripping) and is
-covered by `lib/speech.test.ts`; `components/site/Speak.tsx` is the button.
+### Recorded lines
+
+Where a page has a written script, individual beats can carry a **recording** in
+the creator's own voice, uploaded in the CMS. Pressing play walks the script line
+by line: a line with a take plays it, a line without one is synthesised, and
+playback moves on by itself. Partial pages are the normal case — one recording is
+worth making without waiting for the rest — so recorded lines are marked, and the
+setting to turn recordings off sits in the voice picker for anyone who would
+rather have one consistent voice than a better one.
+
+A recording is filed under what its line *says*, not under a line number, so
+adding and reordering lines leaves takes attached. Rewriting a line detaches its
+take, because the recording no longer says what the line says; the editor lists
+those with their words and offers to re-attach or delete them.
+
+Every page currently has an empty script and no recordings, and will until the
+creator writes one out — the same rule as everywhere else here.
+
+`lib/speech.ts` holds the text preparation (chunking, HTML stripping);
+`lib/script.ts` and `lib/clips.ts` hold the parsing and the playlist, and all
+three are covered by tests. `components/site/Speak.tsx` is the prose button.
 
 ## Adding pages
 
