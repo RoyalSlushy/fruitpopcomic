@@ -58,3 +58,68 @@ test('other heading levels are not boundaries', () => {
   assert.equal(sections.length, 0);
   assert.match(lead, /^<h2>/);
 });
+
+/* ── blocks ─────────────────────────────────────────────────── */
+
+import { blocksOf, isBlankBlock, blocksToHTML, toHTML } from './wiki.ts';
+
+const block = (over: Partial<{ id: string; heading: string; html: string; image: string; caption: string }> = {}) =>
+  ({ id: 'x', heading: '', html: '', image: '', caption: '', ...over });
+
+test('toHTML auto-paragraphs plain text and passes markup through', () => {
+  assert.equal(toHTML('one\n\ntwo'), '<p>one</p><p>two</p>');
+  assert.equal(toHTML('a\nb'), '<p>a<br>b</p>');
+  assert.equal(toHTML('<p>already</p>'), '<p>already</p>');
+  assert.equal(toHTML('  '), '');
+  assert.equal(toHTML('a & b'), '<p>a &amp; b</p>');
+});
+
+test('stored blocks win over the legacy body', () => {
+  const out = blocksOf({ blocks: [block({ heading: 'Kept', html: '<p>x</p>' })], body: '<p>ignored</p>' });
+  assert.equal(out.length, 1);
+  assert.equal(out[0]?.heading, 'Kept');
+});
+
+test('an entry with no blocks falls back to the legacy body', () => {
+  const out = blocksOf({ blocks: [], body: '<p>Lead.</p><h3>One</h3><p>a</p>' });
+  assert.equal(out.length, 2);
+  assert.equal(out[0]?.heading, '');
+  assert.equal(out[1]?.heading, 'One');
+  /* The <h3> became the block's heading and must not also remain in its
+     markup, or the page would draw the heading twice. */
+  assert.ok(!/<h3/i.test(out[1]?.html ?? ''));
+});
+
+/* The editor addresses a block by index, so the array it renders has to be
+   the array that is stored — same length, same order, blanks included. */
+test('blocksOf preserves index, blank blocks and all', () => {
+  const out = blocksOf({
+    blocks: [block({ id: 'a', html: '<p>one</p>' }), block({ id: 'b' }), block({ id: 'c', html: '<p>three</p>' })],
+    body: '',
+  });
+  assert.equal(out.length, 3);
+  assert.deepEqual(out.map((b) => b.id), ['a', 'b', 'c']);
+});
+
+test('block html is sanitised on the way out', () => {
+  const out = blocksOf({ blocks: [block({ html: '<p onclick="x()">hi</p><script>y()</script>' })], body: '' });
+  assert.equal(out[0]?.html, '<p>hi</p>');
+});
+
+test('isBlankBlock only counts what a reader would see', () => {
+  assert.ok(isBlankBlock(block()));
+  assert.ok(isBlankBlock(block({ html: '<p><br></p>' })));
+  assert.ok(isBlankBlock(block({ caption: 'orphan caption' })));   // no picture to caption
+  assert.ok(!isBlankBlock(block({ heading: 'A' })));
+  assert.ok(!isBlankBlock(block({ image: '/x.png' })));
+  assert.ok(!isBlankBlock(block({ html: '<p>a</p>' })));
+});
+
+test('blocksToHTML rebuilds one readable string for speech', () => {
+  const html = blocksToHTML([
+    block({ heading: 'One', html: '<p>a</p>' }),
+    block({ heading: '', html: '<p>b</p>', caption: 'ignored without a picture' }),
+  ]);
+  assert.match(html, /<h3>One<\/h3><p>a<\/p>/);
+  assert.match(html, /<p>b<\/p>/);
+});

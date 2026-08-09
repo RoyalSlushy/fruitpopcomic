@@ -42,7 +42,7 @@ function normalise(s: string, multiline: boolean): string {
 type Entry = { x: number; y: number } | 'select-all';
 
 export default function EditableTextImpl({
-  as: Tag = 'span' as ElementType, path, text, className, style, multiline = false,
+  as: Tag = 'span' as ElementType, path, text, className, style, multiline = false, placeholder,
 }: {
   as?: ElementType;
   path: string;
@@ -50,6 +50,7 @@ export default function EditableTextImpl({
   className?: string;
   style?: React.CSSProperties;
   multiline?: boolean;
+  placeholder?: string;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const session = useRef<{ frozen: string } | null>(null);
@@ -58,12 +59,18 @@ export default function EditableTextImpl({
   const { write } = useCms();
   const label = labelFor(path);
 
+  /* Showing ghost text for an empty value, rather than being empty. */
+  const blank = !text && !!placeholder;
+
   const open = useCallback((how: Entry) => {
     if (session.current) return;
-    session.current = { frozen: ref.current?.textContent ?? text };
+    /* A blank field freezes to the REAL value — the empty string — never to
+       the placeholder standing in for it. Freezing the ghost would hand the
+       creator a box pre-filled with the words "Section heading" to delete. */
+    session.current = { frozen: blank ? '' : (ref.current?.textContent ?? text) };
     entry.current = how;
     setEditing(true);
-  }, [text]);
+  }, [blank, text]);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -135,8 +142,11 @@ export default function EditableTextImpl({
 
   if (!editing) {
     return (
-      <Tag {...shared} tabIndex={0} aria-keyshortcuts="F2" aria-describedby="cms-edit-hint">
-        {text}
+      <Tag
+        {...shared} tabIndex={0} aria-keyshortcuts="F2" aria-describedby="cms-edit-hint"
+        data-cms-blank={blank ? '' : undefined}
+      >
+        {blank ? placeholder : text}
       </Tag>
     );
   }

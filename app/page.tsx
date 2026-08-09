@@ -52,9 +52,19 @@ export default async function HomePage() {
                 interior edge. This is that something. */}
             <span className="ch__in">
               <span className="hero__screen">
+                {/* The biggest picture on the site, and until now the only one
+                    with no way to change it — it is page one's artwork, so it
+                    was editable everywhere except where it is actually seen.
+                    EditableImage puts the replace control on it in edit mode
+                    and renders the same bare <img> for everyone else. */}
                 {first ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mediaURL(first.image)} alt="" width={1080} height={1620} />
+                  <EditableImage
+                    path="pages.items.0.image"
+                    value={first.image}
+                    alt=""
+                    width={1080}
+                    height={1620}
+                  />
                 ) : null}
                 <span className="ch__scan" aria-hidden="true" />
               </span>

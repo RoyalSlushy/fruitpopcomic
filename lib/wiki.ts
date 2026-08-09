@@ -18,6 +18,9 @@
  * one big section rather than a wrong one.
  */
 
+import type { WikiBlock, WikiEntry } from '../content/wiki.ts';
+import { sanitizeRich, isBlankRich } from './richtext.ts';
+
 export type WikiSection = {
   /** the section's <h3> text, plain — for labelling the region */
   heading: string;
@@ -70,4 +73,82 @@ export function splitBody(html: string): WikiBody {
     .map((part) => ({ heading: headingOf(part), html: part }));
 
   return { lead, sections };
+}
+
+/* ── blocks ────────────────────────────────────────────────────
+ * `blocks` is what renders and what the editor edits. `body` is the string
+ * the entries used to be, and is still rendered when an entry has no blocks —
+ * so an entry can never end up with its text in neither field. Same
+ * arrangement pages have between `script` and `snippets`.
+ * ───────────────────────────────────────────────────────────── */
+
+/** Plain text auto-paragraphs; anything that already looks like HTML passes. */
+export function toHTML(text: string): string {
+  const s = (text || '').trim();
+  if (!s) return '';
+  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  return s
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p
+      .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] ?? c))
+      .replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+/**
+ * What the page should draw, from either field.
+ *
+ * Sanitising HERE rather than only in the editor is deliberate: this is the
+ * last thing that runs before dangerouslySetInnerHTML, so a row that reached
+ * the database by some other route — a hand-edited JSONB, an import, an older
+ * build — is still cleaned on the way out. See lib/richtext.ts.
+ */
+export function blocksOf(entry: Pick<WikiEntry, 'blocks' | 'body'>): WikiBlock[] {
+  const stored = entry.blocks ?? [];
+  const raw: WikiBlock[] = stored.length ? stored : legacyBlocks(entry.body ?? '');
+
+  /* INDEX-PRESERVING, deliberately: the result is 1:1 with what is stored, in
+     the same order. The editor addresses a block by its index — the path
+     `wiki.entries.3.blocks.2.html` is a position — so dropping a row here
+     would silently retarget every edit after it. Blank blocks are skipped at
+     RENDER time instead, and only for readers; a block the creator has just
+     added is blank by definition and has to be visible to be filled in. */
+  return raw.map((b) => ({
+    ...b,
+    heading: (b.heading ?? '').trim(),
+    html: sanitizeRich(b.html ?? ''),
+    image: (b.image ?? '').trim(),
+    caption: (b.caption ?? '').trim(),
+  }));
+}
+
+/** Nothing in it a reader would see. Skipped for them, kept for the editor. */
+export function isBlankBlock(b: WikiBlock): boolean {
+  return !b.heading && !b.image && isBlankRich(b.html);
+}
+
+/** The legacy one-string body, cut into the same shape blocks have. */
+function legacyBlocks(body: string): WikiBlock[] {
+  const { lead, sections } = splitBody(toHTML(body));
+  const out: WikiBlock[] = [];
+  if (lead) out.push({ id: 'lead', heading: '', html: lead, image: '', caption: '' });
+  sections.forEach((s, i) => {
+    out.push({
+      id: `s${i + 1}`,
+      heading: s.heading,
+      /* The <h3> becomes the block's `heading` field, so it must not also
+         remain inside the block's own markup. */
+      html: s.html.replace(/^<h3(?:\s[^>]*)?>[\s\S]*?<\/h3>\s*/i, ''),
+      image: '',
+      caption: '',
+    });
+  });
+  return out;
+}
+
+/** The whole entry as one HTML string — for the read-aloud button. */
+export function blocksToHTML(blocks: WikiBlock[]): string {
+  return blocks
+    .map((b) => (b.heading ? `<h3>${b.heading}</h3>` : '') + b.html + (b.caption ? `<p>${b.caption}</p>` : ''))
+    .join('');
 }
