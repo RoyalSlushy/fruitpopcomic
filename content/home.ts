@@ -35,8 +35,8 @@ export const home: HomeContent = {
     cta:    'Read now →',
   },
   startHere: {
-    seeAll: 'See all pages →',
-    /* how many drafts the rail lists before the "see all" link */
+    seeAll: 'See all chapters →',
+    /* how many chapters the rail lists before the "see all" link */
     count: 5,
   },
   quick: [

@@ -522,6 +522,26 @@ html[data-drawer="open"] .scrim{
 .dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
 .dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
 
+/* ── phone running order ────────────────────────────────────
+   Quick access comes up above the chapters. On a phone the
+   panels are a column and the column is long: a visitor who did
+   not come to read has to scroll the whole chapter rail before
+   finding anything else, which is the same reason quick access
+   sits under the hero rather than under the shelf on desktop
+   (see the ≥860 block). Order only — the DOM keeps the reading
+   order it had, and the negative margins that close the tilt
+   gaps still land on every panel but the first one shown.
+
+   Alternating tilt is the point of this stack, and quick access
+   arriving after the hero puts two leftward panels together, so
+   it leans the other way while it is here. The ≥860 block puts
+   its own tilt back. */
+.dash__hot   {order:1}
+.dash__quick {order:2;rotate:.75deg}
+.dash__start {order:3}
+.dash__drafts{order:4}
+.dash__status{order:5}
+
 /* ── the inked panel ────────────────────────────────────────
    The white keyline is not a border: a border would be clipped
    square at the cut corners. The panel's own background IS the
@@ -641,10 +661,18 @@ html[data-drawer="open"] .scrim{
   --plate:var(--magenta-dp);
   min-height:clamp(300px,42vw,440px);
 }
-.hero .ch__in{flex-direction:row;gap:var(--keyline);background:#fff}
+/* No gap between the picture and the caption box, and no white behind the
+   picture. The gap was the tile's own white showing through as a rule down
+   the middle, which framed the artwork as a pasted-in photograph; the fill
+   behind it did the same job for a PNG, turning every transparent pixel
+   white. Both gone, so the channel colour is what sits behind the art and a
+   cut-out reads as a cut-out. The tile's outer keyline stays — that one is
+   the sticker edge every panel on the site shares, not a frame on the
+   picture. */
+.hero .ch__in{flex-direction:row;background:var(--ch)}
 .hero__screen{
   position:relative;flex:1 1 50%;min-width:0;
-  background:#fff;overflow:hidden;
+  background:transparent;overflow:hidden;
 }
 /* out of flow: the page is 2:3, and left in flow its own ratio would
    set the hero's height instead of the other way round */
@@ -749,6 +777,12 @@ html[data-drawer="open"] .scrim{
 .rank__thumb{
   flex:0 0 auto;width:38px;height:57px;object-fit:cover;
   border:2px solid #fff;border-radius:3px;background:#fff;
+}
+/* A chapter whose first page is written but not drawn, or which has no pages
+   at all. It holds the cover's exact footprint rather than collapsing, so the
+   titles beside it stay on one left edge down the list. */
+.rank__thumb--blank{
+  border-color:var(--navy-line);background:var(--navy);
 }
 .rank__label{
   flex:1;min-width:0;
@@ -1912,6 +1946,29 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .wiki__sum{margin:0 0 1.2rem;color:var(--ink-soft);font-size:1.0625rem}
 .wiki__article .prose{padding:0;max-width:none}
 
+/* ── an entry's sections, one panel each ────────────────────
+   Every panel on this site is rotated a fraction of a degree, and a rotation
+   pivots about the centre: the taller the box, the further its top and bottom
+   corners swing off the column's own edges. At four paragraphs that is the
+   house tilt. At forty it is a page that looks like it slipped. So an entry
+   body is cut at its <h3>s and each section gets its own panel — short boxes,
+   each leaning its own way, which is the dashboard's spread applied to a
+   reading page. See lib/wiki.ts.
+
+   Column and gap rather than the dashboard's negative margins: those exist to
+   make panels bite into each other, and biting is wrong here — a paragraph
+   that runs under the next panel's keyline is a paragraph you cannot read. */
+.view--wiki{display:flex;flex-direction:column;gap:clamp(.7rem,1.8vw,1.1rem)}
+.view--wiki>.slab:nth-child(odd){rotate:-.4deg}
+.view--wiki>.slab:nth-child(even){rotate:.45deg}
+
+/* The heading's top margin is spacing from the section BEFORE it, and in its
+   own panel there is no section before it — the panel's padding is the gap
+   now. Same at the foot, where a trailing paragraph margin would read as a
+   short panel with a dead strip along the bottom. */
+.wiki__section .prose>:first-child{margin-top:0}
+.wiki__section .prose>:last-child{margin-bottom:0}
+
 /* ── prose ──────────────────────────────────────────────── */
 
 .prose{padding:clamp(1.25rem,4vw,2.25rem);max-width:68ch}
@@ -1998,8 +2055,19 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      to read should not have to pass the whole draft shelf to find it. The
      rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
-  .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
-  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem}
+  /* Hugs its rows instead of stretching to the hero beside it. A chapter list
+     is short by nature — one row where the page list had five — and stretched
+     to the hero's height it was mostly empty navy under a single entry. Sized
+     to its content it stays a list; as chapters are added it grows back into
+     the row on its own. */
+  .dash__start {grid-column:9/13; grid-row:1; align-self:start; margin-left:-1.15rem;margin-top:1.1rem}
+  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem; rotate:-.55deg}
+
+  /* Placement is explicit above, so the phone's `order` has nothing left to
+     say about position — but it still sets paint order among items whose
+     z-index is auto, and leaving it set would be a rule doing invisible work
+     in the one layout it was never written for. */
+  .dash>.slab{order:0}
   .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
   .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
