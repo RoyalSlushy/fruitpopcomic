@@ -146,6 +146,24 @@ export const wiki: WikiContent = {
 <li><strong>The starfruit is permanent.</strong> Power Fruits are effectively indestructible and reform unless eaten by a compatible host, which is why Ronnie’s power is hers alone.</li>
 <li><strong>Eye colour.</strong> Written green, frequently drawn yellow — both are treated as canon.</li>
 </ul>` },
+        { id: "b10", heading: "The Kiwi", image: '', caption: '',
+          html: `<p>Ronnie carries a <strong>second</strong> Power Fruit, and it is quietly killing her.</p>
+
+<p>The rule is that a body can only hold one fruit at a time. Ronnie ate <strong>99%</strong> of her starfruit — the last piece went to <strong>Lucky</strong> — so when Qwiwi casually tosses her the <strong>Kiwi</strong> during the group's first proper briefing on alien fruit ("Alien fruits are even better than you think"), there is only that 1% of room left to bond with. She eats it and notices nothing at all.</p>
+
+<p>What she has is the Kiwi's power — <strong>wishes</strong> — without any means of channelling it safely. Her body spent months adapting itself to the starfruit and has no protection whatsoever for the second one, so the two fight inside her: bleeding and sickness that come and go, always trailing an especially strenuous wish. The <strong>insomnia and the dreams</strong> are the only safe expressions of it. Everything else is, in the writer's words, microwaving her own brain to force it to work.</p>` },
+        { id: "b11", heading: "The three-season arc", image: '', caption: '',
+          html: `<p>Season one is Ronnie working out what her fruit is and glimpsing what it could do. Season two is her exploring the limit and discovering there isn't one — the power is genuinely limitless, and the only real constraint is how much of it she can use before she stops being herself. She finds that balance and rediscovers who she is by the end of it. Season three puts her in front of the <strong>Elites</strong>, who are the same story with the balance lost: people who gave in to their fruits completely and no longer have a self left to protect.</p>` },
+        { id: "b12", heading: "Odds and ends", image: '', caption: '',
+          html: `<ul class="facts">
+<li><strong>Birthday</strong> 18 August</li>
+<li><strong>Transition</strong> Two to three years on HRT, started around 20</li>
+<li><strong>Writes on</strong> A typewriter — the setting's deliberate anachronism, and very much her</li>
+<li><strong>Music</strong> Classic and prog rock, against Baby's punk, metal and grunge</li>
+<li><strong>Bounty</strong> 50,000,000 credits and an automatic four star keys, issued under the name Lady Starburst</li>
+</ul>
+
+<p>She is the only one of the five to have had deep romantic relationships — three or four partners. She also has a quiet, hopeless admiration for <strong>Lulu</strong> that she knows will never go anywhere, and which has already leaked into the drafts by accident. The Pomen propaganda poster of her makes her look magnificent, which is very funny to everyone who has met her.</p>` },
       ],
     },
     {
@@ -188,6 +206,14 @@ export const wiki: WikiContent = {
 <li>Early notes gave her estranged living parents; the final version is an orphan, abandoned and never renamed.</li>
 <li>Her original introduction fight against Captain McIntosh was cut — he now arrives much later as a looming threat.</li>
 </ul>` },
+        { id: "b8", heading: "Jane Dillard", image: '', caption: '',
+          html: `<p>She carries a fake ID under the name <strong>Jane Dillard</strong>, listing <strong>Cola Vista</strong> as home. The creators' summary of her legal situation: probably a convicted felon across multiple states.</p>
+
+<p>Her old crew, <strong>High Impact</strong>, are drawn in red-orange — deliberately analogous to Baby's own bright orange, pushed toward criminal red, over neutral greys and browns. The colour tells you where she came from without a line of dialogue.</p>` },
+        { id: "b9", heading: "Where the relationship actually strains", image: '', caption: '',
+          html: `<p>The creators are specific that Ronnie and Baby are not an angst engine. The tests on the relationship are meant to be the ones real relationships have: whether to take a real job or the dirtier, better-paying route; self-worth and confidence. "Arguments would come from disagreeing on how to tackle a problem and not from the problem itself." Baby's particular obstacle is her past filling her head with self-doubt; Ronnie's is not letting Lady Starburst eat Ronnie.</p>
+
+<p>She is also the hardest of the cast to make show vulnerability — harder than Liz, harder than Lulu — which is treated as a problem to solve rather than a trait to enjoy. With <strong>Taffy</strong> she is firmly platonic. There is a <strong>wedding</strong> in the plan.</p>` },
       ],
     },
     {
@@ -228,6 +254,14 @@ export const wiki: WikiContent = {
 <li>Her number was 6 in early art; it was changed to 8 for the family symbolism.</li>
 <li>Early notes gave her five siblings; the final family is eight children with Lulu third-youngest.</li>
 </ul>` },
+        { id: "b7", heading: "Eight, four ways over", image: '', caption: '',
+          html: `<p>The number on her back is doing more work than a number usually does. She is one of <strong>eight children</strong>; she is <strong>eighth in line</strong> to win the family a championship; her <strong>bantu knots read as figure-eights</strong>; and her whole design language is rounded, the way an 8 is. None of it is coincidence.</p>` },
+        { id: "b8", heading: "Coming to terms", image: '', caption: '',
+          html: `<p>Chapter three opens the day after Juicejaw is beaten, and it belongs to Lulu: she starts working out what having powers means, in deliberate contrast with Ronnie, who spends weeks trying to pretend it never happened. The chapter also puts her at practice, which is where the groundwork for the <strong>doping allegations</strong> gets laid — the fruit's physical boost is large enough that a star athlete suddenly getting stronger is exactly the kind of thing that gets noticed.</p>
+
+<p>That same boost is how <strong>Ronnie</strong> works out who she is: the identity cloak hides faces, not physics, and the only person in town who would jump <em>that</em> far is the star athlete. Lulu gets there from the other direction — she cannot hold on to what Starburst looked like at all, and only connects it when Ronnie overplays her hand acting suspicious.</p>
+
+<p>Her Pomeroy name is still unsettled; "Berry Lady" is a placeholder both creators dislike.</p>` },
       ],
     },
     {
@@ -264,6 +298,10 @@ export const wiki: WikiContent = {
 <li>Her surname wavered between Sterling and Prescott in early notes; <strong>Prescott</strong> is final — Baby canonises it by only ever calling her “Prescott”.</li>
 <li>Old alias “Strawburst” was renamed <strong>Strawheart</strong> so the team’s names wouldn’t all rhyme.</li>
 </ul>` },
+        { id: "b7", heading: "Her mother", image: '', caption: '',
+          html: `<p><strong>Evangeline Prescott</strong> left the family roughly ten years before the story — right before Liz started high school. Red Delicious made her approach on Sterling about a week later. Liz's brattiness at her introduction is downstream of that: a decade of a father whose attention tracked his share price.</p>` },
+        { id: "b8", heading: "In a fight", image: '', caption: '',
+          html: `<p>She fights with a <strong>giant lance</strong>, and her transformation sequence is a running joke — extended, haughty and thoroughly gratuitous, so that when it finally finishes the others have long since transformed and are busy kicking a Pomen captain along the ground. Her stated reason for not joining in is that she is "not wasting my time and effort on fodder," at which point the fodder makes it her problem.</p>` },
       ],
     },
     {
@@ -304,6 +342,18 @@ export const wiki: WikiContent = {
 <li>Early drafts gave her animal transformations; the final rule keeps her strictly botanical.</li>
 <li>The creators plan for Qwiwi — like the reformed McIntosh — to eventually become a true Pomeroy, once Earth is genuinely her home.</li>
 </ul>` },
+        { id: "b7", heading: "Number, rank, and Project Gaia", image: '', caption: '',
+          html: `<p>Her designation is <strong>Qwiwi #0000</strong>, and the name itself is an accident: a programming error in the Empire's name-assignment system malfunctioned and produced it. She has since earned one <strong>star key</strong> for a scientific achievement that advanced the Empire's agenda, so the card now reads <strong>#00✱0</strong>.</p>
+
+<p>Her rank is <strong>Special</strong> — head of Science Team Special Assignment, codename <strong>Gaia</strong>. Gifted enough that the Empire decided she served a bigger purpose than soldiering, she was made vice chief of science, answering only to <strong>Red Delicious</strong>. And because nobody told her what Project Gaia was actually for, she found the Kiwi and simply kept it, using it as the hammerspace her whole kit runs out of.</p>` },
+        { id: "b8", heading: "The Flyspeck Program", image: '', caption: '',
+          html: `<p>Qwiwi is a <strong>sleeper agent</strong>, and does not know it.</p>
+
+<p>She and <strong>Envy</strong> were both unknowing subjects of the Flyspeck Program — conditioning that drew out their latent potential at the cost of their autonomy. It activates when the subject either declares themselves against the Empire or is told the program exists. Everyone who ever supervised her simply assumed she had the Empire's interests at heart, because she was brilliant and she delivered.</p>
+
+<p><em>Continuity note:</em> an earlier version had her as a knowing double agent. The writer rejected it as out of character, and this replaced it — the point being that she has always genuinely been herself.</p>` },
+        { id: "b9", heading: "Quinn, and the mask", image: '', caption: '',
+          html: `<p>The reveal is staged over several encounters rather than one. Early on — the day the group works out that Quinn is an alien — she gives them the basics and tosses Ronnie the Kiwi. Afterwards she becomes steadily more imposing and more openly creepy, effectively stalking Ronnie, slipping away after the grape monster fight. When she turns up at a later monster, her face is visibly the worse for wear, and <em>that</em> is where Ronnie finally tears the mask off. Qwiwi sucker-punches her in the gut.</p>` },
       ],
     },
     {
@@ -333,6 +383,8 @@ export const wiki: WikiContent = {
           html: `<p>Dead-faced ninety percent of the time; dry, deadpan, accidentally hilarious. Where Baby actively fights societal standards, Rin-Rin simply sees past them. It takes a great deal to anger her — and then she mutters the foulest things imaginable in Japanese while calmly closing the distance. Despite the prestigious baking pedigree, she is a <em>catastrophic</em> baker, no-selling every disaster until an exasperated Ronnie shows her how it’s done.</p>` },
         { id: "b5", heading: "Arc", image: '', caption: '',
           html: `<p>She appears at Ronnie’s lowest point, indirectly re-lights her resolve, runs with the team for a while — then hears about the wars in space and simply leaves to fight them, vanishing from the story for volumes before returning unannounced for the final battle.</p>` },
+        { id: "b6", heading: "Design note", image: '', caption: '',
+          html: `<p>Jet-black hair with green highlights — currently the only character in the series with black hair.</p>` },
       ],
     },
     {
@@ -357,6 +409,8 @@ export const wiki: WikiContent = {
 <li>Whether he always understood his family, or the fruit transformed remembered nonsense into meaning, is deliberately unresolved.</li>
 <li>Yes, starfruit is toxic to real dogs. The creators know. Lucky is fine.</li>
 </ul>` },
+        { id: "b4", heading: "The last one percent", image: '', caption: '',
+          html: `<p>Lucky's share of the starfruit turns out to matter enormously. Ronnie gave him the final piece — one percent of the whole — and that one percent is exactly the room she no longer had when she later swallowed the Kiwi. A dog getting a treat off the table is the reason the protagonist can only bond with a hundredth of her second fruit, and the reason it hurts her every time she uses it.</p>` },
       ],
     },
     {
@@ -385,6 +439,8 @@ export const wiki: WikiContent = {
 <li>The youngest sister was briefly “Nora” in early outlines; <strong>Maeve</strong> is final.</li>
 <li>The café began as “Fruit Papa’s Smoothie Place” in early notes; the final canon is simply the O’Malley café and bakery.</li>
 </ul>` },
+        { id: "b7", heading: "They work it out", image: '', caption: '',
+          html: `<p>Desmond and Moira figure out what their eldest is. They say nothing. What they do instead is put a <strong>starfruit meringue</strong> on the café menu and start selling it, and never once raise the subject with her — which is the most O'Malley possible way to say <em>we know, and we are proud of you, and we are not going to make you talk about it</em>.</p>` },
       ],
     },
     {
@@ -413,6 +469,12 @@ export const wiki: WikiContent = {
           html: `<p>Sterling shares the two-user Cherry with <strong>Red Delicious</strong> — a “tool of diplomacy” that supposedly leashes both parties equally. She let him clamp his chain on her wrist as a show of good faith; then she drove her chain into his chest, wrapped around his heart. He tells himself they are equals. They are not.</p>` },
         { id: "b5", heading: "Fate", image: '', caption: '',
           html: `<p>After Season 1 collapses around him he flees abroad into exile rather than prison — with a planned final send-off years later as a “rich local” judge at the international baking competition, where the last loose ends with Liz are tied off. (The exact shape of the exile arc is still being workshopped.)</p>` },
+        { id: "b6", heading: "Evangeline", image: '', caption: '',
+          html: `<p><strong>Evangeline Prescott</strong> — his wife, Liz's mother — left roughly ten years before the story, just before Liz started high school. Red Delicious made her move about a week later, which is a measure of Red rather than of Sterling. Singing appears to run in that side of the family, which is a quiet irony given the form Red's approach took.</p>` },
+        { id: "b7", heading: "The other half of the leash", image: '', caption: '',
+          html: `<p>The relationship with Red is not simple ownership in either direction. Both hold leverage over the other and the advantage keeps changing hands — she has the Empire behind her, he has the company, the country and the plausibility she needs. He was only ever <em>half</em>-convinced by her argument that resisting the Empire is futile, which leaves him permanently one bad day from doing something she did not plan for.</p>
+
+<p>He also chairs a board of directors that Red attends and finds unbearably dull, which is why she makes <strong>Wolfgang Manco</strong> perform gun-spinning theatrics at the interval, much to his chagrin.</p>` },
       ],
     },
     {
@@ -431,6 +493,8 @@ export const wiki: WikiContent = {
         { id: "b2", heading: "Role", image: '', caption: '',
           html: `<p>Her station exists to inform and entertain — and in Fruit Pop, institutions actually do their stated purpose. She commentates the Chapter 2 playoff game (sharing the booth with the Mayor’s silhouette), later takes Ronnie on as an unpaid intern in exchange for café advertising, and employs one of Lulu’s younger siblings as an assistant.</p>
 <p>She is also the persuasive mirror to Red Delicious’s manipulation — the two most charismatic figures in the story, one honest, one not — and Jackie’s sales philosophy becomes Ronnie’s counter to Pomen propaganda. Her finest hour: in the Season 1 finale she talks <strong>Gala and Smith</strong> into defecting, on the simple argument that they’d have more fun out from under Red’s boot — killing the broadcast signal the whole mind-control plot depended on. In the epilogue era she produces game shows with the pair.</p>` },
+        { id: "b3", heading: "Trivia", image: '', caption: '',
+          html: `<p>She is a transparent parody of Jacky BamBam, the long-running DJ on Philadelphia's 93.3 WMMR — the creator's home station, and the sort of detail earmarked for the official site's trivia section.</p>` },
       ],
     },
     {
@@ -448,6 +512,8 @@ export const wiki: WikiContent = {
           html: `<p><strong>Alessia DeLuca</strong> runs Pittscoke, and nobody is entirely sure how. A former novelist born in Poptown — the only Poptown Pagliacci fan in the city — she wins elections on modest, deliverable promises (“we can buy some new ambulances… fill in the pot-holes”), delivers them, and goes back to dressing backwards. Budget problems magically sort themselves out around her. She does not seem to age. She may have some level of awareness that she is in a story.</p>` },
         { id: "b2", heading: "Design and running gags", image: '', caption: '',
           html: `<p>Always in 70s conservative fashion; underneath are tattoos that are wildly inconsistent — swapping places or changing entirely between appearances, a running visual gag. Though Poptown’s clown culture was toned down to face paint and Mardi Gras masks, the rubber nose is reserved for exactly one person in the setting: her. She is a frequent kidnapping target of Gala and Smith, argues with federal officials on the phone about the military, and first appears at the ballgame only as a silhouette in the commentator’s booth under a comically big hat — her proper introduction waits until the girls are established defenders of Pittscoke and get summoned to her office.</p>` },
+        { id: "b3", heading: "A running gag", image: '', caption: '',
+          html: `<p>Every sound she makes in a moment of passion comes out as Hanna-Barbera cartoon SFX, so nobody can take her seriously, and she consequently cannot hold down a relationship. Treat it as the comedy beat it is.</p>` },
       ],
     },
     {
@@ -507,6 +573,10 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "Presentation", image: '', caption: '',
           html: `<p>Through Ronnie’s eyes they first appear only as masked figures in hazmat suits, their sizes and voices exaggerated by her imagination. They stay masked until Qwiwi befriends her and brings her to the greenhouse — and then the whole team unmasks at once. In place of human swearing they use fruit idioms: “Dear Mother.” “Fruit bears many seeds.”</p>` },
+        { id: "b4", heading: "Elden's numbers", image: '', caption: '',
+          html: `<p>The Chief's designation is <strong>1✱✱✱</strong> — three star keys, and the surviving digit a 1, because in his day he was the Empire's number one. <strong>McIntosh</strong> is consciously following him and carries <strong>0✱2✱</strong>: still a two beside that legacy. It is also a quiet threat. The Empire's convention is that anyone who lives long enough without reaching four stars starts to lose the respect of everyone around them, and Elden has been at three for a very long time.</p>` },
+        { id: "b5", heading: "The cover-up", image: '', caption: '',
+          html: `<p>The division's defining failure in the present day is the <strong>compound</strong> — a mistake of theirs is what turns ordinary fruit into monsters, and much of the early story has the team quietly trying to contain the fallout while Red Delicious, who has no idea, does her actual job. <strong>Sal</strong> identifies the exact compound. The division also has a <strong>psychology branch</strong>, which was run by a captain named <strong>Democrat</strong> until Envy killed him.</p>` },
       ],
     },
     {
@@ -539,6 +609,12 @@ export const wiki: WikiContent = {
           html: `<p>Ambrosia represents the decay of a machine without upkeep. Everyone knows she is failing — small errors accumulating in an almighty god you cannot argue with — but no one loves her enough to maintain her, she will not permit maintenance, and the idea of facing a universe without her is more frightening than the decay. She is not a big bad so much as a force of nature; conventional attacks mean nothing. The only way through is to reach the one voice inside her that was never a soldier: Mother.</p>` },
         { id: "b5", heading: "The finale", image: '', caption: '',
           html: `<p>The ending is built in two movements. First the spiritual victory: while the team fights the Elites high in the Orchard’s rafters, Ronnie falls into the green mind-tanks, cuts through the cacophony of uploaded generals, and puts Mother to rest — collapsing the collective. Then the physical one: the Orchard crashes to Earth, and what remains of Ambrosia’s body — running on pure mechanical backup instructions, screaming static — must be destroyed in the ruins of Ranger Stadium, the whole team bracing Ronnie through one endless final beam.</p>` },
+        { id: "b6", heading: "The lack of attachment", image: '', caption: '',
+          html: `<p>Ambrosia is not written as cruel. She is written as <em>unattached</em> — and at her scale the difference stops being visible. What reads as sadism is usually the tiniest drop of empathy toward an ally, offered by something so empty of empathy that receiving it is indistinguishable from being punished. Making Cosmic out of four Elites who died for her is, in her own accounting, a kindness.</p>
+
+<p>The touchstone the creators use is <em>1984</em> — not the torture, but the ending: the hopeless nihilism that curdles into love for one's abuser, because loving them is the only way left to make sense of what reality has become.</p>` },
+        { id: "b7", heading: "If Ambrosia won", image: '', caption: '',
+          html: `<p>An explicitly hypothetical bad ending the creators sketched, and a useful measure of what she actually wants. Humanity is finished. Almost the entire Pomen Empire has rallied <em>against</em> her for insisting on destroying Earth — she is the Empire's rebellious child, not its instrument — and she has "corrected" them, culling her own species to near-extinction. The survivors live in something between <em>The Matrix</em> and <em>I Have No Mouth and I Must Scream</em>. And she has repeated herself: a <strong>new Cosmic, made out of the five girls</strong>, standing warden over what is left of the Pomens.</p>` },
       ],
     },
     {
@@ -560,6 +636,8 @@ export const wiki: WikiContent = {
           html: `<p>Drawn like a bride awaiting a groom who will never come, with the vague feeling of a 1930s actress. Her eyes are unlike any modern Pomen’s — quiet evidence of how far the species has devolved since her time. Her fruit is the <strong>Apple — Contentment and Prudence</strong> — the exact opposite of Ronnie’s Dreams and Aspirations: one strives for what could be, the other for what is and has been.</p>` },
         { id: "b4", heading: "The two expressions", image: '', caption: '',
           html: `<p>Mother is always seen with a faint smile, cold and warm at once. It changes exactly twice in the entire story: once when Qwiwi finds a way to escape the Orchard — and once at the very end, when she is dying and asks Ronnie not to leave her as eons run through her mind.</p>` },
+        { id: "b5", heading: "Continuity note — no dates", image: '', caption: '',
+          html: `<p>The golden age of the Pomens is deliberately timeless. The creators have decided that <strong>no date will ever be given</strong> for when Mother became Ambrosia; it is easier to speak about the times she was not Mother than to fix when she stopped being her. Any timeline that pins the transition is inventing something the story is refusing to say.</p>` },
       ],
     },
     {
@@ -568,7 +646,7 @@ export const wiki: WikiContent = {
       title: "Cosmic",
       category: "character",
       summary:
-        "Ambrosia’s personal war machine: four of Pome’s greatest rebels fused into one patched-together body — a walking apocalypse that must be survived, not beaten.",
+        "Ambrosia’s personal war machine: four dead Elites fused into one patched-together body — a walking apocalypse that must be survived, not beaten.",
       image: "",
       published: true,
       body: '',
@@ -576,7 +654,7 @@ export const wiki: WikiContent = {
         { id: "b1", heading: "", image: '', caption: '',
           html: `<blockquote><p>“It’s telling me to kill you, but I was gonna do that anyway.”</p></blockquote>
 
-<p><strong>Cosmic</strong> is what happens when the Empire wins. An amalgam of Pome’s four greatest warrior rebels — who all fell to the Elites and received a fate worse than death — their minds were extracted, fused, and installed in a single body directed by a program that doesn’t restrain the four violent minds so much as aim them. If Jonagold arrives at your planet, it’s routine business. If Cosmic arrives, the planet is already over.</p>` },
+<p><strong>Cosmic</strong> is what happens when the Empire rewards you. Four <strong>Elites</strong> died defending Ambrosia from the closest thing to an assassination she has faced in centuries — and she decided that loyalty like that deserved a prize. Their minds were extracted and installed in a single body, fused, and directed by a program that doesn’t restrain the four violent minds so much as aim them. If Jonagold arrives at your planet, it’s routine business. If Cosmic arrives, the planet is already over.</p>` },
         { id: "b2", heading: "Quick facts", image: '', caption: '',
           html: `<ul class="facts">
 <li><strong>Rank</strong> None — a personal attack dog outside the military structure entirely</li>
@@ -589,6 +667,16 @@ export const wiki: WikiContent = {
           html: `<p>No blueprints of the original body survive; a long line of engineers — currently Captain Cameo — keep it running by building new parts on top of old ones, which is why a god-machine looks like scrapyard surgery. When Cameo could not service the chainsaw arm, he simply added a second chainsaw arm. Nobody filed a complaint. The base body was built ages ago by the scientist <strong>Drakenstein</strong>, who intended it to replace Pomen soldiers on the ground and end the death-march; it became an instrument of genocide instead.</p>` },
         { id: "b4", heading: "Threat model", image: '', caption: '',
           html: `<p>Cosmic is written as an apocalypse to be survived: near-unstoppable, endlessly retrofitted, beaten only by stripping weapons away one at a time, forcing reboots, knocking personalities offline with damage. The final battle against them is an endurance war requiring the girls, the government, the world’s Pomeroys and allied Pomens together — physically tearing the machine apart because that is easier than destroying it. They are also a warning: a dark reminder of exactly what would happen to the girls if they lose. When Cosmic finally falls, it shakes the Empire’s faith — even Cameo, who considers them a god of death, goes neutral.</p>` },
+        { id: "b5", heading: "Why Ambrosia did it", image: '', caption: '',
+          html: `<p>Not spite — Ambrosia does not have enough attachment for spite. Four Elites gave their lives keeping a would-be assassin off her, and by her arithmetic that was commendable, so it earned a reward: vengeance on the species that killed them, and the ability to go on serving forever. She knew they would never turn on her, because they had already died rather than let her be scratched. In her eyes she was making her most loyal subjects a little more like herself.</p>
+
+<p>The volatility is a side effect of the same fact. The Elites were already augmented and conditioned half out of their minds before they died; putting <em>those</em> four minds in a box is why what came out screams.</p>` },
+        { id: "b6", heading: "Continuity notes", image: '', caption: '',
+          html: `<ul>
+<li><strong>Whose four minds? — open dispute.</strong> The writer's version, above, is that they were four Elites who died <em>defending</em> Ambrosia. The artist has argued instead for four revolutionaries who died <em>defying</em> her, made into a public warning. As of the latest notes this is explicitly unsettled — "I may need further convincing, but we can dispute this later" — so the entry follows the writer and flags the alternative rather than picking silently.</li>
+<li><strong>Age.</strong> Built roughly <strong>500 generations ago</strong> — Cameo's figure, and deliberately the only one given. Considerably younger than Ambrosia.</li>
+<li><strong>The seat is open.</strong> There is no second Cosmic, and that vacancy hangs over any Pomen who considers revolt.</li>
+</ul>` },
       ],
     },
     {
@@ -608,6 +696,10 @@ export const wiki: WikiContent = {
           html: `<p>The weakest of all the captains in a fight, and he knows it; his power is the apparatus. An overachieving savant who blasted through the ranks, he reached the top just in time to discover the Elites and Ambrosia pulling strings above him. He cannot process romance except as reproduction — his job is his love. On the duty-versus-enjoyment chart of Pomen captains, he breaks the graph: he enjoys his work precisely because it is duty.</p>` },
         { id: "b3", heading: "The turn", image: '', caption: '',
           html: `<p>His defining scene: watching Cosmic’s red trail pass his station toward Earth — no orders having come through him — and understanding that Ambrosia has broken her own protocols. When Envy hails him with her progress report, he declines the call without a word, choosing not to warn her that she has already been written off. It is the first time in his life he has felt uncertain, and the first time he realises something is wrong with Ambrosia in a way that cannot be fixed.</p>` },
+        { id: "b4", heading: "His people", image: '', caption: '',
+          html: `<p>He grants <strong>Champlain</strong> his authority over Jazz, which is the sort of administrative act that defines him better than any battle would. His communications bay includes an <strong>Inspector Gala</strong> — no relation to the captain of the same name.</p>
+
+<p>The creators write him deliberately against <strong>Cameo</strong>: two senior figures who treat their subordinates in opposite ways, one all protocol and one all temper.</p>` },
       ],
     },
     {
@@ -635,6 +727,12 @@ export const wiki: WikiContent = {
           html: `<p>Pomen helmets render the world in black and white. When Baby destroys McIntosh’s helmet mid-fight, it is the first time he sees humanity and its world in colour — the first crack in everything he believes. He keeps wearing a helmet anyway, out of shame and discipline both: all grunts are masked, and staying masked tells himself he is only doing what he has always done.</p>` },
         { id: "b4", heading: "The fall and the turn", image: '', caption: '',
           html: `<p>He wanted to be the next Elden, Ambrosia’s number one — a dreamer biologically barred from the fruit power he craved, an astronaut who can’t pass the physical. Witnessing what the other captains’ campaigns actually look like turns his stomach; losing to Lulu finishes the job. At rock bottom he forsakes the name McIntosh out of shame and remakes himself as <strong>the Crimson Comet</strong>, named for the Empire’s own propaganda comic. The palette is an accident that became a signature: his battle-stained armour needed a white primer coat, the red paint ran out, and he looked so much like the comics that he leaned in. His loyal squad follows him; his heroic persona is, in the creators’ words, him selling himself to himself — and it works. He may eventually earn a Power Fruit of his own alongside Qwiwi, and stand as Earth’s representative to the wider galaxy.</p>` },
+        { id: "b5", heading: "Why he came — revised", image: '', caption: '',
+          html: `<p>He was not sent to check on a silent planet. The sequence is Red Delicious's: Earth's link to the Empire goes down, she sends <strong>Gala and Smith</strong> off-world for help, and they fail to come back for <em>years</em>. Only once she has grown desperate enough to start building the mind-control monster do the pair finally return — with McIntosh in tow, and McIntosh is there to <strong>audit Red</strong> and decide whether she still deserves her Captain rank.</p>
+
+<p>It is a tidier arrangement in three ways at once: Gala and Smith stay together, their long absence explains why the planet was quiet for so long, and there is finally a reason for two captains to be posted to somewhere as unimportant as Earth.</p>` },
+        { id: "b6", heading: "Number and legacy", image: '', caption: '',
+          html: `<p>His designation is <strong>0✱2✱</strong> — two star keys, and the digits chosen to say something. <strong>Elden</strong>, the legendary captain he is consciously following, carried <strong>1✱✱✱</strong>, having been number one in his day. McIntosh is still a two beside that legacy, and the card says so every time it is read. He and Elden are the pair the story uses to look at revolutions and the suffering they cause.</p>` },
       ],
     },
     {
@@ -664,6 +762,22 @@ export const wiki: WikiContent = {
           html: `<p>Slowed by the Pomeroys, she orders the science team and Gala and Smith to build a monster whose juice makes people susceptible to suggestion, markets it through Sterling Industries as a new drink, and plans to activate it with a broadcast signal from Jackie’s station. It all collapses at once: Lulu beats McIntosh, Jackie flips Gala and Smith, and the signal dies — cueing a massive, life-destroying meltdown in which she guns down her own troops just to reassert control of a room.</p>` },
         { id: "b4", heading: "Fate", image: '', caption: '',
           html: `<p>The story’s morality is deliberate about which villains can be redeemed; Red is the exemplar of the irredeemable. Her ending was softened from death into something the creators consider worse: for attempting to control the minds of the world, she loses her own. The person who remains is a frazzled, harmless, adorkable stranger — and the Empire simply believes she died.</p>` },
+        { id: "b5", heading: "Rank, stars, and the number 0", image: '', caption: '',
+          html: `<p>Red's rank is <strong>Special</strong> — the designation the Empire uses for people leading something other than soldiers. She is its <strong>head of propaganda</strong>, and she carries <strong>three star keys</strong>, which she takes full advantage of.</p>
+
+<p>Which is also her motive. She took charge of <strong>Project Gaia</strong> — the operation to strip Earth of its Power Fruits before any Pomeroy could rise — precisely because pulling it off would earn her the fourth star, and with it the right to keep her own seeds and found a family line. The last digit of her designation is a <strong>0</strong>, and it is meant to be read: under all the valor and prestige, the thing itself is shallow, vain and superficial, and everything she built returns to zero.</p>` },
+        { id: "b6", heading: "How she took Sterling", image: '', caption: '',
+          html: `<p>It begins about a week after <strong>Evangeline Prescott</strong> walks out on her husband — Red does not wait for the grief to finish. Sterling is drinking alone in a high-end lounge; Red, in human disguise, is the singer. The staging is pure Jessica Rabbit. She lets slip enough business sense that he invites her to come and see the company, and from there it is a slow multi-year build of double-speak and allusion rather than any single seduction: she can make him the most important man in history, if he simply follows instructions. Her way into his product line is <strong>apple cider</strong>.</p>
+
+<p>Her own justification, as delusional as it is, is that the world is better off as her willing pawns than as whatever else the Empire has planned for it — the people simply aren't seeing the big picture yet. All of it happens <em>before</em> the first Pomeroys appear in Pittscoke.</p>` },
+        { id: "b7", heading: "Lucy", image: '', caption: '',
+          html: `<p>Red's ending is not death. She goes mad, loses her mind, and what is left is <strong>Lucy</strong> — a hapless, warm, thoroughly harmless secretary, quite possibly falling for the private investigator who has spent the series noticing that something is deeply wrong with Pittscoke. The creators frame the whole arc in <em>Twin Peaks</em> terms: Audrey Horne at the start, Lucy Moran at the end. The Empire simply believes she died, and the Pomen Corps starts posting Pomeroy bounties in the vacuum she leaves.</p>` },
+        { id: "b8", heading: "Continuity notes", image: '', caption: '',
+          html: `<ul>
+<li><strong>Her human alias is not settled.</strong> Neither creator could recall it when it came up — "Wendy?" — so any name given for it is provisional.</li>
+<li><strong>The disguise is a Clark Kent, not a mask.</strong> Ordinary human clothes and bearing, no Pomen face-mask tech required.</li>
+<li>She has <strong>fangs</strong>, and her hair is built to read as an apple nestled in a bouquet of roses: decadence and promise on the surface, an inescapable web of thorns underneath.</li>
+</ul>` },
       ],
     },
     {
@@ -691,6 +805,12 @@ export const wiki: WikiContent = {
           html: `<p>Alone, Gala is the meaner and methodical one and Smith is quiet, by-the-book, and genuinely gifted at making fruit mutants — a savant. Together they enable each other into mayhem, the getting-drunk-with-friends effect in villain form. Their creations are dangerous; they mostly are not, and the story’s answer to them is never a final defeat — they always slip away like lucky, slimy rats — but a change of heart.</p>` },
         { id: "b4", heading: "The turn", image: '', caption: '',
           html: `<p>In the Season 1 finale, Smith is embedded with the science team building Red’s mind-control monster while Gala works inside Jackie’s station to send the activation broadcast — and Jackie flips them both with the observation that they’d have far more fun without being under Red’s boot. The signal dies, the plot collapses, and the Empire’s silliest captains defect over job satisfaction. In the epilogue era they make game shows with her.</p>` },
+        { id: "b5", heading: "The missing years", image: '', caption: '',
+          html: `<p>Their long silence is now the load-bearing part of their story. When Earth's communications fail, Red sends the pair off-world for reinforcements — and they simply do not come back, for years, which is the in-universe answer to why a planet with two captains parked on it stayed so quiet for so long. They finally reappear escorting <strong>McIntosh</strong>, who has come to audit the captain who sent them.</p>` },
+        { id: "b6", heading: "No number, no stars", image: '', caption: '',
+          html: `<p>As members of the Smith family line, neither has an assigned number and neither can earn <strong>star keys</strong> — the whole apparatus of valor and privilege the rest of the Empire lives inside simply does not apply to them. It is nepotism, and other Pomens read it exactly that way. Champlain is in the same position.</p>
+
+<p><strong>Name collision, deliberate:</strong> there is also an <strong>Inspector Gala</strong> serving in Jonagold's communications bay, no relation. Pomen names are recycled constantly; the story mostly avoids the confusion but enjoys it occasionally.</p>` },
       ],
     },
     {
@@ -720,6 +840,16 @@ export const wiki: WikiContent = {
           html: `<p>Young Envy was manic, impressionable, and impossible to be around — for everyone except Qwiwi. The two became the standout pair of their unit, and Envy’s admiration festered into obsession; she sabotaged operations just to stay near her. When Qwiwi chose the science division and left, Envy plotted to kill their commanding captain. Qwiwi extracted a promise to wait — and two months later Envy killed him anyway, saying he was weak. It took three captains to detain her. The higher-ups, liking what they saw, gave her the vacant captaincy. Her hatred of Qwiwi is, underneath everything, the grief of being robbed of the only equal she ever had — and Qwiwi does not even remember why.</p>` },
         { id: "b4", heading: "Arc", image: '', caption: '',
           html: `<p>Envy arrives on Earth mid-story, working her way north through the wooded backcountry — her approach to Pittscoke ends in the single most humiliating ambush in the Empire’s history, courtesy of the city’s sentient palm-tree defenders. As her hunts keep failing she declines the way an animal declines: worse and wilder, until Jonagold silently declines her final call, and she realises the Empire has already written her off — the moment before Cosmic arrives. Her planned last line, to whoever finally puts her down: <strong>“Welcome to the top of the food chain.”</strong></p>` },
+        { id: "b5", heading: "A captain with no stars", image: '', caption: '',
+          html: `<p>Envy holds the rank of Captain and <strong>zero star keys</strong>, and among Pomens that combination is an accusation. A captain with no valor to their name has either cheated the system, done something even the Empire will not put on a card, or is just another number that happens to be strong. Her designation is a deliberately unremarkable one. The Empire uses her and does not respect her.</p>
+
+<p>She is always alone because any unit assigned to her either dies or wishes it had. Where other guild members team up to split a bounty, she solos them.</p>` },
+        { id: "b6", heading: "What she actually is", image: '', caption: '',
+          html: `<blockquote><p>"I am so lonely. All the other Pomens are scared of me. No one talks to me. No one wants to be my friend. They think I am unstable. They send me from planet to planet committing atrocities in their name. And as I get better at it, they fear me more and more. I am a victim of my own success. 'Envy' — I don't even get a real name. Only a purpose."</p></blockquote>
+
+<p>The self-fulfilling loop is the point: people see a monster first, so she becomes the monster they expect. The writer's working image for her has never changed — a pet chimp. You can treat one well and train it, and it is still a wild animal, and you can never quite predict what it will do with any given stimulus.</p>` },
+        { id: "b7", heading: "Flyspeck", image: '', caption: '',
+          html: `<p>Envy was, with Qwiwi, an unknowing subject of the <strong>Flyspeck Program</strong> — conditioning that unlocked her potential and took her autonomy with it. She is the one who worked out what was being done to them, and she killed <strong>Democrat</strong>, the captain running it. The conditioning was already finished by then.</p>` },
       ],
     },
     {
@@ -741,6 +871,14 @@ export const wiki: WikiContent = {
           html: `<p>The narcissist knight: a nimble, image-obsessed fencer from one of the Empire’s rare true lineages, coping with his conscription by pretending it is a fairy tale in which he is the hero. He is a deliberate flanderized mirror of Liz — nepotism, vanity, chivalry as armor — and his family pressures deliberately parallel Lulu’s. Meeting Strawheart in the field rattles him more than any defeat.</p>` },
         { id: "b4", heading: "Fate — unresolved", image: '', caption: '',
           html: `<p>The creators agree these two darken the story; after Jazz and Champlain, Arkan Black starts whispering in Ronnie’s ear. What is still contested is how they end: one plan has a captain’s death at Pomeroy hands — Jazz — as the loss that justifies deploying Envy, with Champlain punished for surviving; the counter-proposal has both die to an Elite instead, proving where the real monsters sit. A softer exile to a distant, grateful world has also been floated. The wiki records all three; the comic will pick one.</p>` },
+        { id: "b5", heading: "Jazz is a slave", image: '', caption: '',
+          html: `<p>The most uncomfortable fact about him, and the one that explains the rest. Jazz did not want to fight, and in the Pomen Empire a Pomen who will not contribute to the war is made into property — so he is a <strong>slave</strong> who happens to be freakishly strong. The result is a man who is a <strong>Captain in rank with no authority whatsoever</strong>, assigned under Champlain by Jonagold's order.</p>
+
+<p>His designation is <strong>Jazz-0014</strong>, and it is not the name he was born with. Newborns showing abnormal strength or mutation are inducted into a separate program and renamed; Jazz was its fourteenth. Whatever he was called first is not recoverable. He knew and bonded with many other slaves in his position, which is his route into that whole ugly part of Pomen culture.</p>` },
+        { id: "b6", heading: "Champlain's name", image: '', caption: '',
+          html: `<p><strong>Champlain</strong> is a first name. His family name has not been chosen yet — the intent is that it should be some rare, prized apple — so any wiki, this one included, that gives him a surname is making it up. As a family-line Pomen he has no number and no star keys, and he holds his authority over Jazz by Jonagold's grant rather than by anything he earned.</p>
+
+<p>He fights, in the creators' shorthand, like a fruity Sanji: the sword first, and if disarmed, his legs.</p>` },
       ],
     },
     {
@@ -762,6 +900,14 @@ export const wiki: WikiContent = {
           html: `<p>Arkan is one of the very few who actually knows the full scope of Pomen history — muddled with myth, passed down orally: Mother, her Lover, and how she became Ambrosia. He understands, with total clarity, that Ambrosia does exactly what he does — whipping a people into a frenzy for an endless war because it is all she is programmed to do — and his ego concludes that only he can save the Pomens from her. He genuinely believes Ambrosia can no more be defeated than Zeus. That certainty is why a man who sees the truth of his society still ends up serving it: a self-aware death cultist, tragic rather than comic. His doctrine curdles into mercy as nihilism: if his people are born simply to die, the kindest thing he can offer an enemy is the quickest death possible.</p>` },
         { id: "b3", heading: "Role and fate", image: '', caption: '',
           html: `<p>After Jazz and Champlain, as things darken, he becomes a voice in Ronnie’s ear — posing as a mentor with all the answers, nudging her toward “more… extreme actions.” But he is also the story’s key: it is Arkan who reveals Ambrosia’s past to Ronnie, which is the only reason she knows to reach for Mother in the finale. For spilling his guts figuratively, an Elite spills them literally.</p>` },
+        { id: "b4", heading: "The Pope of Pome", image: '', caption: '',
+          html: `<p>"Arkan Black" is not a name he was born with, and the family he appears to have does not exist. The Empire's religious succession works like a papal conclave: one of the cardinal-equivalents is elevated, takes a new name, and is given a lineage to go with it. His rank is <strong>Special</strong>, the Empire's designation for those leading something other than soldiers, and he is its religious figurehead.</p>
+
+<p>A design note worth keeping: in the piece where he appears to be grinning maniacally, he is not. That is childlike joy — he has just become Pope — and the headpiece is covering his eyebrows.</p>` },
+        { id: "b5", heading: "What he wants from Ronnie", image: '', caption: '',
+          html: `<p>An ordinary pastor is a community leader: somewhere to go when you feel lost, who turns to god when <em>he</em> feels lost. Arkan's problem is that he knows exactly what his goddess is — an unfeeling machine that puts the war above the wellbeing of her own people — and he loves her anyway, and there is no one he can say that to.</p>
+
+<p>Then Ronnie arrives: well-read, open-minded, willing to argue morality and philosophy with him. He treats her as a confidant, and the bond is real. And then she tells him she has to destroy his goddess, which is both ridiculous and correct, and he is clever enough to know she is right and too devoted to stand beside her. What is left is an antagonist whose whole want is for someone to care about him the way he cares about Ambrosia.</p>` },
       ],
     },
     {
@@ -786,6 +932,16 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "Endgame", image: '', caption: '',
           html: `<p>Cameo has spent so long in the metaphorical guts of Ambrosia and Cosmic that he knows exactly what his gods can do — so when the girls destroy Cosmic, a thing he regarded as a god of death, he does the arithmetic and goes neutral. Too proud to help the Pomeroys, too smart to stand against them, he forces a call through the ICA to distract Jonagold, beams Earth a prerecorded truce offer, and trades the Empire’s entire weapons program for an escape: the girls help his engineers flee, and Malus Robotica’s planetary teleportation array moves the whole world into Earth’s solar system — forcing Jonagold and Ambrosia to make the journey to Earth in person.</p>` },
+        { id: "b4", heading: "The tragedy of one star", image: '', caption: '',
+          html: `<p>Cameo did something extraordinary — extraordinary enough to be named <strong>Cosmic's squire</strong> — and he did it at the very start of his career. Nothing he built afterwards ever measured up to the first thing, so he never earned a second star key. He has one.</p>
+
+<p>Then he outlived roughly everyone. He has been alive so long that no one currently drawing breath remembers what the achievement even was, which leaves him an old man carrying a single star among people who look at him and wonder why he doesn't do everyone a favour and die. The Empire's rule that respect drains away from anyone who lives long enough without earning four stars is aimed squarely at people like him.</p>
+
+<p>Somewhere in there was an <strong>experiment</strong> that cracked his psyche, which is why a rigorously scientific man spends so much time turning over the ideas of luck and fate. His proposed designation is <strong>4✱13</strong> — thirteen, because he is so unlucky — though that number is not locked.</p>` },
+        { id: "b5", heading: "His team, and his temper", image: '', caption: '',
+          html: `<p>He is vicious to outsiders, with a hair trigger for any hint of disrespect, and markedly gentler with his own engineering team at <strong>Malus Robotica</strong>: new people and new activities frustrate him, the same routine and the same faces keep him calm, and being made to step outside that is what makes him blow a gasket. The team includes <strong>Arthur</strong>, the identical twins <strong>Yarlington</strong> and <strong>Brout</strong> (short for Brown Snout), a <strong>Vice Engineering Head</strong> also named Arthur, and a junior engineer in residency named — inevitably — Arthur.</p>
+
+<p>The twins are a genuine anomaly. Given how Pomen seeds are distributed, twins should never meet, let alone know they are twins; that these two did is astronomical luck, which sits pointedly beside Cameo's own run of the opposite. His size is an asset in the same way: people underestimate him, and his own kind do it worst.</p>` },
       ],
     },
     {
@@ -807,6 +963,16 @@ export const wiki: WikiContent = {
           html: `<p>Cybernetically altered toward something like warrior ants — extra limbs, and horns that are actually antennae through which Ambrosia asserts influence directly, a queen’s pheromones made mechanical. The imagery is deliberate: they are no longer apples, no longer really Pomens; they have become scavengers of their own species. Clown and classical-statue imagery is reserved for them alone, and their proposed emblem is the skull-variant of the Pomen military ensign.</p>` },
         { id: "b4", heading: "Deeds", image: '', caption: '',
           html: `<p>The Elites crushed the rebellion of Pome’s four greatest warriors — whose fused remains became Cosmic. An Elite kills Arkan Black for telling Ronnie the truth. In the finale the team fights them high in the Orchard’s rafters beside the green mind-tanks, while Ronnie falls toward the voice underneath everything.</p>` },
+        { id: "b5", heading: "Soldier ants", image: '', caption: '',
+          html: `<p>The Elites are not hunters, and this is the answer to the obvious question of why four beings that strong have never simply conquered Earth themselves. They function like soldier ants: they exist to protect the queen, they do not leave her, and their purpose is not to kill intruders but to stop them reaching her. In a fight they are obstacles to be got past rather than enemies who come to you — defensive where <strong>Cosmic</strong> is purely offensive.</p>
+
+<p>They have never been beaten. One of them carries the <strong>durian</strong>, chosen for how extraordinarily heat-resistant the real fruit is. And they retain more personhood than Cosmic does — it is the fervent belief in their Empress that gave them the will to survive the cybernetic augmentation in the first place.</p>` },
+        { id: "b6", heading: "The hand behind Project Gaia", image: '', caption: '',
+          html: `<p>The Elites have been directing <strong>Project Gaia</strong> from the start, as an extension of Ambrosia's will — including its hidden objective, the recovery of the Kiwi, which was concealed even from Red Delicious, who was nominally running it. At least one of them oversaw the meeting where Cosmic was made.</p>
+
+<p>They are also the endgame's thematic mirror. Season three puts Ronnie in front of four people who gave in to their fruits completely and have nothing left of who they were — which is the exact failure her own arc spends two seasons learning to avoid.</p>` },
+        { id: "b7", heading: "A design note", image: '', caption: '',
+          html: `<p>One of them is lit wrong. Shine a light in their face and there is only a void where the face should be, while the space <em>behind</em> them is lit; in total darkness they are perfectly visible. Physics simply declines to apply.</p>` },
       ],
     },
     {
@@ -830,6 +996,8 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "Vindicating Vigor", image: '', caption: '',
           html: `<p>His rule ability inverts every duel: the <strong>opponent</strong> sets a rule that Wolfgang must follow. If he breaks it, he loses his abilities. If the rule is unfair — or the opponent simply attacks instead of playing — he fights entirely unrestricted. Only his own heart judges what counts as fair, and the Apricot holds him to it: unjustly calling a fair rule unfair costs him his power for hours, and a habit of it would cost him the fruit itself. It never comes to that. He is exactly what the fruit thinks he is.</p>` },
+        { id: "b4", heading: "Four revolvers", image: '', caption: '',
+          html: `<p>He carries <strong>four</strong>. And while he was working for Sterling, Red Delicious used to make him do trick-shooting at board meetings when she got bored — a gunslinger reduced to interval entertainment, which he resented exactly as much as you would expect.</p>` },
       ],
     },
     {
@@ -871,6 +1039,8 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "The thematic loop", image: '', caption: '',
           html: `<p>The hostile climate isolates cultures — and the story’s heroes literally reconnect the world. Ronnie’s star flowers absorb carbon and stabilize the air wherever her dreams leak; as the girls travel, the world knits together behind them, which is the theme of the whole comic played out in weather.</p>` },
+        { id: "b4", heading: "How many people", image: '', caption: '',
+          html: `<p>The human population of this Earth is about <strong>500 million</strong> — a fraction of the real one. It is a smaller, thinner world than ours, which is part of why a single fog-bound northern city can matter as much as it does, and why the Empire regards the whole planet as a manageable harvest.</p>` },
       ],
     },
     {
@@ -932,6 +1102,10 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b4", heading: "The wider world", image: '', caption: '',
           html: `<p>Other nations follow their own food themes — the Slavic-coded <strong>Szarlotka</strong> with its capital Cosmopolita, volcanic and snowbound at once; <strong>Equivalent-Mexico</strong>, home of Alphonso; the baking dynasties of the Asian nations that produce Rin-Rin. Travel between countries is only practical during the rare weather phenomena — see the World entry under Lore.</p>` },
+        { id: "b5", heading: "Two more towns, and an army", image: '', caption: '',
+          html: `<p><strong>Drambuell</strong> is the setting's Scottish town, named for Drambuie. <strong>Cola Vista</strong> is a Vista-type American one. Both keep the rule that a Repoplican settlement is named after something you can drink.</p>
+
+<p>The <strong>Repoplican military</strong> is played entirely straight and is a disaster: overly paranoid, genuinely powerful and thoroughly incompetent, in the mould of the army in <em>Planet 51</em>. Pittscoke also has a private investigator who has been quietly noticing everything strange about the town — a deliberately <em>Twin Peaks</em>-shaped figure, and the man Red Delicious may end up falling for once there is nothing left of her but Lucy.</p>` },
       ],
     },
     {
@@ -1005,6 +1179,21 @@ export const wiki: WikiContent = {
           html: `<p>No swearing; fruit idioms instead — “Dear Mother”, “Fruit bears many seeds.” A propaganda comic, the Red Comet, that will eventually name a real hero. Technology in full cassette futurism: chunky terminals, tape spools, inaccurate faster-than-light travel that scatters fleets across solar systems, and long-range calls that must relay through the ICA at the center of the galaxy. They cannot rebuild their own best machines — the think tank that built Ambrosia left no blueprints, and only two positronic brains remain in the cosmos.</p>` },
         { id: "b4", heading: "The tragedy", image: '', caption: '',
           html: `<p>Modern Pomens believe their species was always a cruel conqueror; almost no history of Mother’s peaceful era survives. They cannot hold fruit power — the fruits reject a culture that only takes — and they worship, fear, and pray <em>away</em> the attention of the machine that rules them. Many defect the moment it feels survivable; Pomen refugees on Earth become one of the story’s late arcs, with Qwiwi as their ambassador. A hidden tribe of spiritually intact Pomens, descended from those who fled Mother’s fall, is planned to enter the story from the margins.</p>` },
+        { id: "b5", heading: "By the numbers", image: '', caption: '',
+          html: `<p>The Empire peaked at around <strong>23 million</strong> — 1,600 sanctioned names across 10,000 four-digit numbers, plus star-key variants — and currently runs somewhere between <strong>8 and 12 million</strong>, a range rather than a figure because Pomen numbers move that fast. Roughly four million are military. Of the rest, two million are underage, half a million are Science Division, half a million serve in other special divisions, and about a million are slaves.</p>
+
+<p>Names are recycled the moment they come free, which happens constantly: birth and death rates are both enormous, and earning a star key vacates your old number too. A Baxter-3408 dies in action and a newborn is assigned Baxter-3408 the same second. Individually a Pomen is two to three times stronger than a human, and a running famine keeps the growth rate down.</p>` },
+        { id: "b6", heading: "Slavery", image: '', caption: '',
+          html: `<p>A Pomen who is not fit to fight, or who declines to, is made property. Around a million of them: cleanup, factories, construction, agriculture, servitude to higher-ups, and sex. It is designed to be cruel — born weak, you had better be clever enough for the Science Division; unwilling, and the Empire will find a use for you regardless.</p>
+
+<p>The creators have been clear it is background rather than plot: it exists to explain the shape of the society, and the one place it reaches the main story is <strong>Jazz</strong>. <em>See also:</em> Rank and Star Keys.</p>` },
+        { id: "b7", heading: "Small things", image: '', caption: '',
+          html: `<ul>
+<li><strong>Blood types</strong> come down to whether your skin is a similar hue. "Quick! He's fading fast! We need a blood transfusion! Is anyone here purple??"</li>
+<li><strong>Rokensis</strong> — an anti-exhaustion drink brewed from ingredients gathered off a dozen planets, named for <em>coffea namorokensis</em> and universally called "a cup of sleep." The military gets around fatigue with a strictly rotating sleep schedule instead, so rokensis turns up mostly in the divisions where sleep is nobody's job to regulate.</li>
+<li><strong>Four</strong> is the Pomen number — four Elites, Cosmic's four minds, the four-pointed star — and unlucky, associated with death. Five belongs to the Pomeroys, after Ronnie's starfruit.</li>
+<li><strong>Religious succession</strong> works like a papal conclave: the chosen figure takes a new name and an invented lineage. See Arkan Black.</li>
+</ul>` },
       ],
     },
     {
@@ -1044,6 +1233,10 @@ export const wiki: WikiContent = {
         { id: "b1", heading: "", image: '', caption: '',
           html: `<p><strong>Malus Robotica</strong> — Latin for “robotic apple” — is the Pluto of its system: small, farthest from its sun, nearly frozen. The Empire’s weapons research lives here under Captain Cameo, in labs built almost entirely underground; frozen surface air is piped down to cool the server halls, and the hot exhaust is piped back up. This is where Cosmic goes for repairs, and where the Empire’s remaining engineering talent is effectively imprisoned by its own usefulness.</p>
 <p>In the endgame, its role inverts: after Cosmic falls, Cameo trades the Empire’s entire weapons program for asylum, and the planet’s massive teleportation array moves <strong>the whole world</strong> into Earth’s solar system — the largest defection in the war, and the reason Jonagold and Ambrosia must finally come to Earth in person.</p>` },
+        { id: "b2", heading: "The engineering floor", image: '', caption: '',
+          html: `<p>Malus Robotica runs to several sectors and a formal hierarchy: an Engineering Head (<strong>Cameo</strong>), a Vice Engineering Head, and junior engineers in residency. Its present staff includes <strong>Arthur</strong>, the identical twins <strong>Yarlington</strong> and <strong>Brout</strong>, a Vice Head also called Arthur and a junior also called Arthur — the Empire recycles names constantly, and Cameo has given up: "We have too many Arthurs in this department."</p>
+
+<p>The Arthurs have become a running joke on their own terms. They keep surviving things. The creators' description is an anti-red-shirt.</p>` },
       ],
     },
     {
@@ -1085,6 +1278,17 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b4", heading: "Vegetables", image: '', caption: '',
           html: `<p>Vegetables are the system’s deliberate mystery: they do nothing for humans and grant Pomens temporary, random mutations. Nobody explains this. Lingon has looked into it and reports, contentedly, that it makes no sense.</p>` },
+        { id: "b5", heading: "One fruit at a time", image: '', caption: '',
+          html: `<p>A body can only hold <strong>one</strong> Power Fruit. That is the rule, and the interesting part is what happens when it is bent rather than broken.</p>
+
+<p>Bonding is proportional to consumption. Ronnie ate ninety-nine percent of her starfruit and gave the last piece to her dog, so when she later ate the <strong>Kiwi</strong> there was exactly one percent of capacity left for it to take. She has the Kiwi's power and no safe way to channel it: her body adapted itself to the starfruit and carries no protection for a second fruit, so the two fight, and she bleeds and sickens after every strenuous use. Two fruits in one body is not a power-up. It is an injury that grants wishes.</p>
+
+<p>The physical boost a fruit gives is large enough to be conspicuous — large enough that an athlete who suddenly gets much stronger will be accused of doping, and large enough that the size of the jump is itself a clue to who a Pomeroy is.</p>` },
+        { id: "b6", heading: "Two more fruits", image: '', caption: '',
+          html: `<ul class="facts">
+<li><strong>Durian</strong> Extraordinary heat resistance — carried by one of the Elites</li>
+<li><strong>Kiwi</strong> Wishes, at a price; insomnia and prophetic dreams are its only safe expression</li>
+</ul>` },
       ],
     },
     {
@@ -1093,7 +1297,7 @@ export const wiki: WikiContent = {
       title: "Pomeroys",
       category: "term",
       summary:
-        "The fruit-empowered — Earth’s magical girls and everyone like them. Visors, identity cloaks, accelerated healing, and one dog.",
+        "The fruit-empowered — Earth’s magical girls and everyone like them. Visors, virtue-bound identity cloaks, accelerated healing, and one dog.",
       image: "",
       published: true,
       body: '',
@@ -1103,12 +1307,22 @@ export const wiki: WikiContent = {
         { id: "b2", heading: "Shared rules", image: '', caption: '',
           html: `<ul>
 <li><strong>The face covering.</strong> Every Pomeroy’s transformation includes something over part of the face — a visor, Liz’s bow, Wolfgang’s bandana, Alphonso’s ready-made mask.</li>
-<li><strong>The identity cloak.</strong> A mental barrier hides a Pomeroy’s identity from all non-Pomeroys, no matter how obvious it should be — a layer of sparkles subtly bending light. Between Pomeroys it does nothing, which is why the polite ones simply keep each other’s secrets.</li>
+<li><strong>The identity cloak.</strong> A Pomeroy’s identity is hidden from all non-Pomeroys, no matter how obvious it should be. It is not a disguise and it does not alter the face: because Pomeroys are <em>virtue</em>-based, an onlooker can only ever hold on to the personality and the virtues a Pomeroy shows, and <strong>physical details will not stay in the memory at all</strong>. Try to recall whether the woman who saved you was Black, tan or white, and your mind simply goes blank. Between Pomeroys it does nothing, which is why the polite ones simply keep each other’s secrets.</li>
 <li><strong>Durability.</strong> Baseline enhanced strength, speed, and toughness — bulletproof, though sustained fire still imparts force. Healing is accelerated (a four-month injury in four weeks) but never instant, and the toughness vanishes on power-down.</li>
 <li><strong>Team looks.</strong> On transforming, the five get matching flair — dresses for some, suits for others — and pushing to full power layers armor over it. Qwiwi, mutating her way through a handbag of vegetables, is the exception to everything.</li>
 </ul>` },
         { id: "b3", heading: "Power Blends", image: '', caption: '',
           html: `<p>Team-up attacks that combine two bearers’ powers into something neither owns alone — rare, spectacular, and saved for the moments that earn them.</p>` },
+        { id: "b4", heading: "How a Pomeroy is actually found out", image: '', caption: '',
+          html: `<p>Because the cloak hides <em>appearance</em> and not <em>behaviour</em>, working out who a Pomeroy is means reasoning about them rather than looking at them — and the two directions look completely different.</p>
+
+<p>Ronnie identifies Lulu by deduction: a fruit's physical boost is enormous, and the only person in Pittscoke who would jump that far is the town's star athlete. Lulu identifies Ronnie by accident: she cannot retain a single physical detail about Starburst, and gets there only because Ronnie overplays her hand acting suspicious. As far as Lulu can reason it out, Starburst could be any average Joe in town.</p>
+
+<p>The long-term plan is not a dramatic unmasking at all. Once the girls have done enough for the community, Pittscoke is expected to quietly work it out collectively — and to say nothing. The O'Malleys are the model: Desmond and Moira figure out what their daughter is, add a starfruit meringue to the café menu, and never mention it to her.</p>` },
+        { id: "b5", heading: "The look", image: '', caption: '',
+          html: `<p>There is no team uniform. The five have <strong>differing individual motifs unified by a visor</strong>, on the reasoning that what ties the group together is a pursuit of independence and free expression, and putting them in matching outfits would flatly contradict it.</p>
+
+<p>The original concept did have a full sailor theme — a relic of an earlier version in which the protagonist was trans masc. When the protagonist became trans fem the theme went with it, and the only surviving trace is <strong>Lady Starburst</strong>, who keeps hers.</p>` },
       ],
     },
     {
@@ -1160,6 +1374,10 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "Naming note", image: '', caption: '',
           html: `<p>Ronnie names the monsters after old comics and movies she’s seen, and thinks she is being clever. No one ever gets the reference.</p>` },
+        { id: "b4", heading: "Where they actually come from", image: '', caption: '',
+          html: `<p>The monsters are a mistake, and the science team knows it. Their transformations trace to a specific <strong>chemical compound</strong> — a Pomen Science Division error that Qwiwi's team spends a stretch of the story quietly covering up while Red Delicious, of all people, is doing her job in good faith. <strong>Sal</strong> is the one who finally identifies the exact compound responsible; <strong>Boyse</strong> and Sal are running those experiments through chapter three.</p>
+
+<p>The <strong>Fermenticore</strong> deserves its own note: it is intelligent and genuinely philosophical, and it is far too drunk to do anything with either, alcohol seeping out of every pore in its body.</p>` },
       ],
     },
     {
@@ -1183,6 +1401,10 @@ export const wiki: WikiContent = {
           html: `<p>Ronnie’s magical-girl form is a rush — the stress vanishes while it lasts and crashes back after, doubling as a taste of a fully realised transition and as a deliberate drug-abuse allegory. The power fantasy is real, and it is not a cure; the story is about what grows in the gap between the two.</p>` },
         { id: "b5", heading: "Camp as honesty", image: '', caption: '',
           html: `<p>Ronnie’s thesis — why people love sincere work even when it is “bad” — is the comic talking about itself. Fruit Pop wears its pulp openly: chapter-opening dream sequences in vintage halftone, monsters named after old comics, a hero who shouts “Starburst Finger” and regrets it forever. Sincerity is the armor; the story is exactly what it says it is.</p>` },
+        { id: "b6", heading: "Balance, not just freedom", image: '', caption: '',
+          html: `<p>The thesis has a second half that the early material only implied: <strong>the story is not only about seeking your own independence, it is about finding balance within it.</strong> Both leads fail the second part in opposite directions. Baby is the freest of the five and is therefore aimless, with nothing to point herself at but the Pomen threat. Ronnie indulges her fruit to a genuinely unhealthy degree and causes problems on a global scale doing it. Independence is the goal; the cost of overshooting it is the plot.</p>
+
+<p>The <strong>Elites</strong> are what that failure looks like at the end of the line — four people who gave in to their fruits completely and have no self left. Vulnerability is treated as the antidote and as a craft problem: Ronnie manages it, and Liz, Lulu and especially Baby are the ones the creators have to work at.</p>` },
       ],
     },
     {
@@ -1206,6 +1428,14 @@ export const wiki: WikiContent = {
           html: `<p>Envy’s last stand. Cosmic arrives — the walking apocalypse — and Pittscoke pays the price the story has been deferring; the world’s Pomeroys, the government, allied Pomens, and one last monster from Gala and Smith tear the machine apart together. Cameo defects and teleports Malus Robotica into Earth’s solar system; Jonagold and Ambrosia must finally travel in person. Arkan Black tells Ronnie the truth of Mother, and dies for it. The finale runs in two movements: the girls against the Elites in the Orchard’s rafters while Ronnie falls into the green tanks and puts Mother to rest — then the Orchard falls on Pittscoke, and the last fight against Ambrosia’s screaming mechanical remnant ends in the ruins of Ranger Stadium, the whole team bracing Ronnie through one final, endless beam.</p>` },
         { id: "b5", heading: "After", image: '', caption: '',
           html: `<p>The last scene is a fake-out: Ronnie wakes in the café, the girls lounging around, Qwiwi painted human, everyone gaslighting her that nothing ever happened — held exactly long enough to hurt before they crack up laughing. The dreamer’s story was real. A ten-year epilogue is on the table: an expanded café, a fashion label, an eyepatch, a child named by two people who love each other, and a world with new islands in it.</p>` },
+        { id: "b6", heading: "Three seasons, in one line each", image: '', caption: '',
+          html: `<p><strong>Season one</strong> — Ronnie works out what her fruit is and, by the end, glimpses what it could do. <strong>Season two</strong> — she explores the limit, discovers there isn't one, and has to learn how much she can use before she stops being herself; she finds that balance and rediscovers who she is. <strong>Season three</strong> — she meets the <strong>Elites</strong>, who are her own worst dream already come true.</p>` },
+        { id: "b7", heading: "Fixed points late in the story", image: '', caption: '',
+          html: `<ul>
+<li><strong>The fall of Red Delicious</strong> — after which the Pomen Corps starts posting bounties on Pomeroys, and Ronnie becomes the most wanted thing in the Empire.</li>
+<li><strong>Red becomes Lucy</strong> — mind gone, left a harmless sweetheart, possibly in love with the local private investigator.</li>
+<li><strong>Ronnie and Baby marry.</strong> The guest list has already been argued over: McIntosh yes, Red yes ("she's practically a new person"), Cameo only if he leaves before the reception, Champlain no — he'd make it about himself — and Arkan Black no, not even if he offers to officiate for free. Qwiwi negotiates which captains get invited. All the reformed captains are, as the artist notes, confirmed war criminals.</li>
+</ul>` },
       ],
     },
     {
@@ -1227,7 +1457,158 @@ export const wiki: WikiContent = {
           html: `<p>Chapters are written long (Chapter 1 ran about fourteen thousand words), adapted to a target of roughly forty pages, and opened — every one — with a different pulp-comic dream sequence that doubles as foreshadowing. Rules the creators hold themselves to: lore reaches the reader only through characters’ own accounts, never an omniscient dump; the mystery box stays shut; no fate, no ass-pulls, and any miracle must be paid for. The censored-swear budget is three per chapter, and Baby spends most of it.</p>` },
         { id: "b4", heading: "House flavor", image: '', caption: '',
           html: `<p>Streets in Pittscoke are named for writers the author loves; professors are named for game-industry writers; captains are named for apple cultivars (over seven thousand were consulted; the most baffling real cultivar found was “Beefsteak”). The Mayor of Pittscoke is one creator’s canonized self-insert, and Taffy is the other’s. The site you are reading lives in Ronnie’s colors.</p>` },
+        { id: "b5", heading: "Method, and its limits", image: '', caption: '',
+          html: `<p>The writer's stated process is worth recording because it explains a lot of the wiki's open questions: <em>"I write on vibes and very rarely do ANYTHING on purpose. I never plan shit out and let the characters breathe and make their own decisions."</em> Parallels the artist finds in the work — Baby and Jean Grey, Qwiwi and Nightcrawler — are usually discovered after the fact rather than planted.</p>
+
+<p><em>Twin Peaks</em> entered the picture late, around January 2026, while chapter two was being written, and has since become one of the strongest influences on the series: Red as Audrey, Lucy as her ending, the Pittscoke P.I., and the register of Ronnie's dreams. The <em>Drawn to Life</em> games are named as the backbone of the writer's whole creative philosophy — a decaying god who abandoned his creations, and a world that only exists as a comatose child's dream — which is the clearest available statement of where Ambrosia came from.</p>` },
+        { id: "b6", heading: "Where the work is", image: '', caption: '',
+          html: `<ul class="facts">
+<li><strong>Chapter 1</strong> Titled "Fruits and the Stars"</li>
+<li><strong>Chapter 2</strong> Ends with Juicejaw's defeat</li>
+<li><strong>Chapter 3</strong> Restarted in a new direction; opens the day after Juicejaw</li>
+<li><strong>Pages</strong> Drawn 2:3</li>
+<li><strong>Structure</strong> Three seasons</li>
+</ul>
+
+<p>The site being built alongside the comic pairs each page with the matching passage of the prose it was adapted from, which is the feature the writer is proudest of, and will carry its own built-in wiki rather than sending readers elsewhere for it. Supplementary lore — ranks, star keys, bounties — is written in the spirit of <em>One Piece</em> and <em>Star Wars</em>: not load-bearing for the plot, there for anyone who wants to go further in.</p>` },
+      ],
+    },    {
+      id: "wk-star-keys",
+      slug: "star-keys",
+      title: "Rank and Star Keys",
+      category: "term",
+      summary:
+        "How the Pomen Empire sorts its own: a four-digit number, a ladder of ranks bought with survival, and the stars that buy back your name.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p>Every Pomen is a number. A name from a list of roughly sixteen hundred, four digits after it, and a life spent trying to get rid of the digits.</p>
+
+<p><strong>Star keys</strong> are the way out. Each time a Pomen accomplishes something critical on the Empire's behalf they receive one, and it blocks out a digit of their choosing — Qwiwi #0000 becomes Qwiwi #00✱0 — along with an automatic promotion, up as far as Captain. Star out all four and you are eligible to become <strong>Admiral</strong>, and permitted to keep your own seeds and found a family line of your own. It is the Empire's way of making a few extraordinary people feel less like a number and more like a figurehead.</p>` },
+        { id: "b2", heading: "What each star buys", image: '', caption: '',
+          html: `<ul class="facts">
+<li><strong>One star</strong> The right to buy and own land, discounts on goods, extra off-duty time — roughly 80,000 Pomens, literally the one percent</li>
+<li><strong>Two stars</strong> The right to supervise a colony — about 4,000</li>
+<li><strong>Three stars</strong> The right to oversee a planet — about 300</li>
+<li><strong>Four stars</strong> The right to keep your seeds and start a family, and possibly to meet and serve the Elites directly — about 50</li>
+</ul>
+
+<p>Rank and stars are separate axes, and the gap between them is legible to everyone. A captain with no stars is a walking question: how did they get that high without earning a single act of valor? They must have cheated the system, or done something the Empire would rather not print, or they are simply another number that happens to be strong. <strong>Envy</strong> is that captain.</p>
+
+<p>The cruelty is in the aging. Live long enough without reaching four stars and people stop respecting you — which is <strong>Cameo</strong>'s entire life, and a threat hanging over <strong>Elden</strong>, who has been at three for a very long time.</p>` },
+        { id: "b3", heading: "The ladder", image: '', caption: '',
+          html: `<ul>
+<li><strong>Private</strong> — where everyone starts. Pomens are raised as soldiers by default, educated, trained and frontline-ready by sixteen.</li>
+<li><strong>Corporal</strong> (~1,000,000) — automatic on surviving your first four battles.</li>
+<li><strong>Sergeant</strong> (~200,000) — four more missions survived. Runs a squad of twelve to twenty.</li>
+<li><strong>Major</strong> (~40,000) — twelve missions, and your squad has to outperform the others in the platoon. Comfier and further from the front, which means watching your back for the people below you.</li>
+<li><strong>Lieutenant</strong> (~10,000) — twenty-four missions and a platoon that outperforms the division. Commands eight hundred to fifteen hundred, or assists a Captain.</li>
+<li><strong>Captain</strong> (~2,000) — no longer about surviving. Reserved for overwhelming strength, real tactical intellect, or plain political charm. Answers to the Admiral.</li>
+<li><strong>Admiral</strong> — requires four stars, which about fifty captains have.</li>
+<li><strong>Special</strong> — for those leading something other than soldiers. <strong>Arkan Black</strong> (religion), <strong>Red Delicious</strong> (propaganda), <strong>Qwiwi</strong> (Science Team Special Assignment: Gaia).</li>
+</ul>` },
+        { id: "b4", heading: "Money, and the card", image: '', caption: '',
+          html: `<p>Soldiers are paid a monthly credit allowance from Private upward — a thousand a month at the bottom, fifteen hundred for a Corporal, two thousand for a Sergeant. Rations and supplies are <em>not</em> issued: you order them, and you pay for them out of that. Most of the lower ranks spend their time garrisoned, waiting for the next mission somebody above them decides on.</p>
+
+<p>All of it lives on an ID keycard — name, number, rank, and however many stars you have managed. The numbers are chosen to say things. <strong>Elden</strong> is 1✱✱✱ because he was number one in his day; <strong>McIntosh</strong> is 0✱2✱, still a two beside that legacy; <strong>Red Delicious</strong>'s last digit is a 0, because underneath all the prestige it is shallow, and everything she built returns to zero.</p>` },
+        { id: "b5", heading: "Who is exempt", image: '', caption: '',
+          html: `<p>Family-line Pomens — <strong>Gala</strong>, <strong>Smith</strong>, <strong>Champlain</strong> — were never assigned numbers, so none of this touches them. Other Pomens read that exactly as nepotism.</p>
+
+<p>Two Pomens with the same name who both reach four stars would be told apart by epithet rather than number: Arthur the Acclaimed, "Red Cavalier" Arthur. Anyone who gets that far is distinct enough that you would know which one was meant anyway.</p>` },
       ],
     },
+    {
+      id: "wk-pomen-corps",
+      slug: "the-pomen-corps",
+      title: "The Pomen Corps",
+      category: "term",
+      summary:
+        "The Empire's bounty guilds — where a sergeant can trade a salary for a hunt, and where Ronnie is worth fifty million credits and four stars to whoever brings her in.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p>Make Sergeant and the Empire offers a choice: take command of your own unit, or join the <strong>Pomen Corps</strong>. Corps members take a cut to their salary and in exchange may join a guild and collect <strong>bounties</strong>, which can be worth many times what commanding would have paid. Guild members usually team up on a target and split the reward.</p>
+
+<p><strong>Envy</strong> always solos them.</p>` },
+        { id: "b2", heading: "After Red", image: '', caption: '',
+          html: `<p>Following the fall of <strong>Red Delicious</strong>, the Corps added a new category: <strong>Pomeroys</strong>. Bring one in, dead or alive, and hand over their Power Fruit, and you receive an automatic star key.</p>
+
+<p><strong>Lady Starburst</strong> is the exception at the top of the board — worth an automatic <strong>four</strong> star keys and <strong>fifty million credits</strong>, which is roughly two thousand years of a sergeant's salary. It is the cap; every other bounty in the setting is scaled underneath it. The writer's summary: they really do hate her.</p>
+
+<p>The system is deliberately kept shallower than the wanted posters it is riffing on — closer to a lampshade on <em>One Piece</em> than a rival to it, worldbuilding rather than plot.</p>` },
+      ],
+    },
+    {
+      id: "wk-flyspeck",
+      slug: "the-flyspeck-program",
+      title: "The Flyspeck Program",
+      category: "term",
+      summary:
+        "A covert Pomen conditioning programme that unlocked Qwiwi's and Envy's potential and took their autonomy with it — and which neither of them was ever told about.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p>The <strong>Flyspeck Program</strong> was run out of the psychology branch of the Science Division by a captain named <strong>Democrat</strong> — by all accounts highly manipulative and a ripe bastard. Its subjects were not volunteers and were never informed. What it did was draw out latent potential; what it cost was autonomy.</p>
+
+<p>Two of its subjects matter to the story: <strong>Qwiwi</strong> and <strong>Envy</strong>, who were conditioned together and have carried it ever since without knowing.</p>` },
+        { id: "b2", heading: "The trigger", image: '', caption: '',
+          html: `<p>A Flyspeck sleeper activates on one of two conditions: the subject <strong>proclaims their intentions against the Empire</strong>, or <strong>somebody makes them aware of the programme itself</strong>. Both are things that happen to people who are starting to think for themselves, which is the point — the conditioning is designed to catch exactly the moment its subject stops being reliable.</p>
+
+<p>Envy worked out what was being done to them and killed Democrat for it. By then the work was finished, and killing the architect did nothing to undo it.</p>` },
+        { id: "b3", heading: "Why it replaced the double agent", image: '', caption: '',
+          html: `<p>An earlier version of Qwiwi's story had her as a knowing double agent, quietly serving the Elites' hidden agenda. The writer rejected it as flatly out of character — it did not match who she is. The sleeper programme is what replaced it, and it lets both things be true at once: Qwiwi has always genuinely been herself, and everyone above her assumed she had the Empire's interests at heart because she was brilliant and she delivered.</p>` },
+      ],
+    },
+    {
+      id: "wk-project-gaia",
+      slug: "project-gaia",
+      title: "Project Gaia",
+      category: "term",
+      summary:
+        "The Empire's operation against Earth: strip the planet of Power Fruits before a single Pomeroy can rise. Its stated goal was never the real one.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p><strong>Project Gaia</strong> is the Pomen operation on Earth, and the reason there are Pomens in Pittscoke at all. Its stated objective is to infiltrate the planet and harvest as many <strong>Power Fruits</strong> as possible — reducing the Pomeroy threat before it has a chance to begin.</p>
+
+<p><strong>Red Delicious</strong> was placed in charge of it, with <strong>Qwiwi</strong> as her vice chief of science answering only to her. Red took the assignment for a specific reason: succeeding would earn her the fourth star key, and with it the right to keep her own seeds and found a family line.</p>` },
+        { id: "b2", heading: "The objective underneath", image: '', caption: '',
+          html: `<p>Gaia had a second goal, concealed from the woman running it: <strong>secure the Kiwi.</strong> The <strong>Elites</strong> have been directing the operation from the beginning as an extension of Ambrosia's will, and neither Red nor anyone reporting to her was told what the mission was actually for.</p>
+
+<p>The irony is total. Because no one knew what they were looking for, <strong>Qwiwi found the Kiwi first and simply kept it</strong> — using the most sought-after object in the operation as a handbag. The whole hidden agenda was defeated by a scientist who thought she had picked up something useful.</p>` },
+      ],
+    },
+    {
+      id: "wk-drakenstein",
+      slug: "drakenstein",
+      title: "Drakenstein",
+      category: "character",
+      summary:
+        "The Man Who Would Arm God — the Pomen engineer who built a chassis to save his people's lives, and was ordered to put four dead Elites inside it.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<blockquote><p><strong>The Man Who Would Arm God.</strong></p></blockquote>
+
+<p><strong>Drakenstein</strong> built the body Cosmic lives in. It was, in its original conception, a piece of straightforward decency: a state-of-the-art combat chassis meant to go where Pomen soldiers went and lower the casualty count — a machine to stop his people dying.</p>` },
+        { id: "b2", heading: "The meeting", image: '', caption: '',
+          html: `<p>He presented it at the Orchard, in the aftermath of the closest thing to an assassination Ambrosia had faced in centuries. Four <strong>Elites</strong> lay dead from it. Ambrosia was impressed by what he had made, and gave him an order: put the four minds inside it, so that they could take their vengeance on the species that had killed them.</p>
+
+<p>At least one surviving Elite oversaw the process and made sure it went to plan. What Drakenstein had built to save Pomen lives left that room as an instrument of genocide, and the epithet followed him: he armed a god, and the god knew exactly what she wanted the weapon for.</p>` },
+        { id: "b3", heading: "Details", image: '', caption: '',
+          html: `<p>He addresses Ambrosia directly, which in the Empire's terms means he carries <strong>four star keys</strong> — nobody speaks to her without them. He ran a team of his own, including an engineer named <strong>Arthur</strong>; the name recurs generations later on <strong>Cameo</strong>'s team at Malus Robotica, which is the sort of coincidence the Empire's constant recycling of names produces on its own.</p>` },
+      ],
+    },
+
   ],
 };
