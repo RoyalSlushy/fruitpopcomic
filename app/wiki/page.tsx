@@ -35,7 +35,7 @@ export default async function WikiIndex() {
               /* Grouping lives in a client component so an entry whose
                  category changes in the editor walks to its new shelf without
                  a save-and-reload. See WikiIndexList for the shape. */
-              <WikiIndexList categories={wiki.categories} entries={wiki.entries} />
+              <WikiIndexList categories={wiki.categories} entries={wiki.entries} list={wiki.list} />
             )}
           </div>
         </div>

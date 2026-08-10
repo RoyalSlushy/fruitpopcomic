@@ -47,6 +47,11 @@ export type WikiEntry = {
 
 export type WikiContent = {
   categories: { id: WikiCategory; label: string }[];
+  /* The index folds each shelf past `limit` cards behind a button — 28
+     character cards in one wall buries the other shelves below it. 0 turns
+     folding off. `more` and `less` are the button's two labels; the card
+     count is appended to `more` in code. */
+  list: { limit: number; more: string; less: string };
   empty: { title: string; body: string; cta: string; ctaHref: string };
   entries: WikiEntry[];
 };
@@ -63,6 +68,11 @@ export const wiki: WikiContent = {
     { id: 'term',      label: 'Concepts' },
     { id: 'lore',      label: 'Story' },
   ],
+  list: {
+    limit: 6,
+    more: 'See all',
+    less: 'Show fewer',
+  },
   empty: {
     title: 'Nothing written yet',
     body: 'The wiki is real and it is empty. Characters, places, and lore go here once the creator writes them — an empty shelf is honest, an invented one isn’t.',

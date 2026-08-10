@@ -109,6 +109,8 @@ export const LABELS: Record<string, string> = {
   'wiki.entries.*.summary': 'Index summary',
   'wiki.entries.*.category': 'Category',
   'wiki.categories.*.label': 'Category name',
+  'wiki.list.more': '"See all" button — the count is added after it',
+  'wiki.list.less': '"Show fewer" button',
   'wiki.entries.*.body': 'Body (legacy) — superseded by sections',
   'wiki.entries.*.image': 'Entry picture',
   /* Drives ListControlsImpl's copy: "+ Add section", "Delete this section?" */

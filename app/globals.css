@@ -1924,6 +1924,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .wiki__card-sum{font-size:.8125rem;line-height:1.35;color:var(--ink-soft)}
 
+/* Under a folded shelf. Right-aligned, where the "see all" links on the
+   dashboard already live, so the eye that learned one finds the other. */
+.wiki__more{margin:.7rem 0 0;display:flex;justify-content:flex-end}
+
 .wiki__back{margin:0 0 1.1rem}
 .wiki__article{max-width:68ch}
 .wiki__hero{
