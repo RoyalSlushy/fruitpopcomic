@@ -107,6 +107,8 @@ export const LABELS: Record<string, string> = {
   'wiki.entries.*.title': 'Entry title',
   'wiki.entries.*.slug': 'URL slug',
   'wiki.entries.*.summary': 'Index summary',
+  'wiki.entries.*.category': 'Category',
+  'wiki.categories.*.label': 'Category name',
   'wiki.entries.*.body': 'Body (legacy) — superseded by sections',
   'wiki.entries.*.image': 'Entry picture',
   /* Drives ListControlsImpl's copy: "+ Add section", "Delete this section?" */

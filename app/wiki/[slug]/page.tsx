@@ -5,6 +5,7 @@ import { EditableText } from '../../../components/cms/EditableText.tsx';
 import { EditableFigure } from '../../../components/cms/EditableFigure.tsx';
 import { Speak } from '../../../components/site/Speak.tsx';
 import { WikiBlocks } from '../../../components/site/WikiBlocks.tsx';
+import { WikiTag } from '../../../components/site/WikiTag.tsx';
 import { passage, toSpeech } from '../../../lib/speech.ts';
 import { blocksOf, blocksToHTML } from '../../../lib/wiki.ts';
 
@@ -19,7 +20,6 @@ export default async function WikiEntry({ params }: { params: Promise<{ slug: st
   const entry = wiki.entries.find((e) => e.slug === slug && e.published);
   if (!entry) notFound();
   const i = wiki.entries.indexOf(entry);
-  const cat = wiki.categories.find((c) => c.id === entry.category);
 
   /* One panel per section rather than one panel for the lot. Every panel here
      is rotated a fraction of a degree, and a rotation pivots about the centre:
@@ -51,7 +51,7 @@ export default async function WikiEntry({ params }: { params: Promise<{ slug: st
                   value={entry.image}
                   alt=""
                 />
-                <p className="wiki__tag">{cat?.label ?? 'Lore'}</p>
+                <WikiTag entryIndex={i} category={entry.category} categories={wiki.categories} />
                 <EditableText as="h2" path={`wiki.entries.${i}.title`} value={entry.title} />
                 <EditableText
                   as="p" className="wiki__sum"

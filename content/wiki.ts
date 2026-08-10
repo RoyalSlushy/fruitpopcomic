@@ -52,11 +52,16 @@ export type WikiContent = {
 };
 
 export const wiki: WikiContent = {
+  /* Category IDS are storage values — they sit on every entry, here and in
+     any row the CMS has already saved — so they stay what they were even
+     where the visitor-facing LABEL has moved on: 'place' reads as World,
+     'term' as Concepts, 'lore' as Story. Renaming an id would orphan every
+     stored entry carrying the old one. */
   categories: [
     { id: 'character', label: 'Characters' },
-    { id: 'place',     label: 'Places' },
-    { id: 'term',      label: 'Terms' },
-    { id: 'lore',      label: 'Lore' },
+    { id: 'place',     label: 'World' },
+    { id: 'term',      label: 'Concepts' },
+    { id: 'lore',      label: 'Story' },
   ],
   empty: {
     title: 'Nothing written yet',
@@ -835,6 +840,30 @@ export const wiki: WikiContent = {
       ],
     },
     {
+      id: "wk-the-world",
+      slug: "the-world-of-fruit-pop",
+      title: "The World of Fruit Pop",
+      category: "place",
+      summary:
+        "An alternate Earth flipped in half — carbon-powered cities, weather that closes the oceans, one-way migrations, and a climate that keeps every culture a world of its own.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p>Fruit Pop takes place on an <strong>alternate Earth</strong>: the continents split differently, the hemispheres effectively flipped, the oceans on what the creators call climate-change steroids. Civilization was nomadic until humans harnessed carbon as an energy source; now cities run on a mix of electricity and carbonation — vending machines sell pressurized cans that power tools and vehicles on a deposit system, trolleys carry rooftop tanks, and steam vents heat whole neighbourhoods.</p>` },
+        { id: "b2", heading: "Why the world feels small and huge at once", image: '', caption: '',
+          html: `<ul>
+<li><strong>Localized internet.</strong> Constant extreme weather ruins satellites; every city runs its own contained network with its own culture. Libraries and newspapers thrive. So does local weirdness — see Poptown.</li>
+<li><strong>Rail over road.</strong> No highways worth the name and no commercial airlines; rails resist the weather, so trains carry everything — five to eight hours between cities, tickets kept cheap the way gasoline is kept cheap.</li>
+<li><strong>The weather phenomena.</strong> Between countries, ordinary travel is nearly impossible — except during rare stabilization events that pass over a region once every fifty to eighty years and last a couple of weeks. Whole migrations ride these windows: the O’Malleys came to Pittscoke in the last one, the Rangers two or three phenomena ago, and the international baking contest exists on their schedule. Once you move, there is no good way back — and wars between nations are logistically impossible during the events.</li>
+<li><strong>Anachronism on purpose.</strong> Rotary phones, BlackBerries, CD players and smartphones coexist; the rule for what tech a character carries is simply what fits them.</li>
+</ul>` },
+        { id: "b3", heading: "The thematic loop", image: '', caption: '',
+          html: `<p>The hostile climate isolates cultures — and the story’s heroes literally reconnect the world. Ronnie’s star flowers absorb carbon and stabilize the air wherever her dreams leak; as the girls travel, the world knits together behind them, which is the theme of the whole comic played out in weather.</p>` },
+      ],
+    },
+    {
       id: "wk-pittscoke",
       slug: "pittscoke",
       title: "Pittscoke",
@@ -948,6 +977,27 @@ export const wiki: WikiContent = {
       ],
     },
     {
+      id: "wk-pomens",
+      slug: "pomens",
+      title: "The Pomens",
+      category: "place",
+      summary:
+        "The apple-motif alien empire: cool-skinned, stem-haired, sprouted from seeds in military batches, and bound to a machine god they are too afraid to unplug.",
+      image: "",
+      published: true,
+      body: '',
+      blocks: [
+        { id: "b1", heading: "", image: '', caption: '',
+          html: `<p>The <strong>Pomens</strong> are a plant-based alien species — cool-colored skin in blues, greens, and purples, never warm; a little tuft of hair that sticks up like an apple stem; a sensitivity to cold; and a civilization that has been at war so long it has forgotten why. Their name descends from the old botanical word for an apple orchard, and everything about their Empire keeps the theme: captains named for apple cultivars, ships bearing the regal apple names no person is permitted to carry, and a four-pointed star for an ensign — an apple in silhouette whose negative space hides the star of Ambrosia, and which becomes a skull with three more lines.</p>` },
+        { id: "b2", heading: "Life cycle and society", image: '', caption: '',
+          html: `<p>Pomens are conceived as seeds, surrendered to the Empire, and planted in batches — up to twenty seeds to a unit, raised together by an assigned sergeant, regarding each other as siblings. Most never know their biological parents; a structured family is a status symbol reserved for the decorated few (the Smith line; Champlain’s house). A Pomen year runs three times faster than Earth’s: maturity at eighteen equivalent, death before a hundred. In a culture where life is short and expendable, the young look down on the old, propaganda urges everyone to breed for the war machine, and — as the creators put it — everything is about power, including that.</p>` },
+        { id: "b3", heading: "Culture", image: '', caption: '',
+          html: `<p>No swearing; fruit idioms instead — “Dear Mother”, “Fruit bears many seeds.” A propaganda comic, the Red Comet, that will eventually name a real hero. Technology in full cassette futurism: chunky terminals, tape spools, inaccurate faster-than-light travel that scatters fleets across solar systems, and long-range calls that must relay through the ICA at the center of the galaxy. They cannot rebuild their own best machines — the think tank that built Ambrosia left no blueprints, and only two positronic brains remain in the cosmos.</p>` },
+        { id: "b4", heading: "The tragedy", image: '', caption: '',
+          html: `<p>Modern Pomens believe their species was always a cruel conqueror; almost no history of Mother’s peaceful era survives. They cannot hold fruit power — the fruits reject a culture that only takes — and they worship, fear, and pray <em>away</em> the attention of the machine that rules them. Many defect the moment it feels survivable; Pomen refugees on Earth become one of the story’s late arcs, with Qwiwi as their ambassador. A hidden tribe of spiritually intact Pomens, descended from those who fled Mother’s fall, is planned to enter the story from the margins.</p>` },
+      ],
+    },
+    {
       id: "wk-the-orchard",
       slug: "the-orchard",
       title: "The Orchard",
@@ -1052,27 +1102,6 @@ export const wiki: WikiContent = {
       ],
     },
     {
-      id: "wk-pomens",
-      slug: "pomens",
-      title: "The Pomens",
-      category: "term",
-      summary:
-        "The apple-motif alien empire: cool-skinned, stem-haired, sprouted from seeds in military batches, and bound to a machine god they are too afraid to unplug.",
-      image: "",
-      published: true,
-      body: '',
-      blocks: [
-        { id: "b1", heading: "", image: '', caption: '',
-          html: `<p>The <strong>Pomens</strong> are a plant-based alien species — cool-colored skin in blues, greens, and purples, never warm; a little tuft of hair that sticks up like an apple stem; a sensitivity to cold; and a civilization that has been at war so long it has forgotten why. Their name descends from the old botanical word for an apple orchard, and everything about their Empire keeps the theme: captains named for apple cultivars, ships bearing the regal apple names no person is permitted to carry, and a four-pointed star for an ensign — an apple in silhouette whose negative space hides the star of Ambrosia, and which becomes a skull with three more lines.</p>` },
-        { id: "b2", heading: "Life cycle and society", image: '', caption: '',
-          html: `<p>Pomens are conceived as seeds, surrendered to the Empire, and planted in batches — up to twenty seeds to a unit, raised together by an assigned sergeant, regarding each other as siblings. Most never know their biological parents; a structured family is a status symbol reserved for the decorated few (the Smith line; Champlain’s house). A Pomen year runs three times faster than Earth’s: maturity at eighteen equivalent, death before a hundred. In a culture where life is short and expendable, the young look down on the old, propaganda urges everyone to breed for the war machine, and — as the creators put it — everything is about power, including that.</p>` },
-        { id: "b3", heading: "Culture", image: '', caption: '',
-          html: `<p>No swearing; fruit idioms instead — “Dear Mother”, “Fruit bears many seeds.” A propaganda comic, the Red Comet, that will eventually name a real hero. Technology in full cassette futurism: chunky terminals, tape spools, inaccurate faster-than-light travel that scatters fleets across solar systems, and long-range calls that must relay through the ICA at the center of the galaxy. They cannot rebuild their own best machines — the think tank that built Ambrosia left no blueprints, and only two positronic brains remain in the cosmos.</p>` },
-        { id: "b4", heading: "The tragedy", image: '', caption: '',
-          html: `<p>Modern Pomens believe their species was always a cruel conqueror; almost no history of Mother’s peaceful era survives. They cannot hold fruit power — the fruits reject a culture that only takes — and they worship, fear, and pray <em>away</em> the attention of the machine that rules them. Many defect the moment it feels survivable; Pomen refugees on Earth become one of the story’s late arcs, with Qwiwi as their ambassador. A hidden tribe of spiritually intact Pomens, descended from those who fled Mother’s fall, is planned to enter the story from the margins.</p>` },
-      ],
-    },
-    {
       id: "wk-fruit-poppers",
       slug: "the-fruit-poppers",
       title: "The Fruit Poppers",
@@ -1121,30 +1150,6 @@ export const wiki: WikiContent = {
 </ul>` },
         { id: "b3", heading: "Naming note", image: '', caption: '',
           html: `<p>Ronnie names the monsters after old comics and movies she’s seen, and thinks she is being clever. No one ever gets the reference.</p>` },
-      ],
-    },
-    {
-      id: "wk-the-world",
-      slug: "the-world-of-fruit-pop",
-      title: "The World of Fruit Pop",
-      category: "lore",
-      summary:
-        "An alternate Earth flipped in half — carbon-powered cities, weather that closes the oceans, one-way migrations, and a climate that keeps every culture a world of its own.",
-      image: "",
-      published: true,
-      body: '',
-      blocks: [
-        { id: "b1", heading: "", image: '', caption: '',
-          html: `<p>Fruit Pop takes place on an <strong>alternate Earth</strong>: the continents split differently, the hemispheres effectively flipped, the oceans on what the creators call climate-change steroids. Civilization was nomadic until humans harnessed carbon as an energy source; now cities run on a mix of electricity and carbonation — vending machines sell pressurized cans that power tools and vehicles on a deposit system, trolleys carry rooftop tanks, and steam vents heat whole neighbourhoods.</p>` },
-        { id: "b2", heading: "Why the world feels small and huge at once", image: '', caption: '',
-          html: `<ul>
-<li><strong>Localized internet.</strong> Constant extreme weather ruins satellites; every city runs its own contained network with its own culture. Libraries and newspapers thrive. So does local weirdness — see Poptown.</li>
-<li><strong>Rail over road.</strong> No highways worth the name and no commercial airlines; rails resist the weather, so trains carry everything — five to eight hours between cities, tickets kept cheap the way gasoline is kept cheap.</li>
-<li><strong>The weather phenomena.</strong> Between countries, ordinary travel is nearly impossible — except during rare stabilization events that pass over a region once every fifty to eighty years and last a couple of weeks. Whole migrations ride these windows: the O’Malleys came to Pittscoke in the last one, the Rangers two or three phenomena ago, and the international baking contest exists on their schedule. Once you move, there is no good way back — and wars between nations are logistically impossible during the events.</li>
-<li><strong>Anachronism on purpose.</strong> Rotary phones, BlackBerries, CD players and smartphones coexist; the rule for what tech a character carries is simply what fits them.</li>
-</ul>` },
-        { id: "b3", heading: "The thematic loop", image: '', caption: '',
-          html: `<p>The hostile climate isolates cultures — and the story’s heroes literally reconnect the world. Ronnie’s star flowers absorb carbon and stabilize the air wherever her dreams leak; as the girls travel, the world knits together behind them, which is the theme of the whole comic played out in weather.</p>` },
       ],
     },
     {
@@ -1213,5 +1218,6 @@ export const wiki: WikiContent = {
         { id: "b4", heading: "House flavor", image: '', caption: '',
           html: `<p>Streets in Pittscoke are named for writers the author loves; professors are named for game-industry writers; captains are named for apple cultivars (over seven thousand were consulted; the most baffling real cultivar found was “Beefsteak”). The Mayor of Pittscoke is one creator’s canonized self-insert, and Taffy is the other’s. The site you are reading lives in Ronnie’s colors.</p>` },
       ],
-    },  ],
+    },
+  ],
 };

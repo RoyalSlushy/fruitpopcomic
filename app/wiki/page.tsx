@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getSection } from '../../lib/cms-server.ts';
 import { EditableText } from '../../components/cms/EditableText.tsx';
-import { EditableImage } from '../../components/cms/EditableImage.tsx';
+import { WikiIndexList } from '../../components/site/WikiIndexList.tsx';
 
 export default async function WikiIndex() {
   const wiki = await getSection('wiki');
@@ -32,37 +32,10 @@ export default async function WikiIndex() {
                 <Link className="btn btn--solid" href={wiki.empty.ctaHref}>{wiki.empty.cta}</Link>
               </div>
             ) : (
-              <div className="wiki">
-                {wiki.categories.map((cat) => {
-                  const rows = live.filter((e) => e.category === cat.id);
-                  if (!rows.length) return null;
-                  return (
-                    <section className="wiki__group" key={cat.id}>
-                      <h3 className="wiki__cat">{cat.label}</h3>
-                      <ul className="wiki__list">
-                        {rows.map((e) => {
-                          const i = wiki.entries.indexOf(e);
-                          return (
-                            <li key={e.id || e.slug}>
-                              <Link className="wiki__card" href={`/wiki/${encodeURIComponent(e.slug)}`}>
-                                {e.image
-                                  ? <EditableImage path={`wiki.entries.${i}.image`} value={e.image} alt="" width={120} height={120} />
-                                  : <span className="wiki__card-mark" aria-hidden="true" />}
-                                <span className="wiki__card-body">
-                                  <EditableText as="span" className="wiki__card-title" path={`wiki.entries.${i}.title`} value={e.title} />
-                                  {e.summary && (
-                                    <EditableText as="span" className="wiki__card-sum" path={`wiki.entries.${i}.summary`} value={e.summary} multiline />
-                                  )}
-                                </span>
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </section>
-                  );
-                })}
-              </div>
+              /* Grouping lives in a client component so an entry whose
+                 category changes in the editor walks to its new shelf without
+                 a save-and-reload. See WikiIndexList for the shape. */
+              <WikiIndexList categories={wiki.categories} entries={wiki.entries} />
             )}
           </div>
         </div>

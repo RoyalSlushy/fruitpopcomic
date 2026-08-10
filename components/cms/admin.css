@@ -807,3 +807,20 @@ html:has(.view--read[data-drawer="script"]) .cms-bar:not(.is-slim) {
    Its own row under the last panel rather than inside one: a section is a
    panel, so the button that makes one belongs between them. */
 .wiki__add { margin: .2rem 0 0; display: flex; justify-content: center }
+
+/* ── the category picker ─────────────────────────────────────
+   Lives inside the entry page's .wiki__tag pill, which already carries the
+   colour, border and type — the select just has to disappear into it. The
+   dropdown list itself is browser chrome and stays that way. */
+.cms-cat {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.cms-cat:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px }
+.cms-cat option { background: var(--navy); color: #fff; text-transform: none }
