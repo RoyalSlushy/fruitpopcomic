@@ -2015,6 +2015,22 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .prose strong{color:#fff}
 .prose em{color:#fff}
 .prose a{color:var(--gold)}
+/* Cross-links to other entries. Underlined rather than only recoloured: gold
+   is already the prose's emphasis colour, so colour alone did not separate a
+   link from a heading or a marker. The line is dimmed until hover so a
+   paragraph carrying six of them still reads as a paragraph. */
+.prose .wikilink{
+  text-decoration:underline;
+  text-decoration-color:color-mix(in srgb, var(--gold) 45%, transparent);
+  text-underline-offset:.15em;
+  text-decoration-thickness:1.5px;
+  border-radius:2px;
+  transition:color .14s, background-color .14s, text-decoration-color .14s;
+}
+.prose .wikilink:hover,.prose .wikilink:focus-visible{
+  text-decoration-color:currentColor;
+  background:rgba(252,176,64,.12);
+}
 .prose ul,.prose ol{margin:0 0 1rem;padding-left:1.35rem;color:#DCE6FA}
 .prose li{margin:0 0 .5rem}
 .prose li::marker{color:var(--gold)}

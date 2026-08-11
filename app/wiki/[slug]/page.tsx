@@ -63,7 +63,14 @@ export default async function WikiEntry({ params }: { params: Promise<{ slug: st
         </div>
       </div>
 
-      <WikiBlocks entryIndex={i} blocks={entry.blocks} body={entry.body} style={gold} />
+      <WikiBlocks
+        entryIndex={i}
+        blocks={entry.blocks}
+        body={entry.body}
+        slug={entry.slug}
+        entries={wiki.entries}
+        style={gold}
+      />
     </section>
   );
 }

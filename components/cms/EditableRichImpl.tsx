@@ -43,10 +43,13 @@ const blockIs = (tag: string): boolean => {
 };
 
 export default function EditableRichImpl({
-  path, html, className,
+  path, html, display, className,
 }: {
   path: string;
+  /** The stored prose — what a session opens on and commits back. */
   html: string;
+  /** The decorated prose — what is drawn while no session is open. */
+  display?: string;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -65,9 +68,11 @@ export default function EditableRichImpl({
 
   const open = useCallback(() => {
     if (session.current) return;
-    /* Freeze to the REAL value. Freezing what is on screen would hand the
-       creator a box pre-filled with the ghost text to delete. */
-    session.current = { frozen: blank ? '' : (ref.current?.innerHTML ?? html) };
+    /* Freeze to the `html` PROP, never to what is on screen. The two differ
+       on purpose: the screen is showing ghost text for a blank field, or
+       prose with cross-links woven through it, and either one read out of the
+       DOM would be committed back as though the creator had typed it. */
+    session.current = { frozen: blank ? '' : html };
     setEditing(true);
   }, [blank, html]);
 
@@ -178,7 +183,7 @@ export default function EditableRichImpl({
           open();
         }}
         data-cms-blank={blank ? '' : undefined}
-        dangerouslySetInnerHTML={{ __html: blank ? '<p>Write this section…</p>' : html }}
+        dangerouslySetInnerHTML={{ __html: blank ? '<p>Write this section…</p>' : (display ?? html) }}
       />
     );
   }

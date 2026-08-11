@@ -6,7 +6,8 @@ import { EditableFigure } from '../cms/EditableFigure.tsx';
 import { ListControls, ListAdd } from '../cms/ListControls.tsx';
 import { useCmsValue, useEditMode } from '../../lib/cms-context.tsx';
 import { blocksOf, isBlankBlock } from '../../lib/wiki.ts';
-import type { WikiBlock } from '../../content/wiki.ts';
+import { buildIndex, linkify } from '../../lib/wikilinks.ts';
+import type { WikiBlock, WikiEntry } from '../../content/wiki.ts';
 
 /* An entry's sections, one panel each.
  *
@@ -21,18 +22,32 @@ import type { WikiBlock } from '../../content/wiki.ts';
  * column. A section per panel keeps each box short enough for the tilt to
  * read as a tilt. */
 
-export function WikiBlocks({ entryIndex, blocks, body, style }: {
+export function WikiBlocks({ entryIndex, blocks, body, slug, entries, style }: {
   entryIndex: number;
   blocks: WikiBlock[];
   /** the legacy one-string body, rendered when the entry has no blocks */
   body: string;
+  /** this entry's own slug, so it never links to itself */
+  slug: string;
+  /** every entry, for the cross-link index */
+  entries: WikiEntry[];
   style?: React.CSSProperties;
 }) {
   const listPath = `wiki.entries.${entryIndex}.blocks`;
   const live = useCmsValue<WikiBlock[]>(listPath, blocks);
+  const allEntries = useCmsValue<WikiEntry[]>('wiki.entries', entries);
   const editing = useEditMode();
 
   const all = blocksOf({ blocks: live, body });
+
+  /* Cross-links, woven in at render and never stored. `used` is threaded
+     through the blocks in order so the FIRST mention anywhere in the entry
+     links and the rest stay plain — the encyclopedia rule. Built from the
+     draft entry list, so an entry added or renamed in the editor changes the
+     links immediately. See lib/wikilinks.ts. */
+  const index = buildIndex(allEntries);
+  const used = new Set<string>();
+  const linked = all.map((b) => linkify(b.html, index, slug, used));
 
   /* The block list is only addressable when the entry actually STORES blocks.
      An entry still on the legacy body renders sections derived from it, and
@@ -74,7 +89,11 @@ export function WikiBlocks({ entryIndex, blocks, body, style }: {
                   captionValue={b.caption}
                   alt={b.caption}
                 />
-                <EditableRich path={`${listPath}.${n}.html`} value={b.html} />
+                <EditableRich
+                  path={`${listPath}.${n}.html`}
+                  value={b.html}
+                  display={linked[n]}
+                />
               </div>
             </div>
           </div>
