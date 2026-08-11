@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EditableText } from '../cms/EditableText.tsx';
 import { EditableImage } from '../cms/EditableImage.tsx';
 import { useCmsValue } from '../../lib/cms-context.tsx';
@@ -22,9 +22,15 @@ import type { WikiContent, WikiEntry } from '../../content/wiki.ts';
  * than silently vanishing from the index, which is what it used to do.
  *
  * Long shelves FOLD. Twenty-eight character cards in one run buried the
- * World shelf a screen and a half down, so a shelf shows `list.limit` cards
- * and puts the rest behind "See all N". Folded is a starting state, not a
- * navigation: the button expands in place and offers to fold back. */
+ * World shelf a screen and a half down, so a shelf shows about `list.limit`
+ * cards and puts the rest behind "See all". Folded is a starting state, not a
+ * navigation: the button expands in place and offers to fold back.
+ *
+ * "About" because a folded shelf is snapped to WHOLE ROWS. The grid is
+ * auto-fill, so the column count is one to four depending on the window, and
+ * a flat count of six left a ragged half-row hanging under a full one at four
+ * columns. The limit is now a target that gets rounded to the nearest whole
+ * number of rows, which is why it has to be measured rather than assumed. */
 
 export function WikiIndexList({ categories, entries, list }: {
   categories: WikiContent['categories'];
@@ -49,12 +55,26 @@ export function WikiIndexList({ categories, entries, list }: {
   const known = new Set<string>(cats.map((c) => c.id));
   const loose = live.filter((e) => !known.has(e.category));
 
+  /* Every shelf uses the same grid in the same container, so one measurement
+     answers for all of them. 0 until mounted — the server cannot know the
+     window width, so it renders the raw limit and the first client pass
+     settles it. */
+  const host = useRef<HTMLDivElement>(null);
+  const cols = useColumns(host);
+
+  /* The limit, rounded to whole rows. Six cards across four columns is a full
+     row and a stranded pair; eight is two clean rows. At three columns and
+     below, six was already exact and nothing moves. */
+  const perFold = cols > 0
+    ? Math.max(cols, Math.round(fold.limit / cols) * cols)
+    : fold.limit;
+
   const shelf = (key: string, rows: WikiEntry[]) => {
-    /* `limit + 1`, not `limit`: a button standing in for ONE hidden card
+    /* `perFold + 1`, not `perFold`: a button standing in for ONE hidden card
        costs a click to save no space — the card is smaller than the button.
        Folding starts where it starts paying. */
-    const folds = fold.limit > 0 && rows.length > fold.limit + 1;
-    const shown = folds && !open.has(key) ? rows.slice(0, fold.limit) : rows;
+    const folds = fold.limit > 0 && rows.length > perFold + 1;
+    const shown = folds && !open.has(key) ? rows.slice(0, perFold) : rows;
 
     return (
       <>
@@ -89,9 +109,14 @@ export function WikiIndexList({ categories, entries, list }: {
               aria-controls={`wiki-shelf-${key}`}
               onClick={() => toggle(key)}
             >
-              {open.has(key)
-                ? <EditableText as="span" path="wiki.list.less" value={fold.less} />
-                : <><EditableText as="span" path="wiki.list.more" value={fold.more} /> {rows.length}</>}
+              {/* No count. It read as a quantity of things you were about to
+                  be given rather than as a control, and it was the loudest
+                  part of a button whose whole job is to be quiet. */}
+              <EditableText
+                as="span"
+                path={open.has(key) ? 'wiki.list.less' : 'wiki.list.more'}
+                value={open.has(key) ? fold.less : fold.more}
+              />
             </button>
           </p>
         )}
@@ -100,7 +125,7 @@ export function WikiIndexList({ categories, entries, list }: {
   };
 
   return (
-    <div className="wiki">
+    <div className="wiki" ref={host}>
       {cats.map((cat, ci) => {
         const rows = live.filter((e) => e.category === cat.id);
         if (!rows.length) return null;
@@ -120,4 +145,36 @@ export function WikiIndexList({ categories, entries, list }: {
       )}
     </div>
   );
+}
+
+/* How many columns the card grid is currently drawing.
+ *
+ * Read off the resolved `grid-template-columns`, which auto-fill has already
+ * turned into a concrete list of track sizes — the browser has done the
+ * arithmetic, so there is nothing here to keep in step with the CSS. Returns
+ * 0 before the first measurement, which callers read as "not known yet". */
+function useColumns(host: React.RefObject<HTMLElement | null>): number {
+  const [cols, setCols] = useState(0);
+
+  useEffect(() => {
+    const root = host.current;
+    if (!root) return;
+
+    const measure = () => {
+      const grid = root.querySelector('.wiki__list');
+      if (!grid) return;
+      const tracks = getComputedStyle(grid).gridTemplateColumns;
+      const n = tracks.split(' ').filter(Boolean).length;
+      /* `none` on a display:none grid resolves to one bogus track. Ignoring
+         it keeps a hidden shelf from collapsing the count to 1. */
+      if (n > 0 && tracks !== 'none') setCols(n);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(root);
+    return () => ro.disconnect();
+  }, [host]);
+
+  return cols;
 }
