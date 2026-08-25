@@ -520,7 +520,40 @@ html[data-drawer="open"] .scrim{
 .dash__drafts{rotate:-1.1deg;z-index:2;--cut:var(--cut-fall)}
 .dash__status{rotate:1.70deg;z-index:3;--cut:var(--cut-rise)}
 .dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
-.dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
+/* The first-screen wrapper is not a box here. `display:contents` drops it out
+   of the box tree entirely, so .dash still lays out five panels as five grid
+   items and every rule below addresses them directly — the phone's layout has
+   no idea the element exists. It becomes a real grid only at the width where
+   the dashboard has to be sized against the window (see the ≥1024 block).
+
+   The two rules under it are the cost: `.dash > .slab` no longer reaches the
+   three panels inside the wrapper, because selectors read the DOM and
+   display:contents changes only the boxes. Matching on descent instead picks
+   up every panel wherever it sits; the second rule re-links the seam, since
+   the panel after the wrapper has no .slab sibling before it. */
+.dash__screen{display:contents}
+.dash .slab + .slab{margin-top:calc(var(--gap) * -.4)}
+.dash__screen + .slab{margin-top:calc(var(--gap) * -.4)}
+
+/* ── phone running order ────────────────────────────────────
+   Quick access comes up above the chapters. On a phone the
+   panels are a column and the column is long: a visitor who did
+   not come to read has to scroll the whole chapter rail before
+   finding anything else, which is the same reason quick access
+   sits under the hero rather than under the shelf on desktop
+   (see the ≥860 block). Order only — the DOM keeps the reading
+   order it had, and the negative margins that close the tilt
+   gaps still land on every panel but the first one shown.
+
+   Alternating tilt is the point of this stack, and quick access
+   arriving after the hero puts two leftward panels together, so
+   it leans the other way while it is here. The ≥860 block puts
+   its own tilt back. */
+.dash__hot   {order:1}
+.dash__quick {order:2;rotate:.75deg}
+.dash__start {order:3}
+.dash__drafts{order:4}
+.dash__status{order:5}
 
 /* ── the inked panel ────────────────────────────────────────
    The white keyline is not a border: a border would be clipped
@@ -641,10 +674,18 @@ html[data-drawer="open"] .scrim{
   --plate:var(--magenta-dp);
   min-height:clamp(300px,42vw,440px);
 }
-.hero .ch__in{flex-direction:row;gap:var(--keyline);background:#fff}
+/* No gap between the picture and the caption box, and no white behind the
+   picture. The gap was the tile's own white showing through as a rule down
+   the middle, which framed the artwork as a pasted-in photograph; the fill
+   behind it did the same job for a PNG, turning every transparent pixel
+   white. Both gone, so the channel colour is what sits behind the art and a
+   cut-out reads as a cut-out. The tile's outer keyline stays — that one is
+   the sticker edge every panel on the site shares, not a frame on the
+   picture. */
+.hero .ch__in{flex-direction:row;background:var(--ch)}
 .hero__screen{
   position:relative;flex:1 1 50%;min-width:0;
-  background:#fff;overflow:hidden;
+  background:transparent;overflow:hidden;
 }
 /* out of flow: the page is 2:3, and left in flow its own ratio would
    set the hero's height instead of the other way round */
@@ -749,6 +790,12 @@ html[data-drawer="open"] .scrim{
 .rank__thumb{
   flex:0 0 auto;width:38px;height:57px;object-fit:cover;
   border:2px solid #fff;border-radius:3px;background:#fff;
+}
+/* A chapter whose first page is written but not drawn, or which has no pages
+   at all. It holds the cover's exact footprint rather than collapsing, so the
+   titles beside it stay on one left edge down the list. */
+.rank__thumb--blank{
+  border-color:var(--navy-line);background:var(--navy);
 }
 .rank__label{
   flex:1;min-width:0;
@@ -1890,6 +1937,10 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 }
 .wiki__card-sum{font-size:.8125rem;line-height:1.35;color:var(--ink-soft)}
 
+/* Under a folded shelf. Right-aligned, where the "see all" links on the
+   dashboard already live, so the eye that learned one finds the other. */
+.wiki__more{margin:.7rem 0 0;display:flex;justify-content:flex-end}
+
 .wiki__back{margin:0 0 1.1rem}
 .wiki__article{max-width:68ch}
 .wiki__hero{
@@ -1912,6 +1963,53 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .wiki__sum{margin:0 0 1.2rem;color:var(--ink-soft);font-size:1.0625rem}
 .wiki__article .prose{padding:0;max-width:none}
 
+/* ── an entry's sections, one panel each ────────────────────
+   Every panel on this site is rotated a fraction of a degree, and a rotation
+   pivots about the centre: the taller the box, the further its top and bottom
+   corners swing off the column's own edges. At four paragraphs that is the
+   house tilt. At forty it is a page that looks like it slipped. So an entry
+   body is cut at its <h3>s and each section gets its own panel — short boxes,
+   each leaning its own way, which is the dashboard's spread applied to a
+   reading page. See lib/wiki.ts.
+
+   Column and gap rather than the dashboard's negative margins: those exist to
+   make panels bite into each other, and biting is wrong here — a paragraph
+   that runs under the next panel's keyline is a paragraph you cannot read. */
+.view--wiki{display:flex;flex-direction:column;gap:clamp(.7rem,1.8vw,1.1rem)}
+.view--wiki>.slab:nth-child(odd){rotate:-.4deg}
+.view--wiki>.slab:nth-child(even){rotate:.45deg}
+
+/* The heading's top margin is spacing from the section BEFORE it, and in its
+   own panel there is no section before it — the panel's padding is the gap
+   now. Same at the foot, where a trailing paragraph margin would read as a
+   short panel with a dead strip along the bottom. */
+.wiki__section .prose>:first-child{margin-top:0}
+.wiki__section .prose>:last-child{margin-bottom:0}
+.wiki__block>:first-child{margin-top:0}
+.wiki__block>:last-child{margin-bottom:0}
+
+/* The heading and its editing controls share a line. Empty — no heading, and
+   a visitor who has no controls either — it collapses rather than leaving a
+   blank row above the text. */
+.wiki__block-head{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.wiki__block-head:empty{display:none}
+.wiki__block-title{margin:0 0 .6rem}
+.wiki__block-head>.wiki__block-title{margin-bottom:0}
+.wiki__block-head + *{margin-top:.6rem}
+
+/* A section's picture. Sized to the column and never taller than a screenful,
+   so a portrait drawing cannot push the words it belongs to out of view. */
+.wiki__fig{margin:0 0 1.1rem}
+.wiki__fig img{
+  display:block;width:100%;max-height:min(60vh,420px);
+  object-fit:contain;object-position:left center;
+  border-radius:var(--r-sm);background:var(--navy);
+}
+.wiki__fig figcaption{
+  margin-top:.45rem;
+  font-size:.8125rem;line-height:1.35;color:var(--ink-soft);
+}
+
 /* ── prose ──────────────────────────────────────────────── */
 
 .prose{padding:clamp(1.25rem,4vw,2.25rem);max-width:68ch}
@@ -1930,6 +2028,22 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .prose strong{color:#fff}
 .prose em{color:#fff}
 .prose a{color:var(--gold)}
+/* Cross-links to other entries. Underlined rather than only recoloured: gold
+   is already the prose's emphasis colour, so colour alone did not separate a
+   link from a heading or a marker. The line is dimmed until hover so a
+   paragraph carrying six of them still reads as a paragraph. */
+.prose .wikilink{
+  text-decoration:underline;
+  text-decoration-color:color-mix(in srgb, var(--gold) 45%, transparent);
+  text-underline-offset:.15em;
+  text-decoration-thickness:1.5px;
+  border-radius:2px;
+  transition:color .14s, background-color .14s, text-decoration-color .14s;
+}
+.prose .wikilink:hover,.prose .wikilink:focus-visible{
+  text-decoration-color:currentColor;
+  background:rgba(252,176,64,.12);
+}
 .prose ul,.prose ol{margin:0 0 1rem;padding-left:1.35rem;color:#DCE6FA}
 .prose li{margin:0 0 .5rem}
 .prose li::marker{color:var(--gold)}
@@ -1991,19 +2105,46 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     grid-template-columns:repeat(12,minmax(0,1fr));
     gap:calc(var(--gap) + .35rem);
   }
-  .dash>.slab + .slab{margin-top:0}
+  .dash .slab + .slab,
+  .dash__screen + .slab{margin-top:0}
 
   /* Quick access sits directly under the two top panels: it is the only row
      that is navigation rather than the comic, and a visitor who did not come
      to read should not have to pass the whole draft shelf to find it. The
      rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
-  .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
-  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem}
+  /* Hugs its rows instead of stretching to the hero beside it. A chapter list
+     is short by nature — one row where the page list had five — and stretched
+     to the hero's height it was mostly empty navy under a single entry. Sized
+     to its content it stays a list; as chapters are added it grows back into
+     the row on its own. */
+  .dash__start {grid-column:9/13; grid-row:1; align-self:start; margin-left:-1.15rem;margin-top:1.1rem}
+  .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem; rotate:-.55deg}
+
+  /* Placement is explicit above, so the phone's `order` has nothing left to
+     say about position — but it still sets paint order among items whose
+     z-index is auto, and leaving it set would be a rule doing invisible work
+     in the one layout it was never written for. */
+  .dash .slab{order:0}
   .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
   .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
   .crumb{display:flex}
+
+  /* ── the dashboard drops the strip's furniture ─────────────
+     The crumb numbers and names the section you are in, and the
+     readout reports pages, cast and status. Both are answers to
+     questions the dashboard is already answering, louder and in
+     its own voice: the hero says what this is, the chapter rail
+     counts the pages, and Build status is a whole panel about
+     what is and is not finished. Repeating them in a strip above
+     was the site introducing itself twice before the artwork got
+     a word in.
+
+     Home only. Everywhere else the crumb is the one thing on
+     screen saying which section you are in, and it stays. */
+  .shell[data-section="home"] .crumb,
+  .shell[data-section="home"] .readout{display:none}
 }
 
 /* ≥1024: the rail becomes furniture, the tab bar and drawer retire.
@@ -2012,6 +2153,60 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    silently shrink the starfield. */
 @media (min-width:1024px){
   :root{--rail:238px;--tabh:0px}
+
+  /* The burger and the wordmark retire into the rail at this width, so with
+     the crumb and the readout gone the dashboard's strip is an empty box with
+     padding — 88px of nothing between the top of the window and the hero.
+     Collapsed rather than emptied. Narrower than this the burger and wordmark
+     are still in there and still the only way out, so the bar stays. */
+  .shell[data-section="home"] .sysbar{display:none}
+
+  /* The strip was also the dashboard's headroom. Every panel here is rotated
+     a fraction of a degree, so its corners — and the ribbon overhanging the
+     top of one — sit a few pixels ABOVE the box's own edge; against the top of
+     the window they were being clipped. Enough padding to clear the tilt and
+     breathe, which is still a fraction of the 88px the strip was taking. */
+  .shell[data-section="home"] main{padding-top:var(--dash-top)}
+
+  /* ── the dashboard's first screen ──────────────────────────
+     The hero, the chapter rail beside it and quick access under both are one
+     unit measured against the window: exactly as tall as the space the strip
+     used to sit in, no more. The drafts and the build status begin under the
+     fold, which is the point — a dashboard whose every panel is visible at
+     once has nothing left to reward a scroll.
+
+     `--dash-top` is declared once and spent twice, as the padding above and
+     as the amount taken off the window below, so the two cannot drift apart.
+
+     The hero row is the flexible one: `1fr` hands it every pixel the other
+     row does not want, and the panel inside is already a flex column whose
+     tile is `flex:1`, so the artwork grows rather than the box growing around
+     it. The chapter rail keeps `align-self:start` and stays the height of its
+     own list.
+
+     THE SHORT-WINDOW RULE lives in the `minmax`. On a window too short to
+     hold both, the hero keeps the floor it is given and quick access is what
+     slides under the fold — the min-height is a MINIMUM, so the grid grows
+     past the window rather than crushing the picture to fit. */
+  .shell[data-section="home"]{--dash-top:clamp(1rem,2.4vw,1.6rem)}
+
+  .dash__screen{
+    display:grid;
+    grid-column:1/13;
+    grid-row:1;
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    grid-template-rows:minmax(clamp(260px,56dvh,540px),1fr) auto;
+    gap:calc(var(--gap) + .35rem);
+    min-block-size:calc(100dvh - var(--dash-top));
+  }
+
+  /* The row is the authority on how tall the hero is now, so the tile's own
+     floor would only fight it. */
+  .dash__hot .hero{min-block-size:0}
+
+  /* One row up: the wrapper occupies what used to be rows 1 and 2. */
+  .dash__drafts,
+  .dash__status{grid-row:2}
 
   .shell{
     padding-left:var(--rail);

@@ -6,6 +6,7 @@ import { Glyph } from '../components/site/Glyph.tsx';
 import { QuickRail } from '../components/site/QuickRail.tsx';
 import { Reel } from '../components/site/Reel.tsx';
 import { pad, mediaURL } from '../lib/media.ts';
+import { group, isScriptPage } from '../lib/chapters.ts';
 
 /* The dashboard. A server component: every editable value is passed to a leaf
    <EditableText> as `value`, so visitor markup and editor markup are the same. */
@@ -18,13 +19,26 @@ export default async function HomePage() {
   ]);
 
   const first = pages.items[0];
-  const rank = pages.items.slice(0, Math.max(0, home.startHere.count));
+
+  /* CHAPTERS, not pages. This rail listed the first few drafts, which made it
+     a second copy of the strip below it — the same ten thumbnails, numbered
+     twice. A chapter is the unit a reader picks, so the rail lists those and
+     the drafts panel keeps the pages. `count` caps the list the same way it
+     always did; /read holds the rest. */
+  const rank = group(pages.chapters, pages.items)
+    .slice(0, Math.max(0, home.startHere.count));
 
   return (
     <section className="view view--home">
       <h1 className="sr-only">Fruit Pop Comic</h1>
 
       <div className="dash">
+        {/* THE FIRST SCREEN — the hero, the chapter rail and quick access.
+            A wrapper only so those three can be sized against the window as
+            one unit on a desktop; it is `display:contents` everywhere else,
+            so on a phone the five panels are still five siblings of .dash and
+            nothing about that layout knows this element exists. */}
+        <div className="dash__screen">
         {/* THE HERO */}
         {/* The channel hue is set on the SLAB, not on the tile inside it. The
             plinth under a cut panel is painted by the slab — a clip-path clips
@@ -44,9 +58,19 @@ export default async function HomePage() {
                 interior edge. This is that something. */}
             <span className="ch__in">
               <span className="hero__screen">
+                {/* The biggest picture on the site, and until now the only one
+                    with no way to change it — it is page one's artwork, so it
+                    was editable everywhere except where it is actually seen.
+                    EditableImage puts the replace control on it in edit mode
+                    and renders the same bare <img> for everyone else. */}
                 {first ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mediaURL(first.image)} alt="" width={1080} height={1620} />
+                  <EditableImage
+                    path="pages.items.0.image"
+                    value={first.image}
+                    alt=""
+                    width={1080}
+                    height={1620}
+                  />
                 ) : null}
                 <span className="ch__scan" aria-hidden="true" />
               </span>
@@ -68,19 +92,35 @@ export default async function HomePage() {
         <div className="slab dash__start" style={{ '--ch': 'var(--gold)', '--ch-dp': 'var(--gold-dp)' } as React.CSSProperties}>
           <EditableText as="span" className="ribbon" path="home.ribbons.start" value={home.ribbons.start} />
           <div className="pane">
-            <h2 className="sr-only">Start here — the first drafts in order</h2>
+            <h2 className="sr-only">Start here — the chapters in order</h2>
             <ol className="rank">
-              {rank.map((p, i) => (
-                <li key={p.id}>
-                  <Link className="rank__row" href={`/read/${i + 1}`}>
-                    <span className="rank__n">{pad(i)}</span>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="rank__thumb" src={mediaURL(p.thumb || p.image)} alt="" width={38} height={57} />
-                    <span className="rank__label">{p.isDraft ? 'Draft' : 'Page'} {pad(i)}</span>
-                    <span className="rank__chip">{p.stage}</span>
-                  </Link>
-                </li>
-              ))}
+              {rank.map((g, i) => {
+                const cover = g.pages[0];
+                /* A chapter with no pages yet still gets a row — it is part of
+                   the shape of the comic — but it has nowhere to open, so it
+                   points at the shelf rather than at a page that isn't there. */
+                const href = cover ? `/read/${cover.index + 1}` : '/read';
+                const art = cover && !isScriptPage(cover.page)
+                  ? mediaURL(cover.page.thumb || cover.page.image)
+                  : '';
+                return (
+                  <li key={g.chapter?.id ?? `unsorted-${i}`}>
+                    <Link className="rank__row" href={href}>
+                      <span className="rank__n">{g.chapter ? pad(i) : '—'}</span>
+                      {art ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img className="rank__thumb" src={art} alt="" width={38} height={57} />
+                      ) : (
+                        <span className="rank__thumb rank__thumb--blank" aria-hidden="true" />
+                      )}
+                      <span className="rank__label">{g.chapter?.title ?? 'Unsorted'}</span>
+                      <span className="rank__chip">
+                        {g.pages.length} {g.pages.length === 1 ? 'page' : 'pages'}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
             <p className="rank__foot">
               <Link className="rank__all" href="/read">
@@ -120,6 +160,8 @@ export default async function HomePage() {
               ))}
             </QuickRail>
           </div>
+        </div>
+
         </div>
 
         {/* THE DRAFTS */}

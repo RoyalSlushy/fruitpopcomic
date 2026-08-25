@@ -48,8 +48,14 @@ export const TEMPLATES: Record<string, unknown> = {
 
   'wiki.entries.*': {
     id: '', slug: '', title: 'Untitled', category: 'lore',
-    summary: '', body: '', image: '', published: false,
+    summary: '', body: '', blocks: [], image: '', published: false,
   },
+  /* Load-bearing in the same way the snippet and clip templates are: entry
+     defaults that ship with blocks still gain new ones past the end of the
+     defaults, and every one of those merges over this rather than over a
+     positional default. Without it `mergeArray` warns and passes the row
+     through unmerged, so a new field would never reach existing blocks. */
+  'wiki.entries.*.blocks.*': { id: '', heading: '', html: '', image: '', caption: '' },
   'wiki.categories.*': { id: 'lore', label: 'New' },
 
   'status.rows.*': { id: '', label: 'New row', state: 'wip', note: '', chip: '' },
@@ -101,7 +107,18 @@ export const LABELS: Record<string, string> = {
   'wiki.entries.*.title': 'Entry title',
   'wiki.entries.*.slug': 'URL slug',
   'wiki.entries.*.summary': 'Index summary',
-  'wiki.entries.*.body': 'Body',
+  'wiki.entries.*.category': 'Category',
+  'wiki.categories.*.label': 'Category name',
+  'wiki.list.more': '"See all" button — the count is added after it',
+  'wiki.list.less': '"Show fewer" button',
+  'wiki.entries.*.body': 'Body (legacy) — superseded by sections',
+  'wiki.entries.*.image': 'Entry picture',
+  /* Drives ListControlsImpl's copy: "+ Add section", "Delete this section?" */
+  'wiki.entries.*.blocks.*': 'section',
+  'wiki.entries.*.blocks.*.heading': 'Section heading — leave blank for none',
+  'wiki.entries.*.blocks.*.html': 'Section text',
+  'wiki.entries.*.blocks.*.image': 'Section picture',
+  'wiki.entries.*.blocks.*.caption': 'Picture caption',
   'wiki.empty.title': 'Empty-state heading',
   'wiki.empty.body': 'Empty-state text',
 

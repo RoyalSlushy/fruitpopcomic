@@ -73,11 +73,27 @@
 /* ── the editable affordance ─────────────────────────────── */
 
 [data-cms-path] {
-  position: relative;
   outline-offset: 3px;
   border-radius: 4px;
   cursor: text;
 }
+
+/* Positioned so the hover chip below has something to hang off — but at ZERO
+   specificity, via :where(), so any element that is already positioned keeps
+   the position its own rule gave it.
+
+   Flat `[data-cms-path]{position:relative}` was an attribute selector, which
+   ties with a class and comes later in the cascade, so it beat every one of
+   them. The dashboard's DRAFTS badge is `.ch__badge{position:absolute}`, and
+   in edit mode it lost that, dropped into flow and stretched into a gold band
+   across the top of the hero. Anything absolutely placed and editable had the
+   same problem; the badge is just where it was visible.
+
+   Zero specificity is the whole fix: an element with no position rule of its
+   own still gets `relative` from here, and one that has a rule wins. The chip
+   works either way — an absolutely positioned element is a containing block
+   for its own ::after already. */
+:where([data-cms-path]) { position: relative }
 [data-cms-path]:hover { box-shadow: 0 0 0 2px rgba(252, 176, 64, .55) }
 [data-cms-path]:focus-visible { outline: 3px solid var(--gold) }
 [data-cms-path][data-cms-editing] {
@@ -110,22 +126,53 @@
 /* ── images ──────────────────────────────────────────────── */
 
 .cms-img { position: relative; display: block }
+
+/* ── the replace control ─────────────────────────────────────
+   A black disc with a white glyph, in the corner.
+
+   It used to be a gold pill reading REPLACE, centred along the bottom edge.
+   That was fine over a 38px thumbnail and wrong over artwork: on the
+   dashboard hero it sat across the middle of the drawing you were deciding
+   whether to change. An icon is small enough to stay out of the way, and
+   black-on-white survives both a pale pencil rough and a dark inked panel —
+   gold did not, which is the other half of why it moved.
+
+   The word survives as the accessible name and the tooltip, so nothing is
+   lost for a screen reader or for anyone who hovers. */
 .cms-img__btn {
   position: absolute;
-  left: 50%;
-  bottom: .4rem;
-  translate: -50% 0;
+  top: .45rem;
+  right: .45rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   cursor: pointer;
-  font-family: var(--face);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: .5625rem;
-  letter-spacing: .06em;
-  padding: .3rem .55rem;
   border-radius: 999px;
-  background: var(--gold);
-  color: var(--navy);
-  border: 2px solid #fff;
+  background: #05070E;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+  transition: background-color .16s, transform .16s, border-color .16s;
+}
+.cms-img__btn svg { width: 16px; height: 16px }
+.cms-img__btn:hover:not(:disabled) { background: var(--gold); color: var(--navy); transform: scale(1.08) }
+.cms-img__btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px }
+.cms-img__btn--del:hover:not(:disabled) { background: var(--magenta); color: #fff; border-color: #fff }
+
+.cms-img__spin {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  animation: cms-spin .7s linear infinite;
+}
+@keyframes cms-spin { to { rotate: 360deg } }
+@media (prefers-reduced-motion: reduce) {
+  .cms-img__spin { animation-duration: 2.4s }
 }
 .cms-img__err {
   position: absolute;
@@ -640,3 +687,140 @@ html:has(.view--read[data-drawer="script"]) .cms-bar:not(.is-slim) {
 }
 .cms-bar { transition: top .3s var(--ease), bottom .3s var(--ease); }
 @media (prefers-reduced-motion: reduce) { .cms-bar { transition: none; } }
+
+/* ── the hero, which is not a box ────────────────────────────
+   .cms-img is position:relative and sized by its content, but the dashboard
+   hero's <img> is taken out of flow (globals.css explains why: the page is
+   2:3 and in flow its ratio would set the panel's height rather than answer
+   it). Dropping a relative wrapper around it gave the absolute image a new
+   containing block with no height, and the picture vanished in edit mode
+   only. The wrapper takes the shape the image used to have. */
+.hero__screen .cms-img { position: absolute; inset: 0 }
+
+/* ── blank fields ────────────────────────────────────────────
+   A heading a section is allowed not to have, a caption a picture is allowed
+   not to have. Ghosted so it reads as an invitation rather than as content
+   somebody forgot to finish. Visitors never see these at all — the element
+   is not rendered for them (see EditableText's `placeholder`). */
+[data-cms-blank] {
+  opacity: .45;
+  font-style: italic;
+}
+
+/* ── the rich text box ───────────────────────────────────────
+   The box itself keeps the .prose class it renders with, so what you type is
+   drawn exactly as a reader will see it. Everything here is the furniture
+   around it. */
+.cms-rich { position: relative; display: block }
+
+.cms-rich__bar {
+  position: sticky;
+  top: .5rem;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem;
+  margin-bottom: .6rem;
+  padding: .35rem .45rem;
+  background: var(--navy);
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+.cms-rich__btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 .45rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-family: var(--face);
+  font-weight: 700;
+  font-size: .8125rem;
+  line-height: 1;
+  background: var(--navy-lift);
+  color: var(--ink-soft);
+  border: 2px solid var(--navy-line);
+  border-radius: 7px;
+}
+.cms-rich__btn:hover { color: #fff; border-color: #fff }
+.cms-rich__btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px }
+/* Pressed state, driven by the document's own command state — so it tracks
+   the caret, not what was last clicked. */
+.cms-rich__btn[data-on] { background: var(--gold); color: var(--navy); border-color: #fff }
+.cms-rich__btn--ok {
+  font-size: .625rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 0 .7rem;
+  background: var(--gold);
+  color: var(--navy);
+  border-color: #fff;
+}
+.cms-rich__sep { flex: 1 }
+
+.cms-rich [data-cms-editing] { min-height: 4rem }
+
+/* ── pictures inside a section ───────────────────────────────
+   The empty slot is deliberately large: it is the only thing on the page
+   that says a section CAN have a picture, and a control the size of a button
+   would not say it. */
+.cms-fig { position: relative }
+.cms-fig--empty { margin: 0 0 1rem }
+.cms-fig__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  padding: 1.1rem;
+  cursor: pointer;
+  font-family: var(--face);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .625rem;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+  background: rgba(12, 19, 38, .5);
+  border: 3px dashed var(--navy-line);
+  border-radius: var(--r-sm);
+  transition: color .16s, border-color .16s, background-color .16s;
+}
+.cms-fig__add svg { width: 18px; height: 18px }
+.cms-fig__add:hover { color: var(--gold); border-color: var(--gold); background: rgba(252, 176, 64, .08) }
+.cms-fig__add:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px }
+
+/* Two controls, so they cannot both sit in the same corner. */
+.cms-fig__tools {
+  position: absolute;
+  top: .45rem;
+  right: .45rem;
+  z-index: 2;
+  display: flex;
+  gap: .35rem;
+}
+.cms-fig__tools .cms-img__btn { position: static }
+
+/* ── adding a section ────────────────────────────────────────
+   Its own row under the last panel rather than inside one: a section is a
+   panel, so the button that makes one belongs between them. */
+.wiki__add { margin: .2rem 0 0; display: flex; justify-content: center }
+
+/* ── the category picker ─────────────────────────────────────
+   Lives inside the entry page's .wiki__tag pill, which already carries the
+   colour, border and type — the select just has to disappear into it. The
+   dropdown list itself is browser chrome and stays that way. */
+.cms-cat {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.cms-cat:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px }
+.cms-cat option { background: var(--navy); color: #fff; text-transform: none }
