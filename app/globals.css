@@ -697,10 +697,10 @@ html[data-drawer="open"] .scrim{
 .hero__body{
   position:relative;
   flex:1 1 50%;min-width:0;
-  /* No justify-content: the standfirst below claims every spare pixel, so
-     there is never any left for this to distribute. Title at the top, plate
-     through the middle, button on the bottom edge — three anchors instead of
-     one centred cluster that floated wherever the artwork's height put it. */
+  /* No justify-content: the button's auto margin below claims every spare
+     pixel, so there is never any left for this to distribute. Title and
+     plate at the top, button on the bottom edge — two anchors instead of one
+     centred cluster that floated wherever the artwork's height put it. */
   display:flex;flex-direction:column;
   gap:.7rem;
   padding:clamp(1.1rem,2.6vw,1.9rem);
@@ -740,19 +740,6 @@ html[data-drawer="open"] .scrim{
 /* the subtitle is small, so it moves off the bright face onto a deep-tone
    readout — the same rule the page counter follows. 4.00 → 7.37. */
 .hero__sub{
-  /* The plate is what stretches. Everything else in the box is a fixed thing
-     — a headline is as tall as its lines, a button as tall as a button — so
-     the slack the artwork's height leaves has to land somewhere, and a plate
-     is the one member of the three that can be any height without looking
-     wrong. `1 1 auto`, not `1`: a zero basis would let a short window squash
-     the copy to nothing, and its own lines are the floor.
-
-     `align-content` centres the copy in a plate taller than the text without
-     making this a flex container — it is a contenteditable field in edit
-     mode, and an anonymous flex item around the text is a caret bug waiting
-     to happen. Browsers without it leave the copy at the top, which is the
-     old look, not a broken one. */
-  flex:1 1 auto;align-content:center;
   /* 1.3, not 1.45. This is three short lines on a plate, not a paragraph — at
      the looser setting the lines read as separate statements rather than as one
      sentence running on, and the plate had to grow to hold the air. */
@@ -763,10 +750,10 @@ html[data-drawer="open"] .scrim{
   clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
 /* `auto`, so the button is held against the bottom of the caption box rather
-   than trailing .3rem under the plate wherever the plate happens to end. The
-   plate takes the slack first, so on a desktop hero the two meet at the gap;
-   the auto margin is what keeps the button on the edge in the frame or two
-   before a picture loads and in any window the plate cannot fill. */
+   than trailing .3rem under the copy wherever the copy happens to end. The
+   copy is as tall as it is and the box is as tall as the artwork beside it,
+   and this is what absorbs the difference — the button lands on the same edge
+   whatever the window does to the picture. */
 .hero .btn{align-self:flex-start;margin-block-start:auto}
 
 /* The shelf's slideshow only exists where the shelf does, which is the phone
@@ -793,23 +780,19 @@ html[data-drawer="open"] .scrim{
 .rank{
   list-style:none;margin:0;padding:0;
   display:flex;flex-direction:column;gap:.4rem;
-  /* The list is the panel's height, minus the foot. Wherever the panel is
-     taller than the rows — the spread, where it stands level with the hero —
-     the ROWS take that height rather than the list pooling it at the bottom
-     as a void with a "see all" link under it. A row is a link, so a taller
-     row is a bigger target and the chapter reads as a band rather than a
-     line; where there is no slack (a phone, a full list) every rule here is
-     inert and the list is exactly as tall as its rows.
+  /* The list is the panel's height, minus the foot — which is what puts the
+     "see all" link on the panel's bottom edge rather than tucked under the
+     last row. The ROWS keep their own height and stack from the top: a
+     chapter is a line in a list, and a list of two on a panel sized for six
+     is a list of two with room under it, not two rows stretched to fill the
+     box. The room is where the next chapters go.
 
-     `1 1 auto` on all three, never `1`. A zero basis reads as "this item has
-     no natural height" while the panel is being MEASURED rather than filled —
-     a phone sizes this pane to its contents — and the intrinsic pass then
-     equalises every row to the tallest one. Sized from their content, the
-     rows grow only where there is real slack to grow into. */
+     `1 1 auto`, never `1`. A zero basis reads as "this item has no natural
+     height" while the panel is being MEASURED rather than filled — a phone
+     sizes this pane to its contents — and the list would be laid out against
+     a height it does not have. */
   flex:1 1 auto;
 }
-.rank>li{display:flex;flex:1 1 auto}
-.rank>li>.rank__row{flex:1 1 auto}
 .rank__row{
   display:flex;align-items:center;gap:.65rem;
   padding:.35rem .45rem;
@@ -2152,11 +2135,11 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      rows keep their own overlaps — only which row each one is in changed. */
   .dash__hot   {grid-column:1/9;  grid-row:1}
   /* Full height of its row, level with the hero beside it. It hugged its
-     rows for a while, because a chapter list is short by nature — one row
-     where the page list had five — and the slack under it read as empty navy.
-     The list absorbs that slack now instead of the panel shedding it (see
-     .rank), so the column can be a column: two panels of one height, one
-     bottom edge across the spread. */
+     rows for a while — a chapter list is short by nature, one row where the
+     page list had five — but a panel that shrinks to its contents leaves the
+     column half drawn, and the spread is two panels of one height with one
+     bottom edge. The rows still stack at the top (see .rank); the navy under
+     them is where the next chapters go. */
   .dash__start {grid-column:9/13; grid-row:1; margin-left:-1.15rem;margin-top:1.1rem}
   .dash__quick {grid-column:1/13; grid-row:2; margin-top:-1rem; rotate:-.55deg}
 
@@ -2220,8 +2203,8 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      The hero row is the flexible one: `1fr` hands it every pixel the other
      row does not want, and the panel inside is already a flex column whose
      tile is `flex:1`, so the artwork grows rather than the box growing around
-     it. The chapter rail is the same height as the hero, and its rows — not a
-     gap under them — are what that height goes to.
+     it. The chapter rail is the same height as the hero, and holds its rows
+     at the top of that height.
 
      THE SHORT-WINDOW RULE lives in the `minmax`. On a window too short to
      hold both, the hero keeps the floor it is given and quick access is what
