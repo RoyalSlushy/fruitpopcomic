@@ -2116,6 +2116,21 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
   .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
   .crumb{display:flex}
+
+  /* ── the dashboard drops the strip's furniture ─────────────
+     The crumb numbers and names the section you are in, and the
+     readout reports pages, cast and status. Both are answers to
+     questions the dashboard is already answering, louder and in
+     its own voice: the hero says what this is, the chapter rail
+     counts the pages, and Build status is a whole panel about
+     what is and is not finished. Repeating them in a strip above
+     was the site introducing itself twice before the artwork got
+     a word in.
+
+     Home only. Everywhere else the crumb is the one thing on
+     screen saying which section you are in, and it stays. */
+  .shell[data-section="home"] .crumb,
+  .shell[data-section="home"] .readout{display:none}
 }
 
 /* ≥1024: the rail becomes furniture, the tab bar and drawer retire.
@@ -2124,6 +2139,20 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
    silently shrink the starfield. */
 @media (min-width:1024px){
   :root{--rail:238px;--tabh:0px}
+
+  /* The burger and the wordmark retire into the rail at this width, so with
+     the crumb and the readout gone the dashboard's strip is an empty box with
+     padding — 88px of nothing between the top of the window and the hero.
+     Collapsed rather than emptied. Narrower than this the burger and wordmark
+     are still in there and still the only way out, so the bar stays. */
+  .shell[data-section="home"] .sysbar{display:none}
+
+  /* The strip was also the dashboard's headroom. Every panel here is rotated
+     a fraction of a degree, so its corners — and the ribbon overhanging the
+     top of one — sit a few pixels ABOVE the box's own edge; against the top of
+     the window they were being clipped. Enough padding to clear the tilt and
+     breathe, which is still a fraction of the 88px the strip was taking. */
+  .shell[data-section="home"] main{padding-top:clamp(1rem,2.4vw,1.6rem)}
 
   .shell{
     padding-left:var(--rail);
