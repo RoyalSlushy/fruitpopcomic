@@ -33,6 +33,12 @@ export default async function HomePage() {
       <h1 className="sr-only">Fruit Pop Comic</h1>
 
       <div className="dash">
+        {/* THE FIRST SCREEN — the hero, the chapter rail and quick access.
+            A wrapper only so those three can be sized against the window as
+            one unit on a desktop; it is `display:contents` everywhere else,
+            so on a phone the five panels are still five siblings of .dash and
+            nothing about that layout knows this element exists. */}
+        <div className="dash__screen">
         {/* THE HERO */}
         {/* The channel hue is set on the SLAB, not on the tile inside it. The
             plinth under a cut panel is painted by the slab — a clip-path clips
@@ -154,6 +160,8 @@ export default async function HomePage() {
               ))}
             </QuickRail>
           </div>
+        </div>
+
         </div>
 
         {/* THE DRAFTS */}

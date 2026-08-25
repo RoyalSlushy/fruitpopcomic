@@ -520,7 +520,20 @@ html[data-drawer="open"] .scrim{
 .dash__drafts{rotate:-1.1deg;z-index:2;--cut:var(--cut-fall)}
 .dash__status{rotate:1.70deg;z-index:3;--cut:var(--cut-rise)}
 .dash__quick {rotate:-.55deg;z-index:4;--cut:var(--cut-band)}
-.dash>.slab + .slab{margin-top:calc(var(--gap) * -.4)}
+/* The first-screen wrapper is not a box here. `display:contents` drops it out
+   of the box tree entirely, so .dash still lays out five panels as five grid
+   items and every rule below addresses them directly — the phone's layout has
+   no idea the element exists. It becomes a real grid only at the width where
+   the dashboard has to be sized against the window (see the ≥1024 block).
+
+   The two rules under it are the cost: `.dash > .slab` no longer reaches the
+   three panels inside the wrapper, because selectors read the DOM and
+   display:contents changes only the boxes. Matching on descent instead picks
+   up every panel wherever it sits; the second rule re-links the seam, since
+   the panel after the wrapper has no .slab sibling before it. */
+.dash__screen{display:contents}
+.dash .slab + .slab{margin-top:calc(var(--gap) * -.4)}
+.dash__screen + .slab{margin-top:calc(var(--gap) * -.4)}
 
 /* ── phone running order ────────────────────────────────────
    Quick access comes up above the chapters. On a phone the
@@ -2092,7 +2105,8 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     grid-template-columns:repeat(12,minmax(0,1fr));
     gap:calc(var(--gap) + .35rem);
   }
-  .dash>.slab + .slab{margin-top:0}
+  .dash .slab + .slab,
+  .dash__screen + .slab{margin-top:0}
 
   /* Quick access sits directly under the two top panels: it is the only row
      that is navigation rather than the comic, and a visitor who did not come
@@ -2111,7 +2125,7 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      say about position — but it still sets paint order among items whose
      z-index is auto, and leaving it set would be a rule doing invisible work
      in the one layout it was never written for. */
-  .dash>.slab{order:0}
+  .dash .slab{order:0}
   .dash__drafts{grid-column:1/8;  grid-row:3; margin-top:-1.15rem;margin-right:-.6rem}
   .dash__status{grid-column:8/13; grid-row:3; margin-left:-.7rem;margin-top:-1.8rem}
 
@@ -2152,7 +2166,47 @@ a.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
      top of one — sit a few pixels ABOVE the box's own edge; against the top of
      the window they were being clipped. Enough padding to clear the tilt and
      breathe, which is still a fraction of the 88px the strip was taking. */
-  .shell[data-section="home"] main{padding-top:clamp(1rem,2.4vw,1.6rem)}
+  .shell[data-section="home"] main{padding-top:var(--dash-top)}
+
+  /* ── the dashboard's first screen ──────────────────────────
+     The hero, the chapter rail beside it and quick access under both are one
+     unit measured against the window: exactly as tall as the space the strip
+     used to sit in, no more. The drafts and the build status begin under the
+     fold, which is the point — a dashboard whose every panel is visible at
+     once has nothing left to reward a scroll.
+
+     `--dash-top` is declared once and spent twice, as the padding above and
+     as the amount taken off the window below, so the two cannot drift apart.
+
+     The hero row is the flexible one: `1fr` hands it every pixel the other
+     row does not want, and the panel inside is already a flex column whose
+     tile is `flex:1`, so the artwork grows rather than the box growing around
+     it. The chapter rail keeps `align-self:start` and stays the height of its
+     own list.
+
+     THE SHORT-WINDOW RULE lives in the `minmax`. On a window too short to
+     hold both, the hero keeps the floor it is given and quick access is what
+     slides under the fold — the min-height is a MINIMUM, so the grid grows
+     past the window rather than crushing the picture to fit. */
+  .shell[data-section="home"]{--dash-top:clamp(1rem,2.4vw,1.6rem)}
+
+  .dash__screen{
+    display:grid;
+    grid-column:1/13;
+    grid-row:1;
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    grid-template-rows:minmax(clamp(260px,56dvh,540px),1fr) auto;
+    gap:calc(var(--gap) + .35rem);
+    min-block-size:calc(100dvh - var(--dash-top));
+  }
+
+  /* The row is the authority on how tall the hero is now, so the tile's own
+     floor would only fight it. */
+  .dash__hot .hero{min-block-size:0}
+
+  /* One row up: the wrapper occupies what used to be rows 1 and 2. */
+  .dash__drafts,
+  .dash__status{grid-row:2}
 
   .shell{
     padding-left:var(--rail);
