@@ -50,7 +50,6 @@ export default async function HomePage() {
             and without one it is a gap over the artwork. */}
         <div className="slab slab--bare dash__hot" style={{ '--ch': 'var(--magenta)', '--ch-dp': 'var(--magenta-dp)', '--ch-ink': '#fff' } as React.CSSProperties}>
           <Link className="ch hero" href="/read">
-            <EditableText as="span" className="ch__badge" path="home.hero.badge" value={home.hero.badge} />
             {/* .ch__in is the tile's interior. The cut corners live on a clip-path,
                 and a clip-path clips a border square, so the white keyline is the
                 outer element's own background showing through its padding — which
